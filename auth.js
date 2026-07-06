@@ -41,7 +41,7 @@ async function signUp(email, password, username) {
     email,
     password,
     options: {
-      data: { username, full_name: username }
+      data: { username, display_name: username }
     }
   });
   if (error) throw error;
