@@ -1,0 +1,11 @@
+/supabase.js
+  Cache-Control: no-cache
+
+/auth.js
+  Cache-Control: no-cache
+
+/script.js
+  Cache-Control: no-cache
+
+/style.css
+  Cache-Control: no-cache
