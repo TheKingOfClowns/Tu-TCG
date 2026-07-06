@@ -1,0 +1,8 @@
+{
+  "onepiece": {
+    "enabled": true,
+    "data_dir": "data/games/onepiece",
+    "language": "en",
+    "name": "One Piece Card Game"
+  }
+}

@@ -1,0 +1,9 @@
+.opencode/
+scripts/
+.wrangler/
+node_modules/
+.agents/
+.git/
+*.tmp
+*.log
+Thumbs.db
