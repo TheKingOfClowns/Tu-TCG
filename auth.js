@@ -100,14 +100,23 @@ async function updateProfile(updates) {
 function onSignIn() {
   hideAuthModal();
   updateAuthUI();
+  if (typeof migrateLocalToSupabase === "function") {
+    migrateLocalToSupabase().catch(console.error);
+  }
   if (typeof mostrarVista === "function" && window._pendingView) {
-    mostrarVista(window._pendingView);
+    const pending = window._pendingView;
     window._pendingView = null;
+    if (pending === "profile" && typeof openProfile === "function") {
+      openProfile();
+    } else {
+      mostrarVista(pending);
+    }
   }
 }
 
 function onSignOut() {
   updateAuthUI();
+  if (typeof rebuildLocalFallback === "function") rebuildLocalFallback();
   if (typeof mostrarVista === "function") {
     mostrarVista("tcgHome");
   }
@@ -118,16 +127,28 @@ function onSignOut() {
 function updateAuthUI() {
   const userBtn = document.getElementById("userBtn");
   const authBtn = document.getElementById("authBtn");
-  if (!userBtn || !authBtn) return;
+  const sidebarUserName = document.getElementById("sidebarUserName");
+  const sidebarUserPlan = document.getElementById("sidebarUserPlan");
+  const sidebarUserAvatar = document.getElementById("sidebarUserAvatar");
+
   if (isAuthenticated()) {
-    authBtn.style.display = "none";
-    userBtn.style.display = "inline-flex";
-    const email = authUser.email || "";
-    userBtn.textContent = email.split("@")[0];
-    userBtn.title = email;
+    if (authBtn) authBtn.style.display = "none";
+    if (userBtn) {
+      userBtn.style.display = "inline-flex";
+      const email = authUser.email || "";
+      const span = userBtn.querySelector("span");
+      if (span) span.textContent = email.split("@")[0];
+      userBtn.title = email;
+    }
+    if (sidebarUserName) sidebarUserName.textContent = (authUser.user_metadata?.username) || (authUser.email ? authUser.email.split("@")[0] : "Usuario");
+    if (sidebarUserPlan) sidebarUserPlan.textContent = "Premium";
+    if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
   } else {
-    authBtn.style.display = "inline-flex";
-    userBtn.style.display = "none";
+    if (authBtn) authBtn.style.display = "inline-flex";
+    if (userBtn) userBtn.style.display = "none";
+    if (sidebarUserName) sidebarUserName.textContent = "Invitado";
+    if (sidebarUserPlan) sidebarUserPlan.textContent = "Gratuito";
+    if (sidebarUserAvatar) sidebarUserAvatar.classList.remove("logged-in");
   }
 }
 

@@ -1,317 +1,519 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TuTCG</title>
-  <link rel="stylesheet" href="design-system.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="design-system.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
-
 <body>
 
-  <!-- ═══ HEADER ═══ -->
-  <header class="header">
-    <div class="header-left">
-      <div class="logo" id="logoHome">
-        <div class="logo-icon">T</div>
-        <span class="logo-text">Tu<span>TCG</span></span>
+  <!-- ═══ SIDEBAR (Desktop) ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo" id="sidebarLogo">
+        <div class="sidebar-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L3 7l9 5 9-5-9-5z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg>
+        </div>
+        <div class="sidebar-brand-text">
+          <h1>TuTCG</h1>
+          <span class="sidebar-tcg-name" id="sidebarTcgName">Selecciona un TCG</span>
+        </div>
       </div>
-      <span class="nav-tcg-name" id="navTcgName"></span>
     </div>
 
-    <div class="header-center">
-      <!-- future: global search -->
-    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-label">Explorar</div>
+      <button class="sidebar-nav-item active" data-view="home" id="sidebarHome">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
+      </button>
+      <button class="sidebar-nav-item" data-view="catalog" id="sidebarCatalog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+        Catálogo
+        <span class="sidebar-badge" id="sidebarCatalogCount" style="display:none"></span>
+      </button>
+      <button class="sidebar-nav-item" data-view="collections" id="sidebarBinder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Binder
+      </button>
+      <button class="sidebar-nav-item" data-view="ventaCols" id="sidebarVenta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Venta
+      </button>
+      <button class="sidebar-nav-item" data-view="explore" id="sidebarExplore">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        Explorar
+      </button>
+      <div class="sidebar-nav-label">Cuenta</div>
+      <button class="sidebar-nav-item" data-view="profile" id="sidebarProfile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Perfil
+      </button>
+    </nav>
 
-    <div class="header-right">
-      <!-- ═ PRICE TOGGLE (visible only in catalog) ═ -->
-      <div class="price-toggle" id="priceToggle">
-        <span class="toggle-option active" data-price="market">Market</span>
-        <span class="toggle-sep"></span>
-        <span class="toggle-option" data-price="median">Median</span>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser">
+        <div class="sidebar-user-avatar" id="sidebarUserAvatar"></div>
+        <div class="sidebar-user-info">
+          <span id="sidebarUserName">Invitado</span>
+          <span id="sidebarUserPlan">Gratuito</span>
+        </div>
+        <button class="sidebar-user-gear" id="sidebarUserGear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
       </div>
-
-      <button class="nav-btn ghost" id="homeBtn" style="display:none">Inicio</button>
-      <button class="nav-btn ghost" id="navBackTcgBtn" style="display:none">Volver</button>
-      <button class="nav-btn" id="navCatalogBtn" style="display:none">Cartas</button>
-      <button class="nav-btn" id="navBinderBtn" style="display:none">Binder</button>
-      <button class="nav-btn" id="navVentaBtn" style="display:none">Venta</button>
-
-      <!-- future: user avatar / auth slot -->
-      <button class="nav-btn ghost" id="authBtn">Ingresar</button>
-      <button class="nav-btn primary" id="userBtn" style="display:none">Mi Cuenta</button>
     </div>
-  </header>
+  </aside>
 
   <!-- ═══ MAIN CONTENT ═══ -->
-  <main>
+  <main class="main-content" id="mainContent">
 
-    <!-- ── TCG Selector (Home) ── -->
-    <section class="tcg-selector" id="tcgSelector">
-      <h1 class="tcg-title">Selecciona tu <span>TCG</span></h1>
-      <p class="tcg-subtitle">Explora, colecciona y gestiona tus cartas favoritas</p>
-      <div class="tcg-grid" id="tcgGrid"></div>
-    </section>
-
-    <!-- ── Welcome (TCG Section) ── -->
-    <section class="welcome" id="welcomeView" style="display:none">
-      <div class="welcome-tcg-header">
-        <button class="nav-btn" id="welcomeBackBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Volver
-        </button>
-        <h2 id="welcomeTcgName">One Piece</h2>
+    <!-- ── Top Bar ── -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <span class="top-bar-tcg-name" id="topBarTcgName"></span>
       </div>
-      <div class="welcome-cards">
-        <div class="welcome-card" data-view="catalog">
-          <div class="welcome-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <path d="M3 9h18"/><path d="M9 3v18"/>
-            </svg>
+      <div class="top-bar-search" id="topBarSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="globalSearchInput" placeholder="Buscar cartas por nombre, set…">
+        <kbd>Ctrl+K</kbd>
+      </div>
+      <div class="top-bar-right">
+        <button class="top-bar-btn" id="authBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <span>Ingresar</span>
+        </button>
+        <button class="top-bar-btn" id="userBtn" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Mi Cuenta</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══ VIEWS ═══ -->
+    <div class="views-container">
+
+      <!-- ── TCG Selector (Home) ── -->
+      <section class="view-pane active" id="tcgSelector">
+        <div class="tcg-selector-inner">
+          <div class="tcg-home-placeholder" id="tcgHomePlaceholder" style="display:none;text-align:center;padding:80px 20px">
+            <h1 class="tcg-hero-title">TuTCG</h1>
+            <p style="color:var(--text-tertiary);font-size:var(--text-base);margin-top:var(--space-4)">Trabajando en este menú, próximamente habrá actualizaciones.</p>
           </div>
-          <h2>Cartas</h2>
-          <p>Explora todas las cartas del juego</p>
-          <span class="welcome-btn">Entrar</span>
-        </div>
-        <div class="welcome-card" data-view="collections">
-          <div class="welcome-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-              <path d="M6.5 3v7M3 6.5h7M17.5 3v7M14 6.5h7M6.5 14v7M3 17.5h7M17.5 14v7M14 17.5h7"/>
-            </svg>
+          <div class="tcg-selector-hero" id="tcgSelectorHero">
+            <h1 class="tcg-hero-title">Selecciona tu <span>TCG</span></h1>
+            <p class="tcg-hero-subtitle">Explora, colecciona y gestiona tus cartas favoritas</p>
           </div>
-          <h2>Binder</h2>
-          <p>Organiza tus cartas en un binder virtual</p>
-          <span class="welcome-btn">Entrar</span>
+          <div class="tcg-grid" id="tcgGrid"></div>
         </div>
-        <div class="welcome-card" data-view="ventaCols">
-          <div class="welcome-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-            </svg>
+      </section>
+
+      <!-- ── Welcome (TCG Section) ── -->
+      <section class="view-pane" id="welcomeView" style="display:none">
+        <div class="welcome-inner">
+          <div class="welcome-header-bar">
+            <button class="btn-back" id="welcomeBackBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Volver
+            </button>
+            <h2 id="welcomeTcgName">One Piece</h2>
           </div>
-          <h2>Venta</h2>
-          <p>Gestiona tus cartas a la venta con precios personalizados</p>
-          <span class="welcome-btn">Entrar</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Catalog View ── -->
-    <div class="search-container" id="catalogView" style="display:none">
-      <div class="search-bar">
-        <span class="search-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-        </span>
-        <input type="text" id="searchInput" placeholder="Buscar carta por nombre, set…">
-        <span class="search-clear" id="searchClear">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </span>
-      </div>
-
-      <div class="filters">
-        <div class="filters-row">
-          <select id="expansionFilter">
-            <option value="">Todas las expansiones</option>
-          </select>
-          <select id="colorFilter">
-            <option value="">Todos los colores</option>
-          </select>
-          <select id="rarityFilter">
-            <option value="">Todas las rarezas</option>
-          </select>
-          <select id="sortFilter">
-            <option value="">Orden colección</option>
-            <option value="name">Nombre A-Z</option>
-            <option value="name_desc">Nombre Z-A</option>
-            <option value="price_desc">Precio mayor-menor</option>
-            <option value="price_asc">Precio menor-mayor</option>
-          </select>
-        </div>
-        <div class="filters-actions">
-          <button class="nav-btn" id="seleccionarBtn">Seleccionar</button>
-          <button class="nav-btn" id="agregarBtn">Agregar a</button>
-          <button class="nav-btn danger" id="cancelarPendBtn">Borrar Todo</button>
-        </div>
-      </div>
-
-      <!-- future: wishlist toggle, view mode toggle -->
-    </div>
-
-    <div class="results-counter" id="resultsCounter" style="display:none">
-      Cargando cartas…
-    </div>
-
-    <div class="cards" id="cards-container" style="display:none"></div>
-
-    <div class="pagination" id="catalogPagination" style="display:none">
-      <button id="prevBtnBottom">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Anterior
-      </button>
-      <span class="page-info" id="pageInfoBottom">Página 1</span>
-      <button id="nextBtnBottom">
-        Siguiente
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-
-    <!-- ── Collection Manager (Binder list) ── -->
-    <section class="collection-manager" id="collectionManager" style="display:none">
-      <div class="collection-header">
-        <h2>Mis Colecciones</h2>
-        <button class="nav-btn primary" id="createCollectionBtn">+ Nueva</button>
-      </div>
-      <div class="collection-list" id="collectionList"></div>
-    </section>
-
-    <!-- ── Binder View ── -->
-    <section class="binder-view" id="binderView" style="display:none">
-      <div class="binder-header">
-        <div class="binder-header-left">
-          <button class="nav-btn ghost" id="binderBackBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Volver
-          </button>
-          <h2 id="binderTitle">Binder</h2>
-        </div>
-        <div class="binder-actions">
-          <button class="nav-btn danger nav-btn-sm" id="binderClearPageBtn">Vaciar página</button>
-          <button class="nav-btn danger nav-btn-sm" id="binderClearAllBtn">Vaciar todo</button>
-        </div>
-      </div>
-      <div class="binder-grid" id="binderGrid"></div>
-      <div class="binder-pagination" id="binderPagination">
-        <button class="nav-btn" id="binderPrevBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Anterior
-        </button>
-        <span id="binderPageInfo">Página 1</span>
-        <button class="nav-btn" id="binderNextBtn">
-          Siguiente
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- ── Venta Manager ── -->
-    <section class="collection-manager" id="ventaManager" style="display:none">
-      <div class="collection-header">
-        <h2>Mis Ventas</h2>
-        <button class="nav-btn primary" id="createVentaBtn">+ Nueva</button>
-      </div>
-      <div class="collection-list" id="ventaList"></div>
-    </section>
-
-    <!-- ── Venta View ── -->
-    <section class="binder-view" id="ventaView" style="display:none">
-      <div class="binder-header">
-        <div class="binder-header-left">
-          <button class="nav-btn ghost" id="ventaBackBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Volver
-          </button>
-          <h2 id="ventaTitle">Venta</h2>
-        </div>
-        <div class="binder-actions">
-          <button class="nav-btn danger nav-btn-sm" id="ventaClearPageBtn">Vaciar página</button>
-          <button class="nav-btn danger nav-btn-sm" id="ventaClearAllBtn">Vaciar todo</button>
-        </div>
-      </div>
-      <div class="venta-grid" id="ventaGrid"></div>
-      <div class="binder-pagination" id="ventaPagination">
-        <button class="nav-btn" id="ventaPrevBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Anterior
-        </button>
-        <span id="ventaPageInfo">Página 1</span>
-        <button class="nav-btn" id="ventaNextBtn">
-          Siguiente
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- ── Add Modal ── -->
-    <div class="add-modal-overlay" id="addModalOverlay">
-      <div class="add-modal">
-        <h3>Añadir a colecciones</h3>
-        <div class="add-modal-body">
-          <div id="addModalList"></div>
-          <div class="add-modal-qty" id="addModalQtyRow">
-            <label>Cantidad:</label>
-            <input type="number" id="addModalQty" value="1" min="1" max="99">
+          <div class="welcome-cards">
+            <div class="welcome-card" data-view="catalog">
+              <div class="welcome-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+              </div>
+              <h3>Cartas</h3>
+              <p>Explora todas las cartas del juego</p>
+              <span class="welcome-card-cta">Explorar <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
+            </div>
+            <div class="welcome-card" data-view="collections">
+              <div class="welcome-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              </div>
+              <h3>Binder</h3>
+              <p>Organiza tus cartas en un binder virtual</p>
+              <span class="welcome-card-cta">Abrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
+            </div>
+            <div class="welcome-card" data-view="ventaCols">
+              <div class="welcome-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <h3>Venta</h3>
+              <p>Gestiona tus cartas a la venta con precios personalizados</p>
+              <span class="welcome-card-cta">Gestionar <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
+            </div>
           </div>
         </div>
-        <div class="add-modal-actions">
-          <button class="nav-btn" id="addModalCancel">Cancelar</button>
-          <button class="nav-btn primary" id="addModalConfirm">Añadir</button>
+      </section>
+
+      <!-- ── Catalog View ── -->
+      <div class="view-pane" id="catalogView" style="display:none">
+        <!-- Header: Search + Price Toggle + Action Buttons -->
+        <div class="catalog-toolbar">
+          <div class="catalog-toolbar-left">
+            <div class="catalog-search-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="searchInput" placeholder="Buscar por nombre, set…">
+              <button class="catalog-search-clear" id="searchClear" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            <div class="price-toggle" id="priceToggle">
+              <span class="toggle-option active" data-price="market">Market</span>
+              <span class="toggle-option" data-price="median">Median</span>
+            </div>
+          </div>
+          <div class="catalog-toolbar-right">
+            <button class="btn-ghost" id="seleccionarBtn">Seleccionar</button>
+            <button class="btn-primary btn-sm" id="agregarBtn">Agregar a</button>
+            <button class="btn-danger btn-sm" id="cancelarPendBtn">Borrar Todo</button>
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="catalog-filters">
+          <select id="expansionFilter"><option value="">Todas las expansiones</option></select>
+          <select id="colorFilter"><option value="">Todos los colores</option></select>
+          <select id="rarityFilter"><option value="">Todas las rarezas</option></select>
+          <select id="sortFilter"><option value="">Orden colección</option><option value="name">Nombre A-Z</option><option value="name_desc">Nombre Z-A</option><option value="price_desc">Precio mayor-menor</option><option value="price_asc">Precio menor-mayor</option></select>
+        </div>
+
+        <div class="catalog-results-bar" id="resultsCounter" style="display:none">Cargando cartas…</div>
+
+        <div class="catalog-grid" id="cards-container" style="display:none"></div>
+
+        <div class="catalog-pagination" id="catalogPagination" style="display:none">
+          <button class="btn-page" id="prevBtnBottom"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+          <span class="page-info" id="pageInfoBottom">Página 1</span>
+          <button class="btn-page" id="nextBtnBottom">Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
       </div>
-    </div>
 
-    <!-- ══ Card Modal ══ -->
-    <div class="modal" id="modal">
-      <span id="closeModal">&times;</span>
-      <div class="modal-body" id="modalBody"></div>
-    </div>
+      <!-- ── Collection Manager (Binder list) ── -->
+      <section class="view-pane" id="collectionManager" style="display:none">
+        <div class="collection-inner">
+          <div class="collection-header">
+            <h2>Mis Colecciones</h2>
+            <button class="btn-primary" id="createCollectionBtn">+ Nueva</button>
+          </div>
+          <div class="collection-list" id="collectionList"></div>
+        </div>
+      </section>
 
+      <!-- ── Binder View ── -->
+      <section class="view-pane" id="binderView" style="display:none">
+        <div class="binder-inner">
+          <div class="binder-header-bar">
+            <button class="btn-back" id="binderBackBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Volver
+            </button>
+            <h2 id="binderTitle">Binder</h2>
+            <div class="binder-header-actions" id="binderPublicToggleContainer"></div>
+            <div class="binder-header-actions">
+              <button class="btn-danger btn-sm" id="binderClearPageBtn">Vaciar página</button>
+              <button class="btn-danger btn-sm" id="binderClearAllBtn">Vaciar todo</button>
+            </div>
+          </div>
+          <div id="binderDeckContainer" style="display:none"></div>
+          <div class="binder-grid" id="binderGrid"></div>
+          <div class="binder-pagination" id="binderPagination">
+            <button class="btn-page" id="binderPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+            <span id="binderPageInfo">Página 1</span>
+            <button class="btn-page" id="binderNextBtn">Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Venta Manager ── -->
+      <section class="view-pane" id="ventaManager" style="display:none">
+        <div class="collection-inner">
+          <div class="collection-header">
+            <h2>Mis Ventas</h2>
+            <button class="btn-primary" id="createVentaBtn">+ Nueva</button>
+          </div>
+          <div class="collection-list" id="ventaList"></div>
+        </div>
+      </section>
+
+      <!-- ── Venta View ── -->
+      <section class="view-pane" id="ventaView" style="display:none">
+        <div class="binder-inner">
+          <div class="binder-header-bar">
+            <button class="btn-back" id="ventaBackBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Volver
+            </button>
+            <h2 id="ventaTitle">Venta</h2>
+            <div class="binder-header-actions" id="ventaPublicToggleContainer"></div>
+            <div class="binder-header-actions" id="ventaModeContainer"></div>
+            <div class="binder-header-actions">
+              <button class="btn-danger btn-sm" id="ventaClearPageBtn">Vaciar página</button>
+              <button class="btn-danger btn-sm" id="ventaClearAllBtn">Vaciar todo</button>
+            </div>
+          </div>
+          <div id="ventaDeckContainer" style="display:none"></div>
+          <div class="venta-grid" id="ventaGrid"></div>
+          <div class="binder-pagination" id="ventaPagination">
+            <button class="btn-page" id="ventaPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+            <span id="ventaPageInfo">Página 1</span>
+            <button class="btn-page" id="ventaNextBtn">Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Explore View (Public Binders) ── -->
+      <section class="view-pane" id="exploreView" style="display:none">
+        <div class="collection-inner">
+          <div class="collection-header">
+            <h2>Explorar Binders Públicos</h2>
+          </div>
+          <div id="exploreContainer"></div>
+        </div>
+      </section>
+
+      <!-- ── Explore Detail View (Cards of a Public Binder) ── -->
+      <section class="view-pane" id="exploreDetailView" style="display:none">
+        <div class="binder-inner">
+          <div class="binder-header-bar">
+            <button class="btn-back" id="exploreDetailBackBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Volver
+            </button>
+            <h2 id="exploreDetailTitle">Binder</h2>
+          </div>
+          <div id="exploreDetailContainer"></div>
+        </div>
+      </section>
+
+      <!-- ── Profile View ── -->
+      <section class="view-pane" id="profileView" style="display:none">
+        <div class="profile-inner">
+          <form class="profile-form" id="profileForm" onsubmit="return handleProfileSave(event)">
+            <!-- Avatar Section -->
+            <div class="profile-avatar-section">
+              <div class="profile-avatar-wrap" id="profileAvatarWrap">
+                <img id="profileAvatarImg" src="" alt="Avatar" style="display:none">
+                <svg id="profileAvatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <div class="profile-avatar-overlay">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
+              </div>
+              <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
+              <button type="button" class="btn-ghost btn-sm" id="avatarUploadBtn">Cambiar foto</button>
+            </div>
+
+            <!-- Personal Info -->
+            <div class="profile-section">
+              <h3 class="profile-section-title">Información Personal</h3>
+              <div class="profile-fields">
+                <div class="profile-field">
+                  <label for="profileFirstName">Nombre</label>
+                  <input type="text" id="profileFirstName" placeholder="Tu nombre">
+                </div>
+                <div class="profile-field">
+                  <label for="profileLastName">Apellido</label>
+                  <input type="text" id="profileLastName" placeholder="Tu apellido">
+                </div>
+                <div class="profile-field">
+                  <label for="profileUsername">Nombre de usuario</label>
+                  <input type="text" id="profileUsername" placeholder="@usuario">
+                </div>
+                <div class="profile-field">
+                  <label for="profileEmail">Email</label>
+                  <input type="email" id="profileEmail" disabled>
+                  <span class="profile-field-hint">El email se gestiona desde tu cuenta de autenticación</span>
+                </div>
+                <div class="profile-field profile-field-full">
+                  <label for="profileBio">Bio</label>
+                  <textarea id="profileBio" rows="3" placeholder="Cuéntanos sobre ti y lo que coleccionas…"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="profile-section">
+              <h3 class="profile-section-title">Dirección</h3>
+              <div class="profile-fields">
+                <div class="profile-field profile-field-full">
+                  <label for="profileAddress">Dirección</label>
+                  <input type="text" id="profileAddress" placeholder="Calle, número, piso…">
+                </div>
+                <div class="profile-field">
+                  <label for="profileCity">Ciudad</label>
+                  <input type="text" id="profileCity" placeholder="Ciudad">
+                </div>
+                <div class="profile-field">
+                  <label for="profileCountry">País</label>
+                  <input type="text" id="profileCountry" placeholder="País">
+                </div>
+              </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="profile-section">
+              <h3 class="profile-section-title">Preferencias</h3>
+              <div class="profile-fields">
+                <div class="profile-field">
+                  <label for="profileLanguage">Idioma</label>
+                  <select id="profileLanguage">
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+                <div class="profile-field">
+                  <label for="profileCurrency">Moneda</label>
+                  <select id="profileCurrency">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="MXN">MXN</option>
+                    <option value="ARS">ARS</option>
+                  </select>
+                </div>
+                <div class="profile-field profile-field-full">
+                  <label class="profile-toggle-label">
+                    <input type="checkbox" id="profileNotifications" checked>
+                    <span class="profile-toggle-track">
+                      <span class="profile-toggle-thumb"></span>
+                    </span>
+                    <span>Notificaciones de precios y novedades</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="profile-actions">
+              <button type="button" class="btn-ghost" id="profileCancelBtn">Cancelar</button>
+              <button type="submit" class="btn-primary" id="profileSaveBtn">Guardar cambios</button>
+            </div>
+
+            <div class="profile-message" id="profileMessage" style="display:none"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── Add Modal ── -->
+      <div class="modal-overlay-dark" id="addModalOverlay" style="display:none">
+        <div class="add-modal-panel glass-panel">
+          <h3>Añadir a colecciones</h3>
+          <div class="add-modal-body">
+            <div id="addModalList"></div>
+            <div class="add-modal-qty" id="addModalQtyRow">
+              <label>Cantidad:</label>
+              <input type="number" id="addModalQty" value="1" min="1" max="99">
+            </div>
+          </div>
+          <div class="add-modal-actions">
+            <button class="btn-ghost" id="addModalCancel">Cancelar</button>
+            <button class="btn-primary" id="addModalConfirm">Añadir</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Create / Rename Modal ── -->
+      <div class="modal-overlay-dark" id="createModalOverlay" style="display:none">
+        <div class="add-modal-panel glass-panel" style="max-width:400px">
+          <h3 id="createModalTitle">Crear colección</h3>
+          <div class="add-modal-body">
+            <input type="text" id="createModalInput" placeholder="Nombre de la colección" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
+            <div id="createModalExtra" style="margin-top:var(--space-3)"></div>
+          </div>
+          <div class="add-modal-actions">
+            <button class="btn-ghost" id="createModalCancel">Cancelar</button>
+            <button class="btn-primary" id="createModalConfirm">Crear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Card Detail Modal ── -->
+      <div class="modal-overlay-dark" id="modal" style="display:none">
+        <button class="modal-close-btn" id="closeModal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+
+    </div>
   </main>
 
-  <!-- ═══ BOTTOM NAV (mobile) ═══ -->
-  <nav class="bottom-nav">
-    <button class="bottom-nav-btn" id="bottomHome" data-view="home">
+  <!-- ═══ BOTTOM NAV (Mobile) ═══ -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item active" data-view="home" id="bottomHome">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Inicio
+      <span>Inicio</span>
     </button>
-    <button class="bottom-nav-btn" id="bottomCatalog" data-view="catalog">
+    <button class="bottom-nav-item" data-view="catalog" id="bottomCatalog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
-      Cartas
+      <span>Cartas</span>
     </button>
-    <button class="bottom-nav-btn" id="bottomCollections" data-view="collections">
+    <button class="bottom-nav-item" data-view="collections" id="bottomCollections">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Binder
+      <span>Binder</span>
     </button>
-    <button class="bottom-nav-btn" id="bottomVenta" data-view="ventaCols">
+    <button class="bottom-nav-item" data-view="ventaCols" id="bottomVenta">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      Venta
+      <span>Venta</span>
     </button>
-    <button class="bottom-nav-btn" id="bottomTcg" data-view="tcgHome">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-      Sección
+    <button class="bottom-nav-item" data-view="explore" id="bottomExplore">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      <span>Explorar</span>
     </button>
   </nav>
 
   <!-- ═══ AUTH MODAL ═══ -->
-  <div class="modal-overlay" id="authModalOverlay" style="display:none">
-    <div class="modal-card auth-modal">
-      <button class="modal-close" onclick="hideAuthModal()">&times;</button>
+  <div class="modal-overlay-dark" id="authModalOverlay" style="display:none">
+    <div class="auth-modal glass-panel">
+      <button class="modal-close-btn" onclick="hideAuthModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="authModalTitle">Iniciar sesión</h2>
       <form id="authForm" onsubmit="handleAuthSubmit(event)">
         <div class="auth-fields" id="authFields"></div>
         <div class="auth-error" id="authError" style="display:none"></div>
         <div class="auth-success" id="authSuccess" style="display:none"></div>
-        <button type="submit" class="nav-btn primary" id="authSubmitBtn" style="width:100%;margin-top:8px">Ingresar</button>
+        <button type="submit" class="btn-primary auth-submit-btn" id="authSubmitBtn">Ingresar</button>
       </form>
-      <div class="auth-toggle" id="authToggleLink" style="margin-top:12px;text-align:center;font-size:14px"></div>
+      <div class="auth-toggle" id="authToggleLink"></div>
+    </div>
+  </div>
+
+  <!-- ═══ DECK PICKER MODAL ═══ -->
+  <div class="modal-overlay-dark" id="deckPickerOverlay" style="display:none">
+    <div class="deck-picker-panel glass-panel">
+      <div class="deck-picker-header">
+        <h3 id="deckPickerTitle">Elegir carta</h3>
+        <input type="text" id="deckPickerSearch" placeholder="Buscar carta…" autocomplete="off">
+      </div>
+      <div class="deck-picker-grid" id="deckPickerGrid"></div>
+      <div class="deck-picker-footer">
+        <span id="deckPickerInfo" class="deck-picker-info"></span>
+        <button class="btn-ghost" id="deckPickerCancel">Cancelar</button>
+      </div>
     </div>
   </div>
 
   <!-- ═══ USER MENU DROPDOWN ═══ -->
-  <div class="dropdown-menu" id="userDropdown" style="display:none">
-    <div class="dropdown-item" id="dropdownProfile">Mi perfil</div>
-    <div class="dropdown-item danger" id="dropdownLogout">Cerrar sesión</div>
+  <div class="dropdown-menu glass-panel" id="userDropdown" style="display:none">
+    <div class="dropdown-item" id="dropdownProfile">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Mi perfil
+    </div>
+    <div class="dropdown-divider"></div>
+    <div class="dropdown-item danger" id="dropdownLogout">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="supabase.js?v=2"></script>
   <script src="auth.js?v=2"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
+  <script src="profile.js"></script>
 </body>
 </html>

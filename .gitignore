@@ -7,3 +7,5 @@ node_modules/
 *.tmp
 *.log
 Thumbs.db
+.aidesigner/*
+!.aidesigner/.gitkeep

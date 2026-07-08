@@ -1,60 +1,75 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-primary: #0a0e14;
-  --bg-secondary: #111820;
-  --bg-surface: #131920;
-  --bg-elevated: #1a2332;
-  --bg-input: #1c2536;
+  --bg-primary: #050511;
+  --bg-secondary: #0a0a1a;
+  --bg-surface: #09090b;
+  --bg-elevated: #18181b;
+  --bg-input: #27272a;
+  --bg-glass: rgba(24, 24, 27, 0.8);
 
-  --border-subtle: #1e2a3a;
-  --border-default: #2a3a4a;
-  --border-hover: #3a4a5a;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(0, 240, 255, 0.2);
 
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-tertiary: #5a7a9a;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
 
-  --accent: #00d4ff;
-  --accent-hover: #33ddff;
-  --accent-glow: rgba(0, 212, 255, 0.15);
-  --accent-glow-strong: rgba(0, 212, 255, 0.3);
+  --accent: #00f0ff;
+  --accent-hover: #33f3ff;
+  --accent-glow: rgba(0, 240, 255, 0.15);
+  --accent-glow-strong: rgba(0, 240, 255, 0.3);
+  --accent-dim: rgba(0, 240, 255, 0.08);
 
-  --success: #00ff99;
-  --danger: #f85149;
-  --danger-hover: #ff6b63;
-  --warning: #ffa657;
+  --fuchsia: #d946ef;
+  --fuchsia-glow: rgba(217, 70, 239, 0.3);
+  --emerald: #34d399;
+  --amber: #f59e0b;
+
+  --success: #34d399;
+  --danger: #f87171;
+  --danger-hover: #fca5a5;
+  --warning: #fbbf24;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 20px var(--accent-glow);
+  --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -1px 0 rgba(0, 0, 0, 0.5), 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
 
-  --text-xs: 11px;
-  --text-sm: 13px;
+  --text-xs: 10px;
+  --text-sm: 12px;
   --text-base: 14px;
   --text-lg: 16px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
-  --text-3xl: 32px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+  --text-4xl: 36px;
 
-  --leading-tight: 1.25;
+  --leading-tight: 1.2;
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
 
+  --weight-light: 300;
   --weight-normal: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
   --weight-extrabold: 800;
+  --weight-black: 900;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -70,9 +85,10 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
+  --transition-spring: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-  --header-height: 60px;
-  --sidebar-width: 240px;
+  --header-height: 64px;
+  --sidebar-width: 260px;
 }
 
 *,
@@ -90,11 +106,13 @@ html {
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-sans);
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: var(--leading-normal);
   min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 a {
@@ -121,32 +139,20 @@ input, select, textarea {
 
 select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.3); }
 
 ::selection {
-  background: var(--accent);
-  color: var(--bg-primary);
+  background: rgba(0, 240, 255, 0.3);
+  color: #a5f3fc;
 }
 
 .sr-only {
@@ -159,9 +165,17 @@ select {
   border: 0;
 }
 
-.fade-in {
-  animation: fadeIn 0.25s ease forwards;
+/* ── Glass Panel ── */
+.glass-panel {
+  background: linear-gradient(135deg, rgba(24, 24, 27, 0.8) 0%, rgba(9, 9, 11, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-glass);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* ── Animations ── */
+.fade-in { animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -178,9 +192,15 @@ select {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.5; }
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); }
+  70%  { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 12px rgba(0, 240, 255, 0); }
+  100% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 @keyframes bounceIn {
@@ -189,3 +209,6 @@ select {
   70%  { transform: scale(0.95); }
   100% { transform: scale(1); opacity: 1; }
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
