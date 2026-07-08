@@ -915,8 +915,8 @@ body {
 .binder-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
   align-content: start;
   overflow-y: auto;
   padding: var(--space-1);
@@ -924,9 +924,9 @@ body {
 
 .binder-slot {
   position: relative;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
-  background: var(--bg-elevated);
+  background: var(--surface);
   overflow: hidden;
   transition: all var(--transition-fast);
   aspect-ratio: 63 / 88;
@@ -990,6 +990,7 @@ body {
 /* ═══ Collection Manager ═══ */
 .collection-inner {
   max-width: 960px;
+  width: 100%;
   margin: 0 auto;
   padding: var(--space-8) var(--space-4);
 }
@@ -1008,17 +1009,12 @@ body {
 }
 
 .collection-binder-grid {
-  display: flex;
-  gap: var(--space-5);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
   padding: var(--space-4);
-  overflow-x: auto;
-  overflow-y: visible;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--space-2);
 }
 .collection-binder-grid .binder-cover-card {
-  flex: 0 0 220px;
   scroll-snap-align: start;
 }
 
@@ -1411,14 +1407,21 @@ body {
 .venta-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
   align-content: start;
   overflow-y: auto;
   padding: var(--space-1);
 }
 
-.venta-slot { position: relative; padding-bottom: var(--space-3); }
+.venta-slot {
+  position: relative;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  overflow: hidden;
+  padding-bottom: var(--space-3);
+}
 
 .venta-price-row {
   display: flex;
@@ -1962,7 +1965,6 @@ body {
   .tcg-grid { grid-template-columns: repeat(3, 1fr); }
   .welcome-inner { padding: var(--space-12) var(--space-8); }
   .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-  .binder-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 }
 
 /* Tablet: 768px - 1023px */
@@ -1972,8 +1974,6 @@ body {
   .bottom-nav { display: flex; }
   .tcg-grid { grid-template-columns: repeat(3, 1fr); }
   .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
-  .binder-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  .venta-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 }
 
 /* Mobile: < 768px */
@@ -2003,14 +2003,14 @@ body {
 
   .binder-inner { padding: var(--space-4) var(--space-3); }
   .binder-header-bar h2 { font-size: var(--text-xl); }
-  .binder-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
-  .venta-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+  .binder-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
+  .venta-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
 
   .collection-inner { padding: var(--space-5) var(--space-3); }
   .collection-header h2 { font-size: var(--text-xl); }
   .collection-header { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
-  .collection-binder-grid { flex-wrap: wrap; overflow-x: visible; }
-  .collection-binder-grid .binder-cover-card { flex: 1 1 160px; max-width: 200px; }
+  .collection-binder-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
+  .explore-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
 
   /* re-order nav items to show most-important first on small screens */
   .bottom-nav { padding: var(--space-1) var(--space-1); }
@@ -2025,8 +2025,6 @@ body {
 /* Extra small: < 480px */
 @media (max-width: 479px) {
   .catalog-grid { grid-template-columns: 1fr 1fr; gap: var(--space-2); }
-  .binder-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
-  .venta-grid { grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 
   .catalog-toolbar-right { width: 100%; justify-content: flex-end; }
   .catalog-filters select { font-size: 10px; padding: 6px 22px 6px 8px; }
@@ -2156,11 +2154,6 @@ body {
   min-height: 80px;
 }
 .profile-field select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
   cursor: pointer;
 }
 
@@ -2296,17 +2289,17 @@ body {
 /* ═══ Explore / Public Binders ═══ */
 .explore-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
-  padding: var(--space-4);
+  width: 100%;
 }
 .explore-card {
   background: var(--surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
   cursor: pointer;
   transition: all var(--transition-fast);
+  overflow: hidden;
 }
 .explore-card:hover {
   border-color: var(--accent);

@@ -861,7 +861,7 @@ async function initCollections() {
     const dbBinders = await loadBindersFromDb();
     if (dbBinders && dbBinders.length) {
       collections = {};
-      dbBinders.forEach(b => {
+      dbBinders.filter(b => b.type === "collection" || !b.type).forEach(b => {
         const cfg = b.config || {};
         const subtype = cfg.subtype || "binder";
         if (subtype === "deck") {
@@ -1073,6 +1073,7 @@ function renderCollectionList() {
 }
 
 function pedirCrearColeccion() {
+  if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
     title: "Crear colección",
     confirmText: "Crear",
@@ -1404,8 +1405,8 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
     toggleContainer.innerHTML = isAuthenticated() ? `
       <label class="public-toggle">
         <span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
+        <input type="checkbox" id="${isSale ? "venta" : "binder"}PublicCheck" ${col.is_public ? "checked" : ""}>
         <span class="public-toggle-track">
-          <input type="checkbox" id="${isSale ? "venta" : "binder"}PublicCheck" ${col.is_public ? "checked" : ""}>
           <span class="public-toggle-thumb"></span>
         </span>
         <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
@@ -1745,8 +1746,8 @@ function renderBinder() {
     toggleContainer.innerHTML = isAuthenticated() ? `
       <label class="public-toggle">
         <span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
+        <input type="checkbox" id="binderPublicCheck" ${col.is_public ? "checked" : ""}>
         <span class="public-toggle-track">
-          <input type="checkbox" id="binderPublicCheck" ${col.is_public ? "checked" : ""}>
           <span class="public-toggle-thumb"></span>
         </span>
         <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
@@ -1961,6 +1962,7 @@ function renderVentaList() {
 }
 
 function pedirCrearVenta() {
+  if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
     title: "Crear colección de venta",
     confirmText: "Crear",
@@ -2024,8 +2026,8 @@ function renderVentaView() {
     toggleContainer.innerHTML = isAuthenticated() ? `
       <label class="public-toggle">
         <span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
+        <input type="checkbox" id="ventaPublicCheck" ${col.is_public ? "checked" : ""}>
         <span class="public-toggle-track">
-          <input type="checkbox" id="ventaPublicCheck" ${col.is_public ? "checked" : ""}>
           <span class="public-toggle-thumb"></span>
         </span>
         <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
@@ -2233,6 +2235,7 @@ function attachVentaEvents(col, mode, grid, totalPages) {
 async function renderExploreView() {
   const container = document.getElementById("exploreContainer");
   if (!container) return;
+  container.className = "explore-grid";
   container.innerHTML = '<div class="loader" style="text-align:center;padding:40px;color:var(--text-tertiary)">Cargando binders públicos…</div>';
 
   if (!isAuthenticated()) {
@@ -2257,31 +2260,45 @@ async function renderExploreView() {
     container.innerHTML = "";
     for (const b of publicBinders) {
       let username = "Usuario";
+      let avatarUrl = "";
       try {
         const { data: prof } = await supabaseClient
           .from("profiles")
-          .select("username")
+          .select("username, avatar_url")
           .eq("id", b.user_id)
           .single();
         if (prof?.username) username = prof.username;
+        if (prof?.avatar_url) avatarUrl = prof.avatar_url;
       } catch (e) {}
 
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
       const typeLabel = b.type === "sale" ? "Venta" : "Colección";
       const isOwner = authUser && b.user_id === authUser.id;
 
+      // Get cover image from first card
+      let coverImg = null;
+      if (b.binder_cards?.length) {
+        const first = b.binder_cards[0];
+        if (first.card_id) {
+          const found = cartas.find(c => getCardKey(c) === first.card_id);
+          if (found?.card_image) coverImg = found.card_image;
+        }
+      }
+
       const div = document.createElement("div");
       div.className = "explore-card";
       div.innerHTML = `
-        <div class="explore-card-header">
-          <h3>${b.name}</h3>
-          <span class="explore-badge ${b.type}">${typeLabel}</span>
-        </div>
-        <div class="explore-card-meta">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>${username}${isOwner ? " (tú)" : ""}</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:12px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
-          <span>${cardCount} cartas</span>
+        <div style="aspect-ratio:63/88;background:${coverImg ? `url(${coverImg}) center/cover` : 'linear-gradient(135deg, var(--bg-elevated), var(--bg-secondary))'};border-bottom:1px solid var(--border-subtle)"></div>
+        <div style="padding:var(--space-2) var(--space-3) var(--space-3)">
+          <div style="display:flex;align-items:center;gap:var(--space-1);margin-bottom:var(--space-1)">
+            <h3 style="font-size:11px;font-weight:var(--weight-semibold);color:#fff;margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.name}</h3>
+            <span class="explore-badge ${b.type}" style="font-size:8px;padding:1px 5px">${typeLabel}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:var(--space-1)">
+            ${avatarUrl ? `<img src="${avatarUrl}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent);flex-shrink:0">` : `<div style="width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#0891b2,#1e3a5f);flex-shrink:0"></div>`}
+            <span style="font-size:10px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${username}${isOwner ? "" : ""}</span>
+            <span style="font-size:9px;color:var(--text-muted);margin-left:auto;white-space:nowrap">${cardCount} c</span>
+          </div>
         </div>
       `;
       div.addEventListener("click", () => openExploreDetail(b));
@@ -2362,18 +2379,24 @@ function toggleCardSelection(imgEl) {
   if (!cardEl) return;
   const cardKey = cardEl.getAttribute("data-cardkey");
   if (!cardKey) return;
-  if (selectedCards[cardKey]) {
+  const carta = cartas.find(c => getCardKey(c) === cardKey);
+  if (!carta) return;
+
+  const next = selectedCards[cardKey] ? (
+    selectedCards[cardKey].count === 1 ? 4 :
+    selectedCards[cardKey].count === 4 ? 10 : 0
+  ) : 1;
+
+  if (next === 0) {
     delete selectedCards[cardKey];
     cardEl.classList.remove("selected");
   } else {
-    const carta = cartas.find(c => getCardKey(c) === cardKey);
-    if (!carta) return;
     selectedCards[cardKey] = {
       card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image,
       card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza,
       set_id: carta.set_id, producto: carta.producto, category: carta.category,
       market_price: carta.market_price, inventory_price: carta.inventory_price,
-      print_type: carta.print_type, cardset: carta.cardset, count: 1
+      print_type: carta.print_type, cardset: carta.cardset, count: next
     };
     cardEl.classList.add("selected");
   }
@@ -2443,39 +2466,69 @@ function hideCreateModal() {
 function mostrarAddModal() {
   const overlay = document.getElementById("addModalOverlay");
   const list = document.getElementById("addModalList");
+  const pendSection = document.getElementById("addModalPendSection");
   const qtyRow = document.getElementById("addModalQtyRow");
   qtyRow.style.display = "none";
   list.innerHTML = "";
+  pendSection.innerHTML = "";
   const pendKeys = Object.keys(pendingCards);
   if (!pendKeys.length) {
-    list.innerHTML = "<p style='color:var(--text-tertiary);padding:10px;'>No hay cartas pendientes</p>";
+    list.innerHTML = "<p style='color:var(--text-tertiary);padding:10px;font-size:var(--text-sm)'>No hay cartas pendientes</p>";
     document.getElementById("addModalConfirm").style.display = "none";
     overlay.style.display = "flex";
     return;
   }
+  document.getElementById("addModalConfirm").style.display = "";
   const totalCount = pendKeys.reduce((s, k) => s + pendingCards[k].count, 0);
+  const maxShow = 5;
+  const showAll = pendKeys.length <= maxShow;
+  const visibleKeys = showAll ? pendKeys : pendKeys.slice(0, maxShow);
+
+  const makeItem = (key, pc) => `
+    <button class="pend-btn pend-minus" data-key="${key}" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--text-muted);font-size:12px;font-weight:var(--weight-bold);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:1px solid var(--border-default)">&minus;</button>
+    <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold);min-width:18px;text-align:center">${pc.count}x</span>
+    <button class="pend-btn pend-plus" data-key="${key}" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--text-muted);font-size:12px;font-weight:var(--weight-bold);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:1px solid var(--border-default)">+</button>
+    <span style="font-size:var(--text-xs);color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${formatearNombre(pc)}</span>
+    <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);margin-left:auto;flex-shrink:0">${(pc.category || pc.producto) === "DON" ? (pc.variant || "") : (pc.card_set_id || "")}</span>`;
+
   const pendHeader = document.createElement("div");
-  pendHeader.className = "add-modal-separator";
-  pendHeader.textContent = "━ Pendientes ━";
-  list.appendChild(pendHeader);
-  const totalRow = document.createElement("div");
-  totalRow.style.cssText = "text-align:center;color:var(--text-tertiary);font-size:var(--text-sm);padding:4px 0 8px";
-  totalRow.textContent = pendKeys.length + " cartas únicas · " + totalCount + " copias en total";
-  list.appendChild(totalRow);
-  [...pendKeys].forEach(key => {
-    const pc = pendingCards[key];
-    if (!pc) return;
-    const item = document.createElement("div");
-    item.className = "add-modal-pend-item";
-    item.innerHTML = `
-      <button class="pend-btn pend-minus" data-key="${key}">&minus;</button>
-      <span class="pend-qty">${pc.count}x</span>
-      <button class="pend-btn pend-plus" data-key="${key}">+</button>
-      ${formatearNombre(pc)}
-      <span class="pend-id">${(pc.category || pc.producto) === "DON" ? (pc.variant || "") : (pc.card_set_id || "")}</span>`;
-    list.appendChild(item);
-  });
-  list.querySelectorAll(".pend-minus").forEach(btn => {
+  pendHeader.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)";
+  pendHeader.innerHTML = `<span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Pendientes · ${pendKeys.length} cartas · ${totalCount} copias</span>`;
+  pendSection.appendChild(pendHeader);
+
+  const pendGrid = document.createElement("div");
+  pendGrid.style.cssText = "display:flex;flex-direction:column;gap:2px";
+  const renderKeys = (keys) => {
+    pendGrid.innerHTML = "";
+    keys.forEach(key => {
+      const pc = pendingCards[key];
+      if (!pc) return;
+      const item = document.createElement("div");
+      item.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:4px 6px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)";
+      item.innerHTML = makeItem(key, pc);
+      pendGrid.appendChild(item);
+    });
+  };
+  renderKeys(visibleKeys);
+
+  if (!showAll) {
+    const toggleBtn = document.createElement("button");
+    toggleBtn.style.cssText = "margin-top:var(--space-1);padding:4px 8px;font-size:10px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:var(--font-mono)";
+    let expanded = false;
+    const updateLabel = () => { toggleBtn.textContent = expanded ? "▲ Mostrar menos" : `▼ +${pendKeys.length - maxShow} más`; };
+    updateLabel();
+    toggleBtn.addEventListener("click", () => {
+      expanded = !expanded;
+      renderKeys(expanded ? pendKeys : visibleKeys);
+      updateLabel();
+      if (expanded) pendGrid.appendChild(toggleBtn); else pendGrid.appendChild(toggleBtn);
+    });
+    pendGrid.appendChild(toggleBtn);
+  }
+  pendSection.appendChild(pendGrid);
+
+  // Pend buttons events
+  pendSection.querySelectorAll(".pend-minus").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       const key = btn.getAttribute("data-key");
@@ -2486,7 +2539,7 @@ function mostrarAddModal() {
       mostrarAddModal();
     });
   });
-  list.querySelectorAll(".pend-plus").forEach(btn => {
+  pendSection.querySelectorAll(".pend-plus").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       const key = btn.getAttribute("data-key");
@@ -2496,40 +2549,42 @@ function mostrarAddModal() {
       mostrarAddModal();
     });
   });
+
+  // Collections list
   const colIds = Object.keys(collections);
   const ventaIds = Object.keys(ventaCols);
   if (colIds.length || ventaIds.length) {
     document.getElementById("addModalConfirm").style.display = "";
     if (colIds.length) {
       const sep = document.createElement("div");
-      sep.className = "add-modal-separator";
-      sep.textContent = "━ Binder ━";
+      sep.style.cssText = "font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;padding:var(--space-2) 0 var(--space-1)";
+      sep.textContent = "Binder";
       list.appendChild(sep);
       colIds.forEach(id => {
         const col = collections[id];
         if (col.subtype === "deck") return;
         const label = document.createElement("label");
-        label.className = "add-modal-item";
-        label.innerHTML = `<input type="checkbox" value="${id}"> ${col.name} (${col.cards.length})`;
+        label.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-sm);color:var(--text-secondary);transition:background var(--transition-fast)";
+        label.innerHTML = `<input type="checkbox" value="${id}" style="accent-color:var(--accent);width:14px;height:14px"> <span style="flex:1">${col.name}</span> <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)">${col.cards.length}</span>`;
         list.appendChild(label);
       });
     }
     if (ventaIds.length) {
       const sep = document.createElement("div");
-      sep.className = "add-modal-separator";
-      sep.textContent = "━ Venta ━";
+      sep.style.cssText = "font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;padding:var(--space-3) 0 var(--space-1)";
+      sep.textContent = "Venta";
       list.appendChild(sep);
       ventaIds.forEach(id => {
         const col = ventaCols[id];
         if (col.subtype === "deck") return;
         const label = document.createElement("label");
-        label.className = "add-modal-item";
-        label.innerHTML = `<input type="checkbox" value="${id}" data-venta="true"> (Venta) ${col.name} (${col.cards.length})`;
+        label.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-sm);color:var(--text-secondary);transition:background var(--transition-fast)";
+        label.innerHTML = `<input type="checkbox" value="${id}" data-venta="true" style="accent-color:var(--accent);width:14px;height:14px"> <span style="flex:1">${col.name}</span> <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)">${col.cards.length}</span> <span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">Venta</span>`;
         list.appendChild(label);
       });
     }
   } else {
-    list.innerHTML += "<p style='color:var(--text-tertiary);padding:10px;'>Crea una colección primero</p>";
+    list.innerHTML += "<p style='color:var(--text-tertiary);padding:20px 10px;font-size:var(--text-sm);text-align:center'>Crea una colección primero</p>";
     document.getElementById("addModalConfirm").style.display = "none";
   }
   overlay.style.display = "flex";
@@ -3338,6 +3393,7 @@ document.getElementById("ventaNextBtn").addEventListener("click", () => {
 
 // Add modal events
 document.getElementById("addModalCancel").addEventListener("click", () => { document.getElementById("addModalOverlay").style.display = "none"; });
+document.getElementById("addModalCloseBtn")?.addEventListener("click", () => { document.getElementById("addModalOverlay").style.display = "none"; });
 document.getElementById("addModalConfirm").addEventListener("click", confirmarAdd);
 document.getElementById("createModalConfirm").addEventListener("click", confirmCreateModal);
 document.getElementById("createModalCancel").addEventListener("click", hideCreateModal);
@@ -3353,10 +3409,6 @@ document.getElementById("agregarBtn").addEventListener("click", () => {
     });
     document.querySelectorAll(".card.selected").forEach(el => el.classList.remove("selected"));
     selectedCards = {};
-    selectionMode = false;
-    const btn = document.getElementById("seleccionarBtn");
-    btn.textContent = "Seleccionar";
-    btn.classList.remove("active");
     actualizarBadge();
     actualizarBadgesEnPagina();
     if (Object.keys(pendingCards).length) mostrarAddModal();

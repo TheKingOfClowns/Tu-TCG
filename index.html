@@ -371,7 +371,7 @@
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
                     <option value="MXN">MXN</option>
-                    <option value="ARS">ARS</option>
+                    <option value="ARS">ARS (ARS$)</option>
                   </select>
                 </div>
                 <div class="profile-field profile-field-full">
@@ -399,18 +399,24 @@
 
       <!-- ── Add Modal ── -->
       <div class="modal-overlay-dark" id="addModalOverlay" style="display:none">
-        <div class="add-modal-panel glass-panel">
-          <h3>Añadir a colecciones</h3>
-          <div class="add-modal-body">
-            <div id="addModalList"></div>
-            <div class="add-modal-qty" id="addModalQtyRow">
-              <label>Cantidad:</label>
-              <input type="number" id="addModalQty" value="1" min="1" max="99">
-            </div>
+        <div class="add-modal-panel glass-panel" style="max-width:460px;display:flex;flex-direction:column;max-height:80vh">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-5) var(--space-6) var(--space-3);border-bottom:1px solid var(--border-subtle);flex-shrink:0">
+            <h3 style="font-size:var(--text-lg);font-weight:var(--weight-extrabold);color:#fff;margin:0">Añadir a colecciones</h3>
+            <button class="modal-close-btn" id="addModalCloseBtn" style="position:static;width:32px;height:32px;background:rgba(255,255,255,0.04);color:var(--text-muted)">&times;</button>
           </div>
-          <div class="add-modal-actions">
-            <button class="btn-ghost" id="addModalCancel">Cancelar</button>
-            <button class="btn-primary" id="addModalConfirm">Añadir</button>
+          <div style="flex:1;overflow-y:auto;padding:var(--space-3) var(--space-6)" id="addModalBody">
+            <div id="addModalPendSection" style="margin-bottom:var(--space-4)"></div>
+            <div id="addModalList"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-4) var(--space-6);border-top:1px solid var(--border-subtle);flex-shrink:0">
+            <div class="add-modal-qty" id="addModalQtyRow" style="display:none;margin:0">
+              <label style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">Cantidad:</label>
+              <input type="number" id="addModalQty" value="1" min="1" max="99" style="width:60px;padding:4px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);font-size:var(--text-sm);font-family:var(--font-mono);outline:none">
+            </div>
+            <div style="display:flex;gap:var(--space-2);margin-left:auto">
+              <button class="btn-ghost btn-sm" id="addModalCancel" style="padding:6px 14px">Cancelar</button>
+              <button class="btn-primary btn-sm" id="addModalConfirm" style="padding:6px 14px">Añadir</button>
+            </div>
           </div>
         </div>
       </div>
