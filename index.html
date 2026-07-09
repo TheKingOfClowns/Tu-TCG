@@ -6,7 +6,7 @@
   <title>TuTCG</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="design-system.css?v=3">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=27">
 </head>
 <body>
 
@@ -67,6 +67,7 @@
       </div>
     </div>
   </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <!-- ═══ MAIN CONTENT ═══ -->
   <main class="main-content" id="mainContent">
@@ -74,6 +75,9 @@
     <!-- ── Top Bar ── -->
     <header class="top-bar">
       <div class="top-bar-left">
+        <button class="top-bar-menu-btn" id="menuBtn" aria-label="Menú">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+        </button>
         <span class="top-bar-tcg-name" id="topBarTcgName"></span>
       </div>
       <div class="top-bar-search" id="topBarSearch">
@@ -260,8 +264,8 @@
                 </div>
                 <div class="footer-links">
                   <h4>Legal</h4>
-                  <button class="footer-link" id="footerPrivacy">Política de privacidad</button>
-                  <button class="footer-link" id="footerTerms">Términos de servicio</button>
+                  <button class="footer-link" id="footerPrivacyLegal">Política de privacidad</button>
+                  <button class="footer-link" id="footerTermsLegal">Términos de servicio</button>
                 </div>
               </div>
               <div class="footer-bottom">
@@ -321,7 +325,7 @@
       <div class="view-pane" id="catalogView" style="display:none">
         <!-- Header: Search + Price Toggle + Action Buttons -->
         <div class="catalog-toolbar">
-          <div class="catalog-toolbar-left">
+            <div class="catalog-toolbar-left">
             <div class="catalog-search-bar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               <input type="text" id="searchInput" placeholder="Buscar por nombre, set…">
@@ -329,11 +333,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
-            <div class="price-toggle" id="priceToggle">
-              <span class="toggle-option active" data-price="market">Market</span>
-              <span class="toggle-option" data-price="median">Median</span>
             </div>
-          </div>
           <div class="catalog-toolbar-right">
             <button class="btn-ghost" id="seleccionarBtn">Seleccionar</button>
             <button class="btn-primary btn-sm" id="agregarBtn">Agregar a</button>
@@ -346,7 +346,7 @@
           <select id="expansionFilter"><option value="">Todas las expansiones</option></select>
           <select id="colorFilter"><option value="">Todos los colores</option></select>
           <select id="rarityFilter"><option value="">Todas las rarezas</option></select>
-          <select id="sortFilter"><option value="">Orden colección</option><option value="name">Nombre A-Z</option><option value="name_desc">Nombre Z-A</option><option value="price_desc">Precio mayor-menor</option><option value="price_asc">Precio menor-mayor</option></select>
+          <select id="sortFilter"><option value="">Orden colección</option><option value="name">Nombre A-Z</option><option value="name_desc">Nombre Z-A</option></select>
         </div>
 
         <div class="catalog-results-bar" id="resultsCounter" style="display:none">Cargando cartas…</div>
@@ -365,7 +365,10 @@
         <div class="collection-inner">
           <div class="collection-header">
             <h2>Mis Colecciones</h2>
-            <button class="btn-primary" id="createCollectionBtn">+ Nueva</button>
+            <div style="display:flex;gap:var(--space-2)">
+              <button class="btn-primary" id="createCollectionBtn">+ Nueva</button>
+              <button class="btn-primary" id="createTrackingBtn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">+ Tracking</button>
+            </div>
           </div>
           <div class="collection-list" id="collectionList"></div>
         </div>
@@ -387,6 +390,23 @@
             </div>
           </div>
           <div id="binderDeckContainer" style="display:none"></div>
+          <div class="tracking-header" id="trackingHeader" style="display:none">
+            <div class="tracking-progress">
+              <div class="tracking-progress-bar"><div class="tracking-progress-fill" id="trackingProgressFill"></div></div>
+              <span class="tracking-progress-text" id="trackingProgressText">0 / 0 — 0%</span>
+            </div>
+            <div class="tracking-actions">
+              <button class="btn-ghost btn-sm" id="trackingAddBtn" title="Agregar cartas al tracking">+ Agregar</button>
+              <button class="btn-ghost btn-sm" id="trackingMarkAllBtn" title="Marcar todo como obtenido">&check; Todo</button>
+              <button class="btn-ghost btn-sm" id="trackingUnmarkAllBtn" title="Desmarcar todo">&times; Todo</button>
+              <button class="btn-ghost btn-sm" id="trackingChecklistBtn" title="Modo checklist">&#9776; Lista</button>
+            </div>
+            <div class="tracking-filters" id="trackingFilters">
+              <button class="tracking-filter-btn active" data-filter="all">Todas</button>
+              <button class="tracking-filter-btn" data-filter="missing">Faltantes</button>
+              <button class="tracking-filter-btn" data-filter="owned">Obtenidas</button>
+            </div>
+          </div>
           <div class="binder-grid" id="binderGrid"></div>
           <div class="binder-pagination" id="binderPagination">
             <button class="btn-page" id="binderPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
@@ -536,9 +556,7 @@
                   <label for="profileCurrency">Moneda</label>
                   <select id="profileCurrency">
                     <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="MXN">MXN</option>
-                    <option value="ARS">ARS (ARS$)</option>
+                    <option value="ARS">ARS ($)</option>
                   </select>
                 </div>
                 <div class="profile-field profile-field-full">
@@ -599,6 +617,41 @@
           <div class="add-modal-actions">
             <button class="btn-ghost" id="createModalCancel">Cancelar</button>
             <button class="btn-primary" id="createModalConfirm">Crear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tracking Create Modal ── -->
+      <div class="modal-overlay-dark" id="trackingModalOverlay" style="display:none">
+        <div class="add-modal-panel glass-panel" style="max-width:480px;max-height:80vh;overflow-y:auto">
+          <h3 id="trackingModalTitle">Crear binder de colección</h3>
+          <div class="add-modal-body">
+            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Nombre</label>
+            <input type="text" id="trackingNameInput" placeholder="Nombre del binder" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
+            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">¿Qué vas a coleccionar?</label>
+            <select id="trackingTypeSelect" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+              <option value="expansion">Expansiones</option>
+              <option value="rarity">Rarezas</option>
+              <option value="character">Personaje/s</option>
+              <option value="don">Don Cards</option>
+            </select>
+            <div id="trackingExtraPanel" style="margin-top:var(--space-3)"></div>
+          </div>
+          <div class="add-modal-actions">
+            <button class="btn-ghost" id="trackingModalCancel">Cancelar</button>
+            <button class="btn-primary" id="trackingModalConfirm">Crear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Confirm Modal ── -->
+      <div class="modal-overlay-dark" id="confirmModal" style="display:none">
+        <div class="add-modal-panel glass-panel" style="max-width:360px">
+          <h3 id="confirmModalTitle">Confirmar</h3>
+          <p id="confirmModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0"></p>
+          <div class="add-modal-actions">
+            <button class="btn-ghost" id="confirmModalCancel">Cancelar</button>
+            <button class="btn-primary" id="confirmModalOk">Confirmar</button>
           </div>
         </div>
       </div>
@@ -686,7 +739,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="supabase.js?v=2"></script>
   <script src="auth.js?v=2"></script>
-  <script src="script.js?v=18"></script>
+  <script src="script.js?v=48"></script>
   <script src="profile.js"></script>
 </body>
 </html>
