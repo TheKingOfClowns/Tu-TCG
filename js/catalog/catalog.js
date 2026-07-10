@@ -213,6 +213,7 @@ function cargarFiltros() {
       return cartas.some(c => c.set_id === s && c.language === lang && c.category === "BOOSTER");
     });
     const filteredStarter = starterSets.filter(s => {
+      if (/^ST-3[1-6]$/.test(s)) return false;
       if (lang === "all") return true;
       return cartas.some(c => c.set_id === s && c.language === lang && c.category === "STARTER");
     });

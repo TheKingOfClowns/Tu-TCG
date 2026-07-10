@@ -27,6 +27,9 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - `data/games/riftbound/` — Placeholder vacío
 - `config/games.json` — Registro de TCGs: `one-piece` enabled, `riftbound` disabled
 - `assets/logos/` — 7 logos .webp de TCGs
+- `scripts/scrape-ja-promos.js` — Scrapeo de promos JA desde web oficial
+- `scripts/generate-ja-cards.js` — Generación de entradas JA desde imágenes en `ja/`
+- `_headers` — Cache headers para Cloudflare Pages
 
 ## Diseño (Nexus Design System)
 - **Fondo**: #050511 (primary), #0a0a1a (secondary), #09090b (surface)
@@ -51,8 +54,33 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - Modal carta: `modal`, `modalBody`, `closeModal`
 - Toggle público: `binderPublicToggleContainer`, `ventaPublicToggleContainer`
 - Explorar: `exploreContainer`, `exploreDetailContainer`, `exploreDetailTitle`, `exploreDetailBackBtn`
+- Toggle idioma: `catalogLangToggle` (EN | JA | Todos), `trackingLangSelect` (Solo EN | Solo JA | Ambos)
 
 ## Últimos cambios (2026-07-10)
+
+### Soporte cartas japonés (JA) — COMPLETADO PARCIALMENTE
+- **cards_master.json**: 9,722 cartas (4,782 EN + 4,940 JA). JA incluye clones de EN (misma metadata, distinto `card_image`) + datos reales de 619 promos scrapeadas.
+- **Idioma**: `card.language = "en"` o `"ja"`. `getCardKey(c)` incluye `card_image` → claves distintas para EN y JA automáticamente.
+- **Toggle catálogo**: `state.catalog.catalogLanguage` (`"en"`, `"ja"`, `"all"`). Botones EN | JA | Todos en `#catalogLangToggle` (CSS segmentado estilo `.catalog-lang-toggle`).
+- **`cargarFiltros()` language-aware**: filtra sets del dropdown según datos reales del idioma activo (`cartas.some` por `set_id` + `language`).
+- **Sets JA vs EN**: OP-14, OP-15, EB-04 son sets separados en JA; en EN están combinados como OP14-EB04 y OP15-EB04.
+- **ST-31 a ST-36**: solo existen en JA (sin datos EN). Ocultos del dropdown EN. Regex: `/^ST-3[1-6]$/`.
+- **DON JA**: 237 cartas DON japonesas con variantes normal/foil/gold. NO scrapeadas aún — fuente principal es Logia pero su API de Supabase (`hvgmaqdmveuwyztbjvse.supabase.co`) requiere clave anon server-side. Payload parcial de 48 cartas obtenido via `self.__next_f` en devtools.
+- **Tracking multi-idioma**: `<select id="trackingLangSelect">` ("Solo EN", "Solo JA", "Ambos"). `buildTrackingCardList` filtra por `config.language`.
+- **Promos JA**: 619 cartas scrapeadas de `asia-en.onepiece-cardgame.com` (Family Deck Set, Limited Product, Promotion).
+- **`scripts/generate-ja-cards.js`**: escanea `assets/images/onepiece/ja/` (5,039 webp), clona metadata EN donde hay match, crea entradas mínimas para JA-exclusive. Fija `category: "PROMO"` para cartas con prefijo `P-`.
+- **`nombresExpansiones` + `ordenExpansiones`**: actualizados con OP-14, OP-15, EB-04, EB-03, DON!!, PROMO.
+- **Fix set_id JA**: 385 cartas con `OP14-EB04`/`OP15-EB04` corregidas a `OP-14`/`OP-15`/`EB-04` según carpeta de imagen.
+- **Cache**: `_headers` con `no-cache` para `/data/*`.
+
+### Auth UI
+- `auth.js` `updateAuthUI()` oculta `landingRegisterBtn2`, `.hero-login-link`, `#ctaSection` cuando el usuario está autenticado.
+
+### Explore público
+- Precio total en portada (solo tipo `sale`), label "Precio" en vez de "Precio vendedor" en detail. Click en cover card abre binder/deck (excepto clicks en `button`/`input`).
+
+### Binder/Venta
+- Click en cualquier parte de `.binder-cover-card` abre el binder/venta (excluye clicks en botones).
 
 ### Refactorización modular
 - **Estrategia**: módulos cargan DESPUÉS de `script.js`, sobreescribiendo funciones vía redeclaración. `script.js` NO se edita (salvo bug fixes).
@@ -68,20 +96,22 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - 7 logos en `assets/logos/` (one-piece, pokemon, magic, digimon, dragon-ball, yugioh, riftbound)
 - `renderTcgSelector()` usa `<img>` con fallback a ícono de siglas + color
 - Grid: 4 columnas × 200px, `aspect-ratio: 1/1`, `justify-content: center`
-- Cards con logo: `padding: 0`, sin texto overlay
 
 ### Riftbound
-- Entrada en `tcgList` (script.js + registry.js)
-- `config/games.json`: `enabled: false`
-- `data/games/riftbound/`: placeholders vacíos
+- Entrada en `tcgList` (script.js + registry.js). `config/games.json`: `enabled: false`. `data/games/riftbound/`: placeholders vacíos.
 
-### Plan pendiente
-- Paso 8: Crear `js/tcg/pokemon/config.js` placeholder para validar arquitectura
-- Luego: replicar para Magic, Digimon, Dragon Ball, Yu-Gi-Oh!
-- Finalmente: popular datos reales de cartas para cada TCG
+### Deploy
+- Último deploy hecho en `https://main.tutcg.pages.dev` (commit: fix set_id JA + filtro language-aware)
+- NO hacer deploy sin que el usuario lo pida explícitamente.
+
+## Próximo paso: DON JA
+- **Bloqueo**: se necesitan 237 cartas DON japonesas (normal/foil/gold). Logia solo entregó 48/237 vía `self.__next_f` con filtro `?types=DON!!&lang=JP&set=all`.
+- **Cardmarket**: muestra 216 resultados DON JP pero bloquea con Cloudflare (403 en todo request automatizado, incluso con User-Agent realista).
+- **tcgrepublic.com**: no probado aún, podría ser alternativa.
+- **Web oficial JP**: no lista cartas DON.
+- **Táctica Logia**: el usuario necesita aplicar filtros DON+JP en `app.logiatcg.com/cards`, scrollear hasta el final para cargar las 237, y copiar `self.__next_f` de la consola. Ese payload contiene las URLs de imagen y metadata completa.
 
 ## Convenciones
 - Diseño: glass-panel, toggles deslizantes, modales estilizados (NO `confirm()` nativo)
 - Nunca hacer deploy sin que el usuario lo pida explícitamente
 - Leer este archivo al iniciar cada sesión
-

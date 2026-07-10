@@ -118,6 +118,9 @@ const nombresExpansiones = {
   "PRB02":"PRB02 - The Best Vol.2",
   "OP-16":"OP16 - The Time of Battle",
   "OP16":"OP16 - The Time of Battle",
+  "OP-14":"OP14 - The Azure Sea's Seven",
+  "OP-15":"OP15 - Adventure on KAMI's Island",
+  "EB-04":"EB04 - EGGHEAD CRISIS",
   "DON!!":"--- DON!! Cards ---",
   "PROMO":"Promo Cards"
 };
@@ -135,12 +138,13 @@ const ordenExpansiones = {
   "OP-11":14, "OP-12":15,
   "PRB-02":16,
   "OP-13":17,
-  "OP14-EB04":18,
-  "EB-03":19,
-  "OP15-EB04":20,
-  "OP-16":21,
-  "DON!!":22,
-  "PROMO":23
+  "OP-14":18, "OP14-EB04":18,
+  "EB-04":19,
+  "EB-03":20,
+  "OP-15":21, "OP15-EB04":21,
+  "OP-16":22,
+  "DON!!":23,
+  "PROMO":24
 };
 const coloresES = {
   "Red":"Rojo", "Blue":"Azul", "Green":"Verde",
