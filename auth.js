@@ -202,6 +202,7 @@ function hideAuthModal() {
   overlay.style.display = "none";
   document.getElementById("authError").style.display = "none";
   document.getElementById("authSuccess").style.display = "none";
+  window._pendingView = null;
 }
 
 async function handleAuthSubmit(e) {

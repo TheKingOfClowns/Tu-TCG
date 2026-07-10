@@ -1,8 +1,14 @@
 {
-  "onepiece": {
+  "one-piece": {
     "enabled": true,
     "data_dir": "data/games/onepiece",
     "language": "en",
     "name": "One Piece Card Game"
+  },
+  "riftbound": {
+    "enabled": false,
+    "data_dir": "data/games/riftbound",
+    "language": "en",
+    "name": "Riftbound"
   }
 }

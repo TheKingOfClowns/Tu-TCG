@@ -415,9 +415,10 @@ body {
 /* ── Price Toggle ── */
 /* ═══ TCG Selector (Home) ═══ */
 .tcg-selector-inner {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-4) var(--space-8);
+  padding: var(--space-10) 0 var(--space-8);
 }
 .tcg-selector-inner:has(.landing-page) {
   max-width: none;
@@ -451,8 +452,9 @@ body {
 
 .tcg-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
+  grid-template-columns: repeat(4, 200px);
+  gap: var(--space-5);
+  justify-content: center;
 }
 
 .tcg-card {
@@ -492,6 +494,25 @@ body {
   transition: transform var(--transition-fast);
 }
 .tcg-card:hover .tcg-card-icon { transform: scale(1.05); }
+
+.tcg-card-logo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  z-index: 0;
+}
+.tcg-card:has(.tcg-card-logo) {
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  background: none;
+}
+.tcg-card:has(.tcg-card-logo) .tcg-card-logo {
+  object-fit: contain;
+  padding: 16%;
+}
 
 .tcg-card h2,
 .tcg-card h3 {
@@ -726,6 +747,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--space-4);
   align-content: start;
+  position: relative;
 }
 
 /* ── Card Component ── */
@@ -1947,8 +1969,8 @@ body {
   .top-bar { padding: 0 var(--space-8); }
   .top-bar-search { display: flex; }
   .bottom-nav { display: none; }
-  .tcg-selector-inner { padding: var(--space-16) var(--space-8); }
-  .tcg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tcg-selector-inner { padding: var(--space-16) 0; }
+  .tcg-grid { grid-template-columns: repeat(4, 200px); gap: var(--space-5); }
   .welcome-inner { padding: var(--space-12) var(--space-8); }
   .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 }
@@ -1958,8 +1980,9 @@ body {
   .top-bar { padding: 0 var(--space-5); }
   .top-bar-search { display: flex; max-width: 360px; }
   .bottom-nav { display: flex; }
-  .tcg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tcg-grid { grid-template-columns: repeat(3, 180px); gap: var(--space-3); }
   .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .collection-binder-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* Mobile: < 768px */
@@ -1981,7 +2004,7 @@ body {
   .top-bar-search { display: none; }
   .top-bar-tcg-name { font-size: var(--text-xs); }
 
-  .tcg-selector-inner { padding: var(--space-5) var(--space-3); }
+  .tcg-selector-inner { padding: var(--space-5) 0; }
   .tcg-hero-title { font-size: var(--text-2xl); }
   .tcg-hero-subtitle { font-size: var(--text-sm); }
   .tcg-grid { grid-template-columns: 1fr; }

@@ -69,12 +69,12 @@ async function loadPrb02Cardlist() {
 }
 // ─── TCG Registry ─────────────────────────────────────────────────────────
 const tcgList = [
-  { id:"one-piece",   name:"One Piece",          color:"#d02d50", short:"OP" },
-  { id:"pokemon",     name:"Pokémon",            color:"#ffcb05", short:"PK" },
-  { id:"magic",       name:"Magic: The Gathering",color:"#b5a36a", short:"MTG" },
-  { id:"digimon",     name:"Digimon",            color:"#f6a01a", short:"DG" },
-  { id:"dragon-ball", name:"Dragon Ball",        color:"#e84c22", short:"DB" },
-  { id:"yugioh",      name:"Yu-Gi-Oh!",          color:"#c9a84c", short:"YG" },
+  { id:"one-piece",   name:"One Piece",          color:"#d02d50", short:"OP", logo:"assets/logos/one-piece.webp" },
+  { id:"pokemon",     name:"Pokémon",            color:"#ffcb05", short:"PK", logo:"assets/logos/pokemon.webp" },
+  { id:"magic",       name:"Magic: The Gathering",color:"#b5a36a", short:"MTG", logo:"assets/logos/magic.webp" },
+  { id:"digimon",     name:"Digimon",            color:"#f6a01a", short:"DG", logo:"assets/logos/digimon.webp" },
+  { id:"dragon-ball", name:"Dragon Ball",        color:"#e84c22", short:"DB", logo:"assets/logos/dragon-ball.webp" },
+  { id:"yugioh",      name:"Yu-Gi-Oh!",          color:"#c9a84c", short:"YG", logo:"assets/logos/yugioh.webp" },
 ];
 // ─── Expansion Configuration ──────────────────────────────────────────────
 const nombresExpansiones = {
@@ -254,6 +254,7 @@ async function cargarCartas() {
     renderCards();
   } catch (error) {
     console.error("Error cargando cards_master.json:", error);
+    cardsContainer.innerHTML = `<div class="no-data-msg"><h2>Error al cargar las cartas</h2><p>No se pudieron cargar los datos. Verificá tu conexión e intentá de nuevo.</p></div>`;
   }
 }
 // ─── Filters ──────────────────────────────────────────────────────────────
@@ -459,7 +460,6 @@ function obtenerRareza(carta) {
   const nombre = (carta.card_name || "").toLowerCase();
   const variant = (carta.variant || "").toLowerCase();
   const setId = carta.set_id || "";
-  if (carta.print_type) return carta.print_type;
   if (carta.category === "OTHER") return "";
   if ((carta.category || carta.producto) === "DON" || nombre === "don!!") {
     if (variant.includes("gold") || variant === "gold") return "Gold";
@@ -469,6 +469,7 @@ function obtenerRareza(carta) {
     if (carta.set_name && (carta.set_name.includes("OP-PR") || carta.set_name.includes("OPDD"))) return "Promo";
     return "Normal";
   }
+  if (carta.print_type) return carta.print_type;
   if (setId === "PRB-01" || setId === "PRB-02") {
     if (rarezaApi === "SP" || rarezaApi === "SP CARD") return "SP";
     const img = carta.card_image || "";
@@ -617,7 +618,7 @@ async function syncObjectToSupabase(obj, type) {
       const allCardRows = [];
       if (binder.subtype === "deck") {
         if (binder.leader) {
-          allCardRows.push({ binder_id: id, card_id: binder.leader._key || "", quantity: 1, price: binder.leader.customPrice || null, card_tag: "leader", sort_order: 0 });
+          allCardRows.push({ binder_id: id, card_id: binder.leader._key || "", quantity: 1, price: binder.leader.customPrice ?? null, card_tag: "leader", sort_order: 0 });
         }
         if (binder.cards && binder.cards.length) {
           const collapsed = {};
@@ -631,7 +632,7 @@ async function syncObjectToSupabase(obj, type) {
         }
         if (binder.dons && binder.dons.length) {
           binder.dons.forEach((card, idx) => {
-            allCardRows.push({ binder_id: id, card_id: card._key || "", quantity: 1, price: card.customPrice || null, card_tag: "don", sort_order: idx + 10000 });
+            allCardRows.push({ binder_id: id, card_id: card._key || "", quantity: 1, price: card.customPrice ?? null, card_tag: "don", sort_order: idx + 10000 });
           });
         }
       } else if (binder.subtype === "tracking") {
@@ -677,6 +678,7 @@ async function loadBindersFromDb() {
     return binders || [];
   } catch (e) {
     console.error("Error loading binders:", e);
+    showToast("No se pudieron cargar tus datos de la nube. Usando datos locales.", "error");
     return null;
   }
 }
@@ -775,7 +777,7 @@ async function initCollections() {
       const localKey = collectionsKey();
       const localData = localStorage.getItem(localKey);
       if (localData) {
-        collections = JSON.parse(localData);
+        try { collections = JSON.parse(localData); } catch (e) { collections = {}; }
         await syncCollectionsToSupabase();
         return;
       }
@@ -820,7 +822,7 @@ async function reloadVentaFromDb() {
   if (dbBinders !== null) {
     const localData = localStorage.getItem(ventaKey());
     if (localData) {
-      ventaCols = JSON.parse(localData);
+      try { ventaCols = JSON.parse(localData); } catch (e) { ventaCols = {}; }
       await syncVentaToSupabase();
     }
   }
@@ -1208,8 +1210,8 @@ function confirmCreateTracking() {
   const name = document.getElementById("trackingNameInput").value.trim();
   const type = document.getElementById("trackingTypeSelect").value;
   let config = {};
-  const includeAA = document.getElementById("trackingIncludeAA")?.classList?.contains("on") ?? true;
-  const includePromo = document.getElementById("trackingIncludePromo")?.classList?.contains("on") ?? true;
+  const includeAA = document.getElementById("trackingIncludeAA")?.classList?.contains("on") ?? false;
+  const includePromo = document.getElementById("trackingIncludePromo")?.classList?.contains("on") ?? false;
   if (!includeAA) config.include_aa = false;
   if (!includePromo) config.include_promo = false;
   if (type === "expansion") {
@@ -3194,9 +3196,9 @@ function renderTcgSelector() {
   const grid = document.getElementById("tcgGrid");
   grid.innerHTML = tcgList.map(t => `
     <div class="tcg-card" data-tcg="${t.id}">
-      <div class="tcg-card-icon" style="background:${t.color}">${t.short}</div>
-      <h3>${t.name}</h3>
-      <p>Explora, colecciona y gestiona tus cartas</p>
+      ${t.logo ? `<img src="${t.logo}" alt="${t.name}" class="tcg-card-logo" onerror="this.style.display='none'">` : ""}
+      ${!t.logo ? `<div class="tcg-card-icon" style="background:${t.color}">${t.short}</div>` : ""}
+      ${!t.logo ? `<h3>${t.name}</h3><p>Explora, colecciona y gestiona tus cartas</p>` : ""}
     </div>`).join("");
 }
 function updateTcgHeroForView(view) {
