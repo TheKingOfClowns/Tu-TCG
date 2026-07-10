@@ -1,21 +1,32 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-07-09
+2026-07-10
 
 ## Proyecto
-App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Pokémon, Magic, Digimon, Dragon Ball, Yu-Gi-Oh!). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
+App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Pokémon, Magic, Digimon, Dragon Ball, Yu-Gi-Oh!, Riftbound). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
 
 ## Arquitectura
 - `index.html` — Layout: sidebar (desktop) + main content + bottom nav (mobile)
-- `style.css` — Estilos (glass-panel, toggles, progreso, modales)
+- `style.css` — Estilos (glass-panel, toggles, progreso, modales, TCG cards)
 - `design-system.css` — Tokens CSS (colores, tipografía, animaciones)
-- `script.js` — Lógica principal (vistas, catálogo, binder, venta, tracking, TCG selector, auth, CRUD, UI)
+- `script.js` — Lógica principal (3,853 líneas, intacto — NO editar)
+- `js/state.js` — Estado organizado por dominio (app, catalog, binder, venta, explore)
+- `js/registry.js` — Extiende `tcgList` con TCGs nuevos (carga DESPUÉS de script.js)
+- `js/tcg/onepiece/config.js` — `OnePieceConfig` (deck rules, rarezas, categorías)
+- `js/catalog/catalog.js` — `renderCards()` + filtros + badges PRB (sobrescribe script.js)
+- `js/binder/binder.js` — `renderCollectionList()` + `renderBinder()` + drag & drop
+- `js/venta/venta.js` — `renderVentaList()` + `renderVentaView()` + precios
+- `js/explore/explore.js` — `renderExploreView()` + `renderExploreDetail()`
+- `js/deck/deck.js` — `showDeckPicker()` + `renderDeckView()` + `saveDeck()`
+- `js/modals/modals.js` — `mostrarAddModal()`, `confirmarAdd()`, `openCardInModal()`, etc.
 - `auth.js` — Autenticación Supabase (login, registro, recuperación, perfiles)
 - `profile.js` — Página de perfil de usuario
 - `supabase.js` — Configuración del cliente Supabase
-- `data/games/onepiece/cards_master.json` — Base de datos de cartas
-- `config/games.json` — Registro de TCGs disponibles
+- `data/games/onepiece/cards_master.json` — Base de datos de cartas One Piece
+- `data/games/riftbound/` — Placeholder vacío
+- `config/games.json` — Registro de TCGs: `one-piece` enabled, `riftbound` disabled
+- `assets/logos/` — 7 logos .webp de TCGs
 
 ## Diseño (Nexus Design System)
 - **Fondo**: #050511 (primary), #0a0a1a (secondary), #09090b (surface)
@@ -41,37 +52,33 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - Toggle público: `binderPublicToggleContainer`, `ventaPublicToggleContainer`
 - Explorar: `exploreContainer`, `exploreDetailContainer`, `exploreDetailTitle`, `exploreDetailBackBtn`
 
-## Últimos cambios (2026-07-09)
+## Últimos cambios (2026-07-10)
 
-### Homepage
-- Texto de bienvenida cambiado: "One Piece TCG" → "TCG´s"
+### Refactorización modular
+- **Estrategia**: módulos cargan DESPUÉS de `script.js`, sobreescribiendo funciones vía redeclaración. `script.js` NO se edita (salvo bug fixes).
+- **Orden de carga**: state.js → config.js → script.js → registry.js → catalog.js → binder.js → venta.js → explore.js → deck.js → modals.js → profile.js
+- 9 módulos extraídos (~2,200 líneas). Las funciones `let`/`const` top-level NO deben duplicarse entre módulos y script.js.
 
-### TCG selector en sidebar
-- `pendingView` integrado en vistas Binder, Venta, Explorar. Selector TCG con título contextual.
-- Campo `tcg: "one-piece"` en binders. Filtro por `currentTcg` en listas y explore.
+### Auditoría y bug fixes (18 corregidos)
+- **Críticos**: scoped `.binder-remove`, try/catch JSON.parse, skeleton position, null card_name localeCompare, async onsubmit
+- **Altos**: `customPrice ?? null`, DON antes de print_type en obtenerRareza, error UI en cargarCartas, tracking toggles `?? false`, `_pendingView` cleanup, tablet collection grid
+- **Medios**: toast en loadBindersFromDb, key `onepiece` → `one-piece` en games.json, preservar rareza en actualizarFiltros, guard en openCardInModal, keyframes muertos eliminados
 
-### Venta cards
-- Quitado `overflow: hidden` de `.venta-slot`, X de remover al hover.
-- Editable mode: botones `+/-` + input sin spinners.
-- Precios totales: `getTotalPrice` suma `customPrice`.
+### Logos TCG
+- 7 logos en `assets/logos/` (one-piece, pokemon, magic, digimon, dragon-ball, yugioh, riftbound)
+- `renderTcgSelector()` usa `<img>` con fallback a ícono de siglas + color
+- Grid: 4 columnas × 200px, `aspect-ratio: 1/1`, `justify-content: center`
+- Cards con logo: `padding: 0`, sin texto overlay
 
-### Tracking binder
-- `subtype: "tracking"` con `tracking_type` y `tracking_config`
-- Modal multi-tipo: Expansión, Rarezas (L-SEC-SP-AA), Personaje, Don Cards
-- Toggles AA/Promos/Gold
-- Claves de tracking con `getCardKey(c)` → `cartasMap`
-- Progreso: barra + `X / Y — %`, instantáneo con `toggleTrackingCard`
-- Modo lista: `flex-wrap`, sin paginación, sin imagen
-- Botones ✓ Todo / ✗ Todo con confirmación estilizada
-- "+ Agregar" reutiliza modal en modo append
-- X en cada carta para remover con confirmación
-- Sync Supabase: tracking sube cartas owned, master list desde config
+### Riftbound
+- Entrada en `tcgList` (script.js + registry.js)
+- `config/games.json`: `enabled: false`
+- `data/games/riftbound/`: placeholders vacíos
 
-### Code review fixes
-- `setupVentaDragDrop` removido, IDs footer duplicados renombrados
-- `tcgplayerMap` declarado, `bottomTcg` eliminado, dead code removido
-- Debounce 250ms en búsqueda, delete con `showConfirmModal` estilizado
-- Empty binder slots: click → catálogo
+### Plan pendiente
+- Paso 8: Crear `js/tcg/pokemon/config.js` placeholder para validar arquitectura
+- Luego: replicar para Magic, Digimon, Dragon Ball, Yu-Gi-Oh!
+- Finalmente: popular datos reales de cartas para cada TCG
 
 ## Convenciones
 - Diseño: glass-panel, toggles deslizantes, modales estilizados (NO `confirm()` nativo)
