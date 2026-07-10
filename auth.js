@@ -130,6 +130,9 @@ function updateAuthUI() {
   const sidebarUserName = document.getElementById("sidebarUserName");
   const sidebarUserPlan = document.getElementById("sidebarUserPlan");
   const sidebarUserAvatar = document.getElementById("sidebarUserAvatar");
+  const landingRegisterBtn2 = document.getElementById("landingRegisterBtn2");
+  const landingLoginLink = document.querySelector(".hero-login-link");
+  const ctaSection = document.getElementById("ctaSection");
 
   if (isAuthenticated()) {
     if (authBtn) authBtn.style.display = "none";
@@ -143,12 +146,18 @@ function updateAuthUI() {
     if (sidebarUserName) sidebarUserName.textContent = (authUser.user_metadata?.username) || (authUser.email ? authUser.email.split("@")[0] : "Usuario");
     if (sidebarUserPlan) sidebarUserPlan.textContent = "Premium";
     if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
+    if (landingRegisterBtn2) landingRegisterBtn2.style.display = "none";
+    if (landingLoginLink) landingLoginLink.style.display = "none";
+    if (ctaSection) ctaSection.style.display = "none";
   } else {
     if (authBtn) authBtn.style.display = "inline-flex";
     if (userBtn) userBtn.style.display = "none";
     if (sidebarUserName) sidebarUserName.textContent = "Invitado";
     if (sidebarUserPlan) sidebarUserPlan.textContent = "Gratuito";
     if (sidebarUserAvatar) sidebarUserAvatar.classList.remove("logged-in");
+    if (landingRegisterBtn2) landingRegisterBtn2.style.display = "";
+    if (landingLoginLink) landingLoginLink.style.display = "";
+    if (ctaSection) ctaSection.style.display = "";
   }
 }
 

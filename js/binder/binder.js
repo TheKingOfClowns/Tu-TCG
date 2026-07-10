@@ -90,6 +90,18 @@ function renderCollectionList() {
       </div>`;
     container.appendChild(div);
   });
+  container.querySelectorAll(".binder-cover-card").forEach(card => {
+    card.style.cursor = "pointer";
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("button")) return;
+      const openBtn = card.querySelector("[data-action='open']");
+      if (openBtn) {
+        currentCollectionId = openBtn.getAttribute("data-id");
+        binderPage = 1;
+        mostrarVista("binder");
+      }
+    });
+  });
   container.querySelectorAll("[data-action='open']").forEach(b => {
     b.addEventListener("click", () => { currentCollectionId = b.getAttribute("data-id"); binderPage = 1; mostrarVista("binder"); });
   });

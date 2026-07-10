@@ -3,6 +3,10 @@
 
 function renderCards() {
   let resultado = [...cartas];
+  const lang = state.catalog.catalogLanguage || "en";
+  if (lang !== "all") {
+    resultado = resultado.filter(c => c.language === lang);
+  }
   const texto = searchInput.value.toLowerCase().trim();
   if (texto) {
     resultado = resultado.filter(carta =>

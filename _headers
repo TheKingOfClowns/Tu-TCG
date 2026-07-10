@@ -12,3 +12,6 @@
 
 /style.css
   Cache-Control: no-cache
+
+/data/*
+  Cache-Control: no-cache

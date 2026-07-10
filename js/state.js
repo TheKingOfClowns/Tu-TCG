@@ -18,6 +18,7 @@ const state = {
     tcgplayerMap: null,
     rebuildingFilters: false,
     prb02CardlistLabels: null,
+    catalogLanguage: "en",
   },
   binder: {
     collections: {},

@@ -225,7 +225,7 @@ async function cargarCartas() {
       const ordenB = getOrden(b.set_id);
       if (ordenA !== ordenB) return ordenA - ordenB;
       return (a.card_set_id || "").localeCompare(b.card_set_id || "", undefined, { numeric: true });
-    }).filter(c => c.language && c.language.includes("en"));
+    }).filter(c => c.language && (c.language.includes("en") || c.language.includes("ja")));
     cartas.forEach(c => { if (c.card_name) c.card_name = decodeHtml(c.card_name); });
     await loadPrb02Cardlist();
     buildPrbBadgeMap();
@@ -1160,11 +1160,13 @@ function getUniqueCharacterNames() {
 
 function buildTrackingCardList(type, config) {
   const cards = [];
+  const lang = config.language || "en";
   if (type === "expansion") {
     const sets = config.sets || [];
     const mode = config.mode || "master";
     const rareExclude = ["Manga", "SP", "AA", "Full Art", "Jolly Roger", "Textured Foil", "Reprint"];
     cartas.forEach(c => {
+      if (lang !== "all" && c.language !== lang) return;
       const sid = c.set_id;
       if (!sets.includes(sid)) return;
       if (mode === "base") {
@@ -1181,6 +1183,7 @@ function buildTrackingCardList(type, config) {
   } else if (type === "character") {
     const charName = (config.character || "").trim().toLowerCase();
     cartas.forEach(c => {
+      if (lang !== "all" && c.language !== lang) return;
       if (c.card_name && c.card_name.trim().toLowerCase() === charName) {
         if (!trackingCardPasses(c, config)) return;
         cards.push({ _key: getCardKey(c), owned: false });
@@ -1189,6 +1192,7 @@ function buildTrackingCardList(type, config) {
   } else if (type === "rarity") {
     const rarities = config.rarities || [];
     cartas.forEach(c => {
+      if (lang !== "all" && c.language !== lang) return;
       const rarezaRaw = c.rarity || c.rareza || "";
       if (rarities.includes(obtenerRareza(c)) || rarities.includes(rarezaRaw)) {
         if (!trackingCardPasses(c, config)) return;
@@ -1197,6 +1201,7 @@ function buildTrackingCardList(type, config) {
     });
   } else if (type === "don") {
     cartas.forEach(c => {
+      if (lang !== "all" && c.language !== lang) return;
       if (c.category === "DON") {
         if (!trackingCardPasses(c, config)) return;
         cards.push({ _key: getCardKey(c), owned: false });
@@ -1214,6 +1219,7 @@ function confirmCreateTracking() {
   const includePromo = document.getElementById("trackingIncludePromo")?.classList?.contains("on") ?? false;
   if (!includeAA) config.include_aa = false;
   if (!includePromo) config.include_promo = false;
+  config.language = document.getElementById("trackingLangSelect")?.value || "en";
   if (type === "expansion") {
     const sets = [];
     document.querySelectorAll("#trackingSetCheckboxes input[type=checkbox]:checked").forEach(cb => sets.push(cb.value));
@@ -3409,6 +3415,16 @@ expansionFilter.addEventListener("change", () => { actualizarFiltrosPorExpansion
 colorFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
 rarityFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
 sortFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
+// Language toggle
+document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.catalog.catalogLanguage = btn.getAttribute("data-lang");
+    currentPage = 1;
+    renderCards();
+  });
+});
 // Pagination
 nextBtnBottom.onclick = () => { currentPage++; renderCards(); };
 prevBtnBottom.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); } };

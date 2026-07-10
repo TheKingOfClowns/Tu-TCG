@@ -347,6 +347,11 @@
           <select id="colorFilter"><option value="">Todos los colores</option></select>
           <select id="rarityFilter"><option value="">Todas las rarezas</option></select>
           <select id="sortFilter"><option value="">Orden colección</option><option value="name">Nombre A-Z</option><option value="name_desc">Nombre Z-A</option></select>
+          <div class="catalog-lang-toggle" id="catalogLangToggle">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="ja">JA</button>
+            <button class="lang-btn" data-lang="all">Todos</button>
+          </div>
         </div>
 
         <div class="catalog-results-bar" id="resultsCounter" style="display:none">Cargando cartas…</div>
@@ -634,6 +639,12 @@
               <option value="rarity">Rarezas</option>
               <option value="character">Personaje/s</option>
               <option value="don">Don Cards</option>
+            </select>
+            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Idioma</label>
+            <select id="trackingLangSelect" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+              <option value="en">Solo EN</option>
+              <option value="ja">Solo JA</option>
+              <option value="all">Ambos</option>
             </select>
             <div id="trackingExtraPanel" style="margin-top:var(--space-3)"></div>
           </div>

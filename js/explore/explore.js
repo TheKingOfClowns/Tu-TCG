@@ -52,6 +52,9 @@ async function renderExploreView() {
           if (found?.card_image) coverImg = found.card_image;
         }
       }
+      const totalPrice = b.type === "sale" && b.binder_cards?.length
+        ? b.binder_cards.reduce((s, c) => s + ((c.price != null ? Number(c.price) : 0) * (c.quantity || 1)), 0)
+        : 0;
       const div = document.createElement("div");
       div.className = "explore-card";
       div.innerHTML = `
@@ -66,6 +69,7 @@ async function renderExploreView() {
             <span style="font-size:10px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${username}${isOwner ? "" : ""}</span>
             <span style="font-size:9px;color:var(--text-muted);margin-left:auto;white-space:nowrap">${cardCount} c</span>
           </div>
+          ${b.type === "sale" && totalPrice > 0 ? `<div style="margin-top:6px"><span style="font-size:11px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$${totalPrice.toFixed(2)}</span></div>` : ""}
         </div>
       `;
       div.addEventListener("click", () => openExploreDetail(b));
@@ -109,7 +113,7 @@ function renderExploreDetail() {
         <div class="card-body">
           <h3>${formatearNombre(carta)}</h3>
           <span class="card-set-id">${carta.card_set_id || ""}</span>
-          ${b.type === "sale" && row.price != null ? `<div class="card-price">Precio vendedor: $${parseFloat(row.price).toFixed(2)}</div>` : ""}
+          ${b.type === "sale" && row.price != null ? `<div class="card-price">Precio: $${parseFloat(row.price).toFixed(2)}</div>` : ""}
         </div>`;
       grid.appendChild(div);
     }

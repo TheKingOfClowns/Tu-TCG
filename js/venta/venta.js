@@ -52,6 +52,14 @@ function renderVentaList() {
       </div>`;
     container.appendChild(div);
   });
+  container.querySelectorAll(".binder-cover-card").forEach(card => {
+    card.style.cursor = "pointer";
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("button, input")) return;
+      const openBtn = card.querySelector("[data-action='open']");
+      if (openBtn) openVenta(openBtn.getAttribute("data-id"));
+    });
+  });
   container.querySelectorAll("[data-action='open']").forEach(b => {
     b.addEventListener("click", () => openVenta(b.getAttribute("data-id")));
   });

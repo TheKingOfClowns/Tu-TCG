@@ -732,6 +732,33 @@ body {
 .catalog-filters select:hover { border-color: var(--border-hover); }
 .catalog-filters select:focus { border-color: var(--accent); }
 
+.catalog-lang-toggle {
+  display: flex;
+  gap: 2px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  margin-left: auto;
+}
+.lang-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-mono);
+}
+.lang-btn:hover { color: var(--text-secondary); }
+.lang-btn.active {
+  background: var(--accent);
+  color: #050511;
+}
+
 .catalog-results-bar {
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-xs);
