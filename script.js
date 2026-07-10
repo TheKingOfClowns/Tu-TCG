@@ -3420,8 +3420,13 @@ document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+    const prevLang = state.catalog.catalogLanguage;
     state.catalog.catalogLanguage = btn.getAttribute("data-lang");
     currentPage = 1;
+    if (state.catalog.catalogLanguage !== prevLang) {
+      cargarFiltros();
+      actualizarFiltrosPorExpansion();
+    }
     renderCards();
   });
 });

@@ -203,24 +203,35 @@ function cargarFiltros() {
   const prevExpansion = expansionFilter.value;
   expansionFilter.innerHTML = `<option value="">Todas las expansiones</option>`;
   if (currentTcg === "one-piece") {
+    const lang = state.catalog.catalogLanguage || "en";
     const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
     const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
     const hasPromo = cartas.some(c => c.category === "PROMO" || c.category === "OTHER");
-    const hasDon = cartas.some(c => c.category === "DON");
+    const hasDon = lang !== "ja" && cartas.some(c => c.category === "DON");
+    // Filter combined sets based on language
+    const isJa = lang === "ja";
+    const filteredBooster = boosterSets.filter(s => {
+      if (isJa) return s !== "OP14-EB04" && s !== "OP15-EB04";
+      return s !== "EB-04" && s !== "OP-14" && s !== "OP-15";
+    });
+    const filteredStarter = starterSets.filter(s => {
+      if (isJa) return true; // ST-31 to ST-36 are JA-only, show them
+      return true;
+    });
     const fragments = [];
-    if (boosterSets.length) {
-      boosterSets.sort((a, b) => getOrden(a) - getOrden(b));
+    if (filteredBooster.length) {
+      filteredBooster.sort((a, b) => getOrden(a) - getOrden(b));
       let html = `<optgroup label="--- Booster ---">`;
-      boosterSets.forEach(s => {
+      filteredBooster.forEach(s => {
         html += `<option value="${s}">${nombresExpansiones[s] || s}</option>`;
       });
       html += `</optgroup>`;
       fragments.push(html);
     }
-    if (starterSets.length) {
-      starterSets.sort((a, b) => getOrden(a) - getOrden(b));
+    if (filteredStarter.length) {
+      filteredStarter.sort((a, b) => getOrden(a) - getOrden(b));
       let html = `<optgroup label="--- Starter ---">`;
-      starterSets.forEach(s => {
+      filteredStarter.forEach(s => {
         html += `<option value="${s}">${nombresExpansiones[s] || s}</option>`;
       });
       html += `</optgroup>`;
