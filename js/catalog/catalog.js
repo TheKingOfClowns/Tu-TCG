@@ -206,17 +206,15 @@ function cargarFiltros() {
     const lang = state.catalog.catalogLanguage || "en";
     const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
     const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
-    const hasPromo = cartas.some(c => c.category === "PROMO" || c.category === "OTHER");
+    const hasPromo = cartas.some(c => (c.category === "PROMO" || c.category === "OTHER") && (lang === "all" || c.language === lang));
     const hasDon = lang !== "ja" && cartas.some(c => c.category === "DON");
-    // Filter combined sets based on language
-    const isJa = lang === "ja";
     const filteredBooster = boosterSets.filter(s => {
-      if (isJa) return s !== "OP14-EB04" && s !== "OP15-EB04";
-      return s !== "EB-04" && s !== "OP-14" && s !== "OP-15";
+      if (lang === "all") return true;
+      return cartas.some(c => c.set_id === s && c.language === lang && c.category === "BOOSTER");
     });
     const filteredStarter = starterSets.filter(s => {
-      if (isJa) return true; // ST-31 to ST-36 are JA-only, show them
-      return true;
+      if (lang === "all") return true;
+      return cartas.some(c => c.set_id === s && c.language === lang && c.category === "STARTER");
     });
     const fragments = [];
     if (filteredBooster.length) {
