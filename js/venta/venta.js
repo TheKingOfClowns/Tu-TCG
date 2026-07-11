@@ -1,4 +1,4 @@
-﻿// â”€â”€â”€ Venta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Venta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderVentaList() {
   const container = document.getElementById("ventaList");
   if (!container) return;
@@ -9,7 +9,7 @@ function renderVentaList() {
   });
   if (!ids.length) {
     const msg = currentTcg ? "No tienes colecciones de venta para este TCG" : "No tienes colecciones de venta";
-    container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstVentaBtn">Crear primera colecciÃ³n de venta</button></div>`;
+    container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstVentaBtn">Crear primera colección de venta</button></div>`;
     const btn = document.getElementById("createFirstVentaBtn");
     if (btn) btn.addEventListener("click", pedirCrearVenta);
     return;
@@ -20,7 +20,7 @@ function renderVentaList() {
     const coverImg = getFirstCardImage(col.cards, col);
     const isDeck = col.subtype === "deck";
     const totalStr = isDeck
-      ? `${col.leader ? "1 lÃ­der Â· " : ""}${(col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0)} cartas${col.dons?.length ? " Â· " + col.dons.length + " DON" : ""}`
+      ? `${col.leader ? "1 líder · " : ""}${(col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0)} cartas${col.dons?.length ? " · " + col.dons.length + " DON" : ""}`
       : `${col.cards.reduce((s, c) => s + (c.quantity || 1), 0)} cartas`;
     const badgeText = isDeck ? "Deck" : (col.display_mode === "playset" ? "Playset" : col.display_mode === "editable" ? "Editable" : "Individual");
     const div = document.createElement("div");
@@ -40,8 +40,8 @@ function renderVentaList() {
           const isCustom = col.customTotalPrice != null;
           return `<div style="display:flex;align-items:center;gap:6px;margin-top:var(--space-1)">
             <span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$${dp.toFixed(2)}</span>
-            <button class="btn-ghost btn-xs" data-action="editprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">âœŽ</button>
-            ${isCustom ? `<button class="btn-ghost btn-xs" data-action="resetprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="Restaurar precio calculado">â†º</button>` : ""}
+            <button class="btn-ghost btn-xs" data-action="editprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">✎</button>
+            ${isCustom ? `<button class="btn-ghost btn-xs" data-action="resetprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="Restaurar precio calculado">↺</button>` : ""}
           </div>`;
         })()}
       </div>
@@ -67,7 +67,7 @@ function renderVentaList() {
     b.addEventListener("click", () => {
       const id = b.getAttribute("data-id");
       showCreateModal({
-        title: "Renombrar colecciÃ³n de venta",
+        title: "Renombrar colección de venta",
         confirmText: "Guardar",
         placeholder: "Nuevo nombre",
         initialValue: ventaCols[id].name,
@@ -78,7 +78,7 @@ function renderVentaList() {
   container.querySelectorAll("[data-action='delete']").forEach(b => {
     b.addEventListener("click", () => {
       const idVenta = b.getAttribute("data-id");
-      showConfirmModal('Â¿Eliminar la colecciÃ³n de venta "' + ventaCols[idVenta].name + '"?', () => {
+      showConfirmModal('¿Eliminar la colección de venta "' + ventaCols[idVenta].name + '"?', () => {
         delete ventaCols[idVenta]; guardarVenta(); renderVentaList();
       });
     });
@@ -129,21 +129,21 @@ function renderVentaList() {
 function pedirCrearVenta() {
   if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
-    title: "Crear colecciÃ³n de venta",
+    title: "Crear colección de venta",
     confirmText: "Crear",
-    placeholder: "Nombre de la colecciÃ³n de venta",
+    placeholder: "Nombre de la colección de venta",
     extraHTML: `
       <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo</label>
       <select id="createVentaSubtype" onchange="document.getElementById('createVentaModeRow').style.display=this.value==='binder'?'':'none'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-        <option value="binder">Binder â€” cartas libres</option>
-        <option value="deck">Deck â€” lÃ­der + 50 cartas + 10 DON!!</option>
+        <option value="binder">Binder — cartas libres</option>
+        <option value="deck">Deck — líder + 50 cartas + 10 DON!!</option>
       </select>
       <div id="createVentaModeRow">
-        <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Modo de visualizaciÃ³n</label>
+        <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Modo de visualización</label>
         <select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-          <option value="individual">Individual â€” una copia por slot</option>
-          <option value="playset">Playset â€” mÃ¡ximo 4 copias por carta</option>
-          <option value="editable">Editable â€” cantidad libre por carta</option>
+          <option value="individual">Individual — una copia por slot</option>
+          <option value="playset">Playset — máximo 4 copias por carta</option>
+          <option value="editable">Editable — cantidad libre por carta</option>
         </select>
       </div>`,
     onConfirm: (nombre) => {
@@ -180,7 +180,7 @@ function renderVentaView() {
   if (pagination) pagination.style.display = "";
   const clearPB = document.getElementById("ventaClearPageBtn");
   const clearAB = document.getElementById("ventaClearAllBtn");
-  if (clearPB) clearPB.textContent = "Vaciar pÃ¡gina";
+  if (clearPB) clearPB.textContent = "Vaciar página";
   if (clearAB) clearAB.textContent = "Vaciar todo";
   title.textContent = col.name;
   const mode = col.display_mode || "individual";
@@ -192,7 +192,7 @@ function renderVentaView() {
         <span class="public-toggle-track">
           <span class="public-toggle-thumb"></span>
         </span>
-        <span class="public-toggle-label ${col.is_public ? "active" : ""}">PÃºblico</span>
+        <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
       </label>
     ` : "";
     const chk = document.getElementById("ventaPublicCheck");
@@ -364,5 +364,5 @@ function attachVentaEvents(col, mode, grid, totalPages) {
   });
   document.getElementById("ventaPrevBtn").disabled = ventaPage <= 1;
   document.getElementById("ventaNextBtn").disabled = ventaPage >= totalPages;
-  document.getElementById("ventaPageInfo").textContent = "PÃ¡gina " + ventaPage + " de " + totalPages;
+  document.getElementById("ventaPageInfo").textContent = "Página " + ventaPage + " de " + totalPages;
 }

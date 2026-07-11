@@ -322,8 +322,7 @@ function renderModalInfo(carta) {
       ${carta.power ? `<div class="modal-info-item"><span class="modal-info-label">Power</span><span>${carta.power}</span></div>` : ""}
       ${carta.counter && carta.counter !== "-" ? `<div class="modal-info-item"><span class="modal-info-label">Counter</span><span>${carta.counter}</span></div>` : ""}
       ${carta.attribute ? `<div class="modal-info-item"><span class="modal-info-label">Attribute</span><span>${carta.attribute}</span></div>` : ""}
-      ${carta.set_id ? `<div class="modal-info-item"><span class="modal-info-label">Set</span><span>${nombresExpansiones[carta.set_id] || carta.set_id}${rareza === "Reprint" ? " (Reprint)" : ""}</span></div>` : ""}
-      ${carta.cardset && (carta.category === 'PROMO' || carta.category === 'OTHER') ? `<div class="modal-info-item"><span class="modal-info-label">Card Set(s)</span><span>${carta.cardset}</span></div>` : ""}
+      ${carta.set_id ? `<div class="modal-info-item"><span class="modal-info-label">Set</span><span>${(carta.category === 'PROMO' || carta.category === 'OTHER') && carta.set_name ? carta.set_name : (nombresExpansiones[carta.set_id] || carta.set_id)}${rareza === "Reprint" ? " (Reprint)" : ""}</span></div>` : ""}
     </div>
     ${efecto ? `<div class="modal-effect"><span class="modal-info-label">Effect</span><p>${efecto}</p></div>` : ""}
   `;

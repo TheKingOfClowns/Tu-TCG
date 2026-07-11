@@ -124,7 +124,7 @@ const nombresExpansiones = {
   "DON!!":"--- DON!! Cards ---",
   "PROMO":"Promo Cards"
 };
-for (let i = 1; i <= 30; i++) {
+for (let i = 1; i <= 36; i++) {
   const key = "ST-" + String(i).padStart(2,"0");
   nombresExpansiones[key] = key + " - Starter Deck";
 }
@@ -235,7 +235,7 @@ async function cargarCartas() {
     buildPrbBadgeMap();
     setCategoryMap = {};
     cartas.forEach(c => {
-      if (c.set_id && c.category && !setCategoryMap[c.set_id]) {
+      if (c.set_id && c.category && c.category !== "DON" && !setCategoryMap[c.set_id]) {
         setCategoryMap[c.set_id] = c.category;
       }
     });
@@ -1539,7 +1539,8 @@ function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCo
       if (q) {
         results = results.filter(c =>
           (c.card_name || "").toLowerCase().includes(q) ||
-          (c.card_set_id || "").toLowerCase().includes(q)
+          (c.card_set_id || "").toLowerCase().includes(q) ||
+          (c.set_name || "").toLowerCase().includes(q)
         );
       }
       grid.innerHTML = "";
@@ -2916,7 +2917,8 @@ function renderCards() {
     resultado = resultado.filter(carta =>
       (carta.card_name || "").toLowerCase().includes(texto) ||
       (carta.card_set_id || "").toLowerCase().includes(texto) ||
-      (carta.variant || "").toLowerCase().includes(texto)
+      (carta.variant || "").toLowerCase().includes(texto) ||
+      (carta.set_name || "").toLowerCase().includes(texto)
     );
   }
   searchClear.style.display = texto ? "flex" : "none";
@@ -2926,8 +2928,6 @@ function renderCards() {
         case "DON!!": return carta.category === "DON";
         case "PROMO": return carta.category === "PROMO" || carta.category === "OTHER";
         case "OTHER": return carta.category === "PROMO" || carta.category === "OTHER";
-        case "OP14-EB04": return (carta.card_set_id?.startsWith("OP14-") || carta.card_set_id?.startsWith("EB04-")) && carta.category === "BOOSTER";
-        case "OP15-EB04": return (carta.card_set_id?.startsWith("OP15-") || carta.card_set_id?.startsWith("EB04-")) && carta.category === "BOOSTER";
         default: return carta.set_id === expansionFilter.value && carta.category === setCategoryMap[expansionFilter.value];
       }
     });
@@ -3118,8 +3118,7 @@ function renderModalInfo(carta) {
       ${carta.power ? `<div class="modal-info-item"><span class="modal-info-label">Power</span><span>${carta.power}</span></div>` : ""}
       ${carta.counter && carta.counter !== "-" ? `<div class="modal-info-item"><span class="modal-info-label">Counter</span><span>${carta.counter}</span></div>` : ""}
       ${carta.attribute ? `<div class="modal-info-item"><span class="modal-info-label">Attribute</span><span>${carta.attribute}</span></div>` : ""}
-      ${carta.set_id ? `<div class="modal-info-item"><span class="modal-info-label">Set</span><span>${nombresExpansiones[carta.set_id] || carta.set_id}${rareza === "Reprint" ? " (Reprint)" : ""}</span></div>` : ""}
-      ${carta.cardset && (carta.category === 'PROMO' || carta.category === 'OTHER') ? `<div class="modal-info-item"><span class="modal-info-label">Card Set(s)</span><span>${carta.cardset}</span></div>` : ""}
+      ${carta.set_id ? `<div class="modal-info-item"><span class="modal-info-label">Set</span><span>${(carta.category === 'PROMO' || carta.category === 'OTHER') && carta.set_name ? carta.set_name : (nombresExpansiones[carta.set_id] || carta.set_id)}${rareza === "Reprint" ? " (Reprint)" : ""}</span></div>` : ""}
     </div>
     ${efecto ? `<div class="modal-effect"><span class="modal-info-label">Effect</span><p>${efecto}</p></div>` : ""}
   `;
@@ -3258,7 +3257,6 @@ function mostrarVista(vista) {
   document.getElementById("exploreView").style.display = "none";
   document.getElementById("exploreDetailView").style.display = "none";
   if (profileView) profileView.style.display = "none";
-  const topBarSearch = document.getElementById("topBarSearch");
   const tcg = tcgList.find(t => t.id === currentTcg);
   document.querySelectorAll(".sidebar-nav-item").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".bottom-nav-item").forEach(b => b.classList.remove("active"));
@@ -3268,7 +3266,6 @@ function mostrarVista(vista) {
   if (sidebarTcgName) sidebarTcgName.textContent = tcg ? tcg.name : "Selecciona un TCG";
   if (vista === "catalog") {
     if (!currentTcg) {
-      if (topBarSearch) topBarSearch.style.display = "none";
       document.getElementById("tcgSelector").classList.add("active");
       document.getElementById("tcgSelector").style.display = "";
       renderTcgSelector();
@@ -3280,7 +3277,6 @@ function mostrarVista(vista) {
       document.getElementById("bottomCatalog")?.classList.add("active");
       return;
     }
-    if (topBarSearch) topBarSearch.style.display = "";
     limpiarPendientes();
     document.getElementById("catalogView").classList.add("active");
     document.getElementById("catalogView").style.display = "";
@@ -3305,7 +3301,7 @@ function mostrarVista(vista) {
     renderBinder();
   } else if (vista === "collections") {
     if (!currentTcg) {
-      if (topBarSearch) topBarSearch.style.display = "none";
+
       document.getElementById("tcgSelector").classList.add("active");
       document.getElementById("tcgSelector").style.display = "";
       renderTcgSelector();
@@ -3324,7 +3320,7 @@ function mostrarVista(vista) {
     renderCollectionList();
   } else if (vista === "ventaCols") {
     if (!currentTcg) {
-      if (topBarSearch) topBarSearch.style.display = "none";
+
       document.getElementById("tcgSelector").classList.add("active");
       document.getElementById("tcgSelector").style.display = "";
       renderTcgSelector();
@@ -3352,7 +3348,7 @@ function mostrarVista(vista) {
     document.getElementById("welcomeView").style.display = "";
   } else if (vista === "explore") {
     if (!currentTcg) {
-      if (topBarSearch) topBarSearch.style.display = "none";
+
       document.getElementById("tcgSelector").classList.add("active");
       document.getElementById("tcgSelector").style.display = "";
       renderTcgSelector();
@@ -3379,8 +3375,7 @@ function mostrarVista(vista) {
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
     document.getElementById("sidebarProfile")?.classList.add("active");
-  } else if (vista === "home") {
-    if (topBarSearch) topBarSearch.style.display = "none";
+   } else if (vista === "home") {
     document.getElementById("tcgSelector").classList.add("active");
     document.getElementById("tcgSelector").style.display = "";
     document.getElementById("tcgSelectorHero").style.display = "none";
@@ -3389,7 +3384,6 @@ function mostrarVista(vista) {
     document.getElementById("sidebarHome")?.classList.add("active");
     document.getElementById("bottomHome")?.classList.add("active");
   } else {
-    if (topBarSearch) topBarSearch.style.display = "none";
     document.getElementById("tcgSelector").classList.add("active");
     document.getElementById("tcgSelector").style.display = "";
     renderTcgSelector();
@@ -3720,9 +3714,7 @@ onAuthChange(async (user) => {
 document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "k") {
     e.preventDefault();
-    const globalInput = document.getElementById("globalSearchInput");
-    const catalogInput = document.getElementById("searchInput");
-    (globalInput?.offsetParent ? globalInput : catalogInput)?.focus();
+    document.getElementById("searchInput")?.focus();
   }
 });
 

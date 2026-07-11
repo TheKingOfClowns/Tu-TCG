@@ -12,7 +12,8 @@ function renderCards() {
     resultado = resultado.filter(carta =>
       (carta.card_name || "").toLowerCase().includes(texto) ||
       (carta.card_set_id || "").toLowerCase().includes(texto) ||
-      (carta.variant || "").toLowerCase().includes(texto)
+      (carta.variant || "").toLowerCase().includes(texto) ||
+      (carta.set_name || "").toLowerCase().includes(texto)
     );
   }
   searchClear.style.display = texto ? "flex" : "none";
@@ -22,8 +23,6 @@ function renderCards() {
         case "DON!!": return carta.category === "DON";
         case "PROMO": return carta.category === "PROMO" || carta.category === "OTHER";
         case "OTHER": return carta.category === "PROMO" || carta.category === "OTHER";
-        case "OP14-EB04": return (carta.card_set_id?.startsWith("OP14-") || carta.card_set_id?.startsWith("EB04-")) && carta.category === "BOOSTER";
-        case "OP15-EB04": return (carta.card_set_id?.startsWith("OP15-") || carta.card_set_id?.startsWith("EB04-")) && carta.category === "BOOSTER";
         default: return carta.set_id === expansionFilter.value && carta.category === setCategoryMap[expansionFilter.value];
       }
     });
@@ -207,13 +206,12 @@ function cargarFiltros() {
     const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
     const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
     const hasPromo = cartas.some(c => (c.category === "PROMO" || c.category === "OTHER") && (lang === "all" || c.language === lang));
-    const hasDon = lang !== "ja" && cartas.some(c => c.category === "DON");
+    const hasDon = cartas.some(c => c.category === "DON");
     const filteredBooster = boosterSets.filter(s => {
       if (lang === "all") return true;
       return cartas.some(c => c.set_id === s && c.language === lang && c.category === "BOOSTER");
     });
     const filteredStarter = starterSets.filter(s => {
-      if (/^ST-3[1-6]$/.test(s)) return false;
       if (lang === "all") return true;
       return cartas.some(c => c.set_id === s && c.language === lang && c.category === "STARTER");
     });

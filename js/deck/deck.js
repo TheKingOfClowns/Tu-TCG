@@ -91,7 +91,8 @@ function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCo
       if (q) {
         results = results.filter(c =>
           (c.card_name || "").toLowerCase().includes(q) ||
-          (c.card_set_id || "").toLowerCase().includes(q)
+          (c.card_set_id || "").toLowerCase().includes(q) ||
+          (c.set_name || "").toLowerCase().includes(q)
         );
       }
       grid.innerHTML = "";
