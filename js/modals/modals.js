@@ -344,6 +344,7 @@ function openCardInModal(carta, navList, startIdx) {
   if (currentCardIndex === -1) currentCardIndex = 0;
   const variants = cartas.filter(c =>
     c.card_set_id === carta.card_set_id &&
+    c.language === carta.language &&
     getCardKey(c) !== getCardKey(carta)
   );
   let infoHTML = `
