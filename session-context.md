@@ -29,10 +29,11 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - `config/games.json` — Registro de TCGs (one_piece, riftbound, etc.)
 - `assets/logos/` — 8 logos .webp de TCGs
 - `assets/images/onepiece/` — 9,708 archivos webp en disco (algunas imágenes compartidas entre variantes)
-- `assets/images/riftbound/{OGN,OGS,SFD,UNL,VEN,OPP,PR,JDG}/` — 1,045 imágenes webp de Riftbound
-- `data/games/riftbound/cards_master.json` — 1,224 cartas Riftbound
+- `assets/images/riftbound/{OGN,OGS,SFD,UNL,VEN,OPP,PR,JDG}/` — 1,239 imágenes webp de Riftbound
+- `data/games/riftbound/cards_master.json` — 1,224 cartas Riftbound (1224/1224 con imagen, 0 colisiones)
 - `_tools/scrape_set.js` — Scraper reutilizable One Piece
-- `_tools/scrape_riftbound.js` — Scraper Riftbound desde Riftcodex API
+- `_tools/scrape_riftbound.js` — Scraper Riftbound desde Riftcodex API (con sufijos a/s/v para variantes)
+- `_tools/fix_riftbound_variants.js` — Script de fix para descargar imágenes de variantes AA/Sig/OV
 - `riot.txt` — Código de verificación Riot API (`b7f27c09-91c8-4cac-ad7d-156fce73e46d`)
 - `_headers` — Cache headers para Cloudflare Pages
 
@@ -93,6 +94,17 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - **Champion multi-select**: el picker muestra champions compatibles (filtrados por feature + color), permite elegir 1-3 (con +/-), los auto-agrega al Main Deck y setea el primero como Chosen Champion. Flujo: Legend → Champion (elige 1-3) → Main Deck (completar 37-39).
 - **One Piece**: intacto, solo se renombraron funciones a `_OP`. Sin regresión.
 
+### Fix variantes AA/Signature/Overnumbered — COMPLETADO
+- **78 AA, 36 Signature, 60 Overnumbered** = 174 cartas con `card_set_id` corregido (sufijo `a`, `s`, `v`).
+- **0 colisiones restantes**: imágenes descargadas correctamente desde Riftcodex API (diferentes de las base).
+- **OPP Metal**: falsos positivos (Riftcodex no tiene arte Metal separado, misma imagen que base).
+- **SFD-190**: imagen faltante descargada.
+- **Scraper actualizado**: `mapCard()` genera `card_set_id` con sufijo para variantes.
+
+### Fix tracking Riftbound — COMPLETADO
+- **`catalog.js:actualizarFiltrosPorExpansion()`**: al cambiar expansión en Riftbound, preserva rarezas/tipos correctos (antes reseteaba a One Piece).
+- **`modals.js:confirmarAdd()`**: decks de Riftbound manejan `Legend` como líder, `Rune` como runes, `Battlefield` como battlefields. Validaciones: max 40 main, max 3/nombre, max 12 runes, max 3 BF únicos.
+
 ### Pendiente Riftbound
 - **Runes faltantes**: Riftcodex no tiene Runes para SFD, UNL, OGS, PR, JDG. `riftbound.gg` retorna 403.
 - **API de Riot**: development key obtenida pero Riftbound requiere aplicación aprobada (production key). `riot.txt` deployado, app registrada, esperando revisión.
@@ -143,13 +155,13 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - Orden: state.js → config.js → script.js → registry.js → catalog.js → binder.js → venta.js → explore.js → deck.js → deck_riftbound.js → dispatcher.js → modals.js → profile.js
 
 ### Deploy
-- Último commit: `ca3c232` (integración Riftbound completa)
-- Pendiente de commit: deck builder Riftbound + dispatcher + refactor OP
+- Último commit: `1311c50` (deck builder Riftbound, fix variantes AA/Sig/OV, fix tracking)
+- Último deploy: `1311c50`
 - URL: `https://main.tutcg.pages.dev`
 - NO hacer deploy sin que el usuario lo pida explícitamente.
 
 ## Próximo paso
-- Obtener API key de Riot para bajar Runes de SFD/UNL faltantes.
+- Esperar aprobación de la API key de Riot (production) para bajar Runes de SFD/UNL faltantes.
 - Cuando salgan nuevos sets de One Piece en `asia-en.onepiece-cardgame.com`, correr `_tools/scrape_set.js`.
 
 ## Convenciones
