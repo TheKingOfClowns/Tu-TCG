@@ -325,16 +325,18 @@ function confirmarAdd() {
       return;
     }
     const isGrouped = isVenta && (col.display_mode === "playset" || col.display_mode === "editable");
+    const colTcg = col.tcg || "one-piece";
+    const playsetMax = colTcg === "riftbound" ? 3 : 4;
     Object.values(pendingCards).forEach(pc => {
       const key = getCardKey(pc);
       if (isGrouped) {
         const existing = col.cards.find(c => c._key === key);
         if (existing) {
           existing.quantity = (existing.quantity || 1) + pc.count;
-          if (col.display_mode === "playset" && existing.quantity > 4) existing.quantity = 4;
+          if (col.display_mode === "playset" && existing.quantity > playsetMax) existing.quantity = playsetMax;
           if (existing.quantity > 999) existing.quantity = 999;
         } else {
-          col.cards.push({ _key: key, quantity: col.display_mode === "playset" ? Math.min(pc.count, 4) : Math.min(pc.count, 50), customPrice: 0, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset });
+          col.cards.push({ _key: key, quantity: col.display_mode === "playset" ? Math.min(pc.count, playsetMax) : Math.min(pc.count, 50), customPrice: 0, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset });
         }
       } else {
         for (let i = 0; i < pc.count; i++) {

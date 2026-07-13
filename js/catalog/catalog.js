@@ -1,6 +1,10 @@
 // ─── Catalog Rendering ────────────────────────────────────────────────────
 // Dependencias (globales): state.catalog.*, DOM refs, helpers (getCardKey, etc.)
 
+function esCartaAA_RB(carta) {
+  return /^\w+-\d+[asv]$/i.test(carta.card_set_id || "");
+}
+
 function renderCards() {
   let resultado = [...cartas];
   const lang = state.catalog.catalogLanguage || "en";
@@ -31,6 +35,8 @@ function renderCards() {
   if (rarityFilter.value) {
     if (rarityFilter.value === "L") {
       resultado = resultado.filter(carta => carta.card_type === "LEADER");
+    } else if (rarityFilter.value === "AA" && currentTcg === "riftbound") {
+      resultado = resultado.filter(carta => esCartaAA_RB(carta));
     } else {
       resultado = resultado.filter(carta => obtenerRareza(carta) === rarityFilter.value);
     }
@@ -89,9 +95,16 @@ function renderCards() {
       if (carta.print_type && carta.print_type !== rareza) {
         rarityBadge += rarityBadge ? " - " + carta.print_type : carta.print_type;
       }
+      if (currentTcg === "riftbound" && esCartaAA_RB(carta)) {
+        const suffix = (carta.card_set_id || "").match(/[asv]$/i);
+        const variantLabel = suffix ? { a: "AA", s: "Sig", v: "OV" }[suffix[0].toLowerCase()] : "AA";
+        if (variantLabel !== rareza) {
+          rarityBadge = rarityBadge ? rarityBadge + " - " + variantLabel : variantLabel;
+        }
+      }
     }
     let promoBadge = "";
-    if (carta.category === "PROMO" || carta.category === "OTHER") {
+    if ((carta.category === "PROMO" || carta.category === "OTHER") && rareza !== "Promo") {
       promoBadge = "PROMO";
     }
     let metaBadges = "";
@@ -296,7 +309,8 @@ function cargarFiltros() {
       <option value="">Todas las rarezas</option>
       <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
       <option value="Rare">Rare</option><option value="Epic">Epic</option>
-      <option value="Promo">Promo</option><option value="Showcase">Showcase</option>`;
+      <option value="Promo">Promo</option><option value="Showcase">Showcase</option>
+      <option value="AA">AA</option>`;
     typeFilter.innerHTML = `
       <option value="">Todos los tipos</option>
       <option value="Unit">Unit</option><option value="Spell">Spell</option>
@@ -335,7 +349,8 @@ function actualizarFiltrosPorExpansion() {
         <option value="">Todas las rarezas</option>
         <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
         <option value="Rare">Rare</option><option value="Epic">Epic</option>
-        <option value="Promo">Promo</option><option value="Showcase">Showcase</option>`;
+        <option value="Promo">Promo</option><option value="Showcase">Showcase</option>
+        <option value="AA">AA</option>`;
       typeFilter.innerHTML = `
         <option value="">Todos los tipos</option>
         <option value="Unit">Unit</option><option value="Spell">Spell</option>

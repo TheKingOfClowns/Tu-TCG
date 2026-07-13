@@ -3261,6 +3261,18 @@ async function selectTcg(tcgId) {
   currentTcg = tcgId;
   const tcg = tcgList.find(t => t.id === tcgId);
   if (!tcg) return;
+  const langToggle = document.getElementById("catalogLangToggle");
+  if (tcgId === "riftbound") {
+    if (langToggle) langToggle.style.display = "none";
+    state.catalog.catalogLanguage = "en";
+  } else {
+    if (langToggle) {
+      langToggle.style.display = "";
+      langToggle.querySelectorAll(".lang-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-lang") === state.catalog.catalogLanguage);
+      });
+    }
+  }
   await cargarCartas();
   document.getElementById("welcomeTcgName").textContent = tcg.name;
   await initCollections();
