@@ -6,7 +6,7 @@
     "name": "One Piece Card Game"
   },
   "riftbound": {
-    "enabled": false,
+    "enabled": true,
     "data_dir": "data/games/riftbound",
     "language": "en",
     "name": "Riftbound"

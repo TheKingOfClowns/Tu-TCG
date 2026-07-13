@@ -35,6 +35,9 @@ function renderCards() {
       resultado = resultado.filter(carta => obtenerRareza(carta) === rarityFilter.value);
     }
   }
+  if (typeFilter.value) {
+    resultado = resultado.filter(carta => (carta.card_type || "") === typeFilter.value);
+  }
   switch (sortFilter.value) {
     case "name": resultado.sort((a, b) => (a.card_name || "").localeCompare(b.card_name || "")); break;
     case "name_desc": resultado.sort((a, b) => (b.card_name || "").localeCompare(a.card_name || "")); break;
@@ -252,9 +255,57 @@ function cargarFiltros() {
       <option value="R">R</option><option value="SR">SR</option>
       <option value="SEC">SEC</option><option value="SP">SP</option>
       <option value="AA">AA</option>`;
+    typeFilter.innerHTML = `
+      <option value="">Todos los tipos</option>
+      <option value="LEADER">LEADER</option><option value="CHARACTER">CHARACTER</option>
+      <option value="EVENT">EVENT</option><option value="STAGE">STAGE</option>
+      <option value="DON!!">DON!!</option>`;
+  } else if (currentTcg === "riftbound") {
+    const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
+    const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
+    const hasPromo = cartas.some(c => c.category === "PROMO");
+    const fragments = [];
+    if (boosterSets.length) {
+      let html = `<optgroup label="--- Booster ---">`;
+      boosterSets.sort().forEach(s => {
+        const setName = cartas.find(c => c.set_id === s)?.set_name || s;
+        html += `<option value="${s}">${setName}</option>`;
+      });
+      html += `</optgroup>`;
+      fragments.push(html);
+    }
+    if (starterSets.length) {
+      let html = `<optgroup label="--- Starter ---">`;
+      starterSets.sort().forEach(s => {
+        const setName = cartas.find(c => c.set_id === s)?.set_name || s;
+        html += `<option value="${s}">${setName}</option>`;
+      });
+      html += `</optgroup>`;
+      fragments.push(html);
+    }
+    if (hasPromo) {
+      fragments.push(`<optgroup label="--- Promo ---"><option value="PROMO">Promo Cards</option></optgroup>`);
+    }
+    expansionFilter.innerHTML += fragments.join("");
+    if (prevExpansion) expansionFilter.value = prevExpansion;
+    colorFilter.innerHTML = `<option value="">Todos los colores</option>`;
+    ["Mind","Order","Calm","Body","Chaos","Fury","Colorless"].forEach(color => {
+      colorFilter.innerHTML += `<option value="${color}">${color}</option>`;
+    });
+    rarityFilter.innerHTML = `
+      <option value="">Todas las rarezas</option>
+      <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
+      <option value="Rare">Rare</option><option value="Epic">Epic</option>
+      <option value="Promo">Promo</option><option value="Showcase">Showcase</option>`;
+    typeFilter.innerHTML = `
+      <option value="">Todos los tipos</option>
+      <option value="Unit">Unit</option><option value="Spell">Spell</option>
+      <option value="Legend">Legend</option><option value="Gear">Gear</option>
+      <option value="Battlefield">Battlefield</option><option value="Rune">Rune</option>`;
   } else {
     colorFilter.innerHTML = `<option value="">Todos los colores</option>`;
     rarityFilter.innerHTML = `<option value="">Todas las rarezas</option>`;
+    typeFilter.innerHTML = `<option value="">Todos los tipos</option>`;
   }
   rebuildingFilters = false;
   if (prevExpansion) actualizarFiltrosPorExpansion();
@@ -270,6 +321,7 @@ function actualizarFiltrosPorExpansion() {
   colorFilter.style.display = esDon ? "none" : "";
   rarityFilter.disabled = esPromo;
   rarityFilter.style.display = esPromo ? "none" : "";
+  typeFilter.style.display = esDon ? "none" : "";
   if (esDon) {
     rarityFilter.innerHTML = `
       <option value="">Todas las variantes</option>
@@ -284,6 +336,11 @@ function actualizarFiltrosPorExpansion() {
       <option value="R">R</option><option value="SR">SR</option>
       <option value="SEC">SEC</option><option value="SP">SP</option>
       <option value="AA">AA</option>`;
+    typeFilter.innerHTML = `
+      <option value="">Todos los tipos</option>
+      <option value="LEADER">LEADER</option><option value="CHARACTER">CHARACTER</option>
+      <option value="EVENT">EVENT</option><option value="STAGE">STAGE</option>
+      <option value="DON!!">DON!!</option>`;
   }
   if (prevRarity) {
     const match = rarityFilter.querySelector(`option[value="${prevRarity}"]`);

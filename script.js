@@ -9,6 +9,7 @@ const expansionFilter = document.getElementById("expansionFilter");
 const colorFilter = document.getElementById("colorFilter");
 const rarityFilter = document.getElementById("rarityFilter");
 const sortFilter = document.getElementById("sortFilter");
+const typeFilter = document.getElementById("typeFilter");
 const prevBtnBottom = document.getElementById("prevBtnBottom");
 const nextBtnBottom = document.getElementById("nextBtnBottom");
 const pageInfoBottom = document.getElementById("pageInfoBottom");
@@ -199,7 +200,8 @@ function generarId() {
 function getTcgPrefix() {
   const map = {
     "one-piece":"op", "pokemon":"pk", "magic":"mtg",
-    "digimon":"dg", "dragon-ball":"db", "yugioh":"yg"
+    "digimon":"dg", "dragon-ball":"db", "yugioh":"yg",
+    "riftbound":"rb"
   };
   return map[currentTcg] || "op";
 }
@@ -218,7 +220,7 @@ async function cargarCartas() {
   try {
     const configRes = await fetch("config/games.json");
     const gamesConfig = await configRes.json();
-    const activeGame = Object.entries(gamesConfig).find(([,g]) => g.enabled);
+    const activeGame = Object.entries(gamesConfig).find(([id,g]) => id === currentTcg && g.enabled) || Object.entries(gamesConfig).find(([,g]) => g.enabled);
     if (!activeGame) throw new Error("No enabled game in config/games.json");
     const dataUrl = activeGame[1].data_dir + "/cards_master.json";
     const res = await fetch(dataUrl);
@@ -1646,7 +1648,44 @@ function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCo
                   const card = cartas.find(c2 => getCardKey(c2) === k);
                   if (card && card.card_set_id === key) delete selectedPerKey[k];
                 });
-              } else {
+  } else if (currentTcg === "riftbound") {
+    const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
+    const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
+    const hasPromo = cartas.some(c => c.category === "PROMO");
+    const fragments = [];
+    if (boosterSets.length) {
+      let html = `<optgroup label="--- Booster ---">`;
+      boosterSets.sort().forEach(s => {
+        const setName = cartas.find(c => c.set_id === s)?.set_name || s;
+        html += `<option value="${s}">${setName}</option>`;
+      });
+      html += `</optgroup>`;
+      fragments.push(html);
+    }
+    if (starterSets.length) {
+      let html = `<optgroup label="--- Starter ---">`;
+      starterSets.sort().forEach(s => {
+        const setName = cartas.find(c => c.set_id === s)?.set_name || s;
+        html += `<option value="${s}">${setName}</option>`;
+      });
+      html += `</optgroup>`;
+      fragments.push(html);
+    }
+    if (hasPromo) {
+      fragments.push(`<optgroup label="--- Promo ---"><option value="PROMO">Promo Cards</option></optgroup>`);
+    }
+    expansionFilter.innerHTML += fragments.join("");
+    if (prevExpansion) expansionFilter.value = prevExpansion;
+    colorFilter.innerHTML = `<option value="">Todos los colores</option>`;
+    ["Mind","Order","Calm","Body","Chaos","Fury","Colorless"].forEach(color => {
+      colorFilter.innerHTML += `<option value="${color}">${color}</option>`;
+    });
+    rarityFilter.innerHTML = `
+      <option value="">Todas las rarezas</option>
+      <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
+      <option value="Rare">Rare</option><option value="Epic">Epic</option>
+      <option value="Promo">Promo</option><option value="Showcase">Showcase</option>`;
+  } else {
                 delete selectedPerKey[vkey];
               }
             } else {
@@ -3222,6 +3261,7 @@ async function selectTcg(tcgId) {
   currentTcg = tcgId;
   const tcg = tcgList.find(t => t.id === tcgId);
   if (!tcg) return;
+  await cargarCartas();
   document.getElementById("welcomeTcgName").textContent = tcg.name;
   await initCollections();
   initVenta();
@@ -3286,7 +3326,7 @@ function mostrarVista(vista) {
     document.getElementById("sidebarCatalog")?.classList.add("active");
     document.getElementById("bottomCatalog")?.classList.add("active");
     cargarFiltros();
-    if (currentTcg === "one-piece") {
+    if (currentTcg === "one-piece" || currentTcg === "riftbound") {
       renderCards();
     } else {
       cardsContainer.innerHTML = `<div class="no-data-msg"><h2>${tcg ? tcg.name : "Este TCG"} aún no está disponible</h2><p>Estamos trabajando para agregar las cartas. ¡Vuelve pronto!</p></div>`;
@@ -3413,6 +3453,7 @@ expansionFilter.addEventListener("change", () => { actualizarFiltrosPorExpansion
 colorFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
 rarityFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
 sortFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
+typeFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
 // Language toggle
 document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
   btn.addEventListener("click", () => {
