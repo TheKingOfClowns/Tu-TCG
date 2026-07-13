@@ -224,7 +224,51 @@ function confirmarAdd() {
       Object.values(pendingCards).forEach(pc => {
         const key = getCardKey(pc);
         const cardType = pc.card_type || "";
-        if (cardType === "LEADER") {
+        const colTcg = col.tcg || "one-piece";
+
+        // ── Riftbound deck handling ──
+        if (colTcg === "riftbound") {
+          if (cardType === "Legend") {
+            if (col.legend && !confirm("Ya hay una Legend. Reemplazarla?")) return;
+            col.legend = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, feature: pc.feature, customPrice: 0 };
+          } else if (cardType === "Rune") {
+            const runesTotal = (col.runes || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+            if (runesTotal + pc.count > 12) { alert("Maximo 12 Runes en el deck. Solo caben " + (12 - runesTotal) + " mas."); return; }
+            if (!col.runes) col.runes = [];
+            var existing = (col.runes || []).find(function(c) { return c._key === key; });
+            if (existing) { existing.quantity = (existing.quantity || 1) + pc.count; }
+            else { col.runes.push({ _key: key, quantity: pc.count, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, customPrice: 0 }); }
+          } else if (cardType === "Battlefield") {
+            const bfTotal = (col.battlefields || []).length;
+            if (bfTotal >= 3) { alert("Maximo 3 Battlefields en el deck."); return; }
+            if (!col.battlefields) col.battlefields = [];
+            var bfExist = (col.battlefields || []).find(function(b) { return b.card_name === pc.card_name; });
+            if (bfExist) { alert("Ya tenes un Battlefield con ese nombre. Cada Battlefield debe tener nombre unico."); return; }
+            col.battlefields.push({ _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, customPrice: 0 });
+          } else {
+            // Main deck: Unit/Spell/Gear
+            if (col.legend && pc.card_color && col.legend.card_color) {
+              var lc = col.legend.card_color.split("/").map(function(s) { return s.trim(); });
+              if (!lc.some(function(c) { return pc.card_color.indexOf(c) >= 0; })) {
+                if (!confirm("Esta carta no coincide con los colores de la Legend. Agregar de todas formas?")) return;
+              }
+            }
+            var mainTotal = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+            var newTotal = mainTotal + pc.count;
+            if (newTotal > 40) { alert("Maximo 40 cartas en el Main Deck. Solo caben " + (40 - mainTotal) + " mas."); return; }
+            var nameCount = (col.cards || []).filter(function(c) { return c.card_name === pc.card_name; }).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+            if (nameCount + pc.count > 3) { alert("Maximo 3 copias de \"" + (pc.card_name || "") + "\"."); return; }
+            var ex = (col.cards || []).find(function(c) { return c._key === key; });
+            if (ex) {
+              ex.quantity = Math.min((ex.quantity || 1) + pc.count, 3);
+            } else {
+              col.cards = col.cards || [];
+              col.cards.push({ _key: key, quantity: Math.min(pc.count, 3), card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset, customPrice: 0 });
+            }
+          }
+        } else {
+          // ── One Piece deck handling (original) ──
+          if (cardType === "LEADER") {
           if (col.leader && !confirm("Ya hay un líder. ¿Reemplazarlo?")) return;
           col.leader = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, customPrice: 0 };
         } else if (cardType === "DON!!" || cardType === "DON") {
@@ -256,6 +300,7 @@ function confirmarAdd() {
             col.cards.push({ _key: key, quantity: defQty, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset, customPrice: 0 });
           }
         }
+        } // end One Piece else
       });
       if (isVenta) guardarVenta(); else guardarCollections();
       overlay.style.display = "none";

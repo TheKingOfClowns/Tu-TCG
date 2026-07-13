@@ -1,19 +1,43 @@
 {
-  "generated_at": "2026-07-13T05:35:22.074Z",
+  "generated_at": "2026-07-13T09:12:45.938Z",
   "source": "Riftcodex API (api.riftcodex.com)",
   "total_cards": 1224,
-  "sets": {
-    "OPP": 133,
-    "PR": 13,
-    "UNL": 280,
-    "JDG": 3,
-    "SFD": 288,
-    "VEN": 131,
-    "OGN": 352,
-    "OGS": 24
-  },
+  "sets": [
+    {
+      "set_id": "JDG",
+      "count": 3
+    },
+    {
+      "set_id": "OGN",
+      "count": 352
+    },
+    {
+      "set_id": "OGS",
+      "count": 24
+    },
+    {
+      "set_id": "OPP",
+      "count": 133
+    },
+    {
+      "set_id": "PR",
+      "count": 13
+    },
+    {
+      "set_id": "SFD",
+      "count": 288
+    },
+    {
+      "set_id": "UNL",
+      "count": 280
+    },
+    {
+      "set_id": "VEN",
+      "count": 131
+    }
+  ],
   "stats": {
-    "without_image": 1
+    "without_image": 7
   },
   "cards": [
     {
@@ -836,7 +860,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "PR-263",
+      "card_set_id": "PR-263a",
       "card_name": "Teemo - Swift Scout (Alternate Art)",
       "set_id": "PR",
       "set_name": "Riftbound Promotional Cards",
@@ -845,7 +869,7 @@
       "card_type": "Legend",
       "producto": "PROMO",
       "category": "PROMO",
-      "card_image": "assets/images/riftbound/PR/PR-263.webp",
+      "card_image": "assets/images/riftbound/PR/PR-263a.webp",
       "effect": "You may pay :rb_energy_1: to hide a card with [Hidden] instead of .:rb_energy_1:, : Put a Teemo unit you own into your hand from your Champion Zone or the board.",
       "power": "",
       "counter": "",
@@ -1109,7 +1133,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-225",
+      "card_set_id": "UNL-225v",
       "card_name": "Daring Poro (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1118,7 +1142,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-225.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-225v.webp",
       "effect": "[Assault]",
       "power": "2",
       "counter": "",
@@ -1130,7 +1154,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-224",
+      "card_set_id": "UNL-224v",
       "card_name": "Mystic Poro (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1139,7 +1163,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-224.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-224v.webp",
       "effect": "[Vision]",
       "power": "2",
       "counter": "",
@@ -1151,7 +1175,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-223",
+      "card_set_id": "UNL-223v",
       "card_name": "Veteran Poro (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1160,7 +1184,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-223.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-223v.webp",
       "effect": "[Weaponmaster]",
       "power": "2",
       "counter": "",
@@ -1172,7 +1196,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-222",
+      "card_set_id": "UNL-222v",
       "card_name": "Plundering Poro (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1181,7 +1205,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-222.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-222v.webp",
       "effect": "When I conquer, play a Gold gear token exhausted.",
       "power": "2",
       "counter": "",
@@ -1193,7 +1217,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-221",
+      "card_set_id": "UNL-221v",
       "card_name": "Lonely Poro (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1202,7 +1226,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-221.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-221v.webp",
       "effect": "[Deathknell][&gt;] If I died alone, draw 1.",
       "power": "2",
       "counter": "",
@@ -1214,7 +1238,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-220",
+      "card_set_id": "UNL-220v",
       "card_name": "Pouty Poro (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1223,7 +1247,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-220.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-220v.webp",
       "effect": "[Deflect]",
       "power": "2",
       "counter": "",
@@ -1676,7 +1700,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-028",
+      "card_set_id": "UNL-028a",
       "card_name": "Pyke - Dockside Butcher (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1685,7 +1709,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-028.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-028a.webp",
       "effect": "[Hidden][Ganking]You may pay  as an additional cost to play me.When you play me, if you paid the additional cost, ready me and give me +2  this turn.",
       "power": "2",
       "counter": "",
@@ -1886,7 +1910,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-118",
+      "card_set_id": "UNL-118a",
       "card_name": "Elder Dragon (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -1895,7 +1919,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-118.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-118a.webp",
       "effect": "Any amount of your damage is enough to kill enemy units.When you play me, choose up to one enemy unit at each location. Deal 1 to them.",
       "power": "10",
       "counter": "",
@@ -2033,7 +2057,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-179",
+      "card_set_id": "UNL-179a",
       "card_name": "Rift Herald (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -2042,7 +2066,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-179.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-179a.webp",
       "effect": "When I move to a battlefield, look at the top 3 cards of your Main Deck. You may reveal a unit from among them and draw it. Recycle the rest.[Deathknell][&gt;] Play a unit from your hand to your base, ignoring its Energy cost.",
       "power": "7",
       "counter": "",
@@ -3230,7 +3254,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-230",
+      "card_set_id": "SFD-230s",
       "card_name": "Teemo - Strategist (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3239,7 +3263,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-230.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-230s.webp",
       "effect": "[Hidden] (Hide now for  to react with later for :rb_energy_0:.)When I defend or I'm played from [Hidden], reveal the top 5 cards of your Main Deck. Deal 1 to an enemy unit here for each card with [Hidden], then recycle them.",
       "power": "2",
       "counter": "",
@@ -3398,7 +3422,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-228",
+      "card_set_id": "SFD-228s",
       "card_name": "Bard - Mercurial (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3407,7 +3431,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-228.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-228s.webp",
       "effect": "You may exhaust your legend as an additional cost to play me.When you play me, if you paid the additional cost, move any number of your units to an open battlefield.",
       "power": "4",
       "counter": "",
@@ -3419,7 +3443,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-228",
+      "card_set_id": "SFD-228v",
       "card_name": "Bard - Mercurial (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3428,7 +3452,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-228.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-228v.webp",
       "effect": "You may exhaust your legend as an additional cost to play me.When you play me, if you paid the additional cost, move any number of your units to an open battlefield.",
       "power": "4",
       "counter": "",
@@ -3461,7 +3485,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-230",
+      "card_set_id": "SFD-230v",
       "card_name": "Teemo - Strategist (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3470,7 +3494,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-230.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-230v.webp",
       "effect": "[Hidden] (Hide now for  to react with later for :rb_energy_0:.)When I defend or I'm played from [Hidden], reveal the top 5 cards of your Main Deck. Deal 1 to an enemy unit here for each card with [Hidden], then recycle them.",
       "power": "2",
       "counter": "",
@@ -3482,7 +3506,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-235",
+      "card_set_id": "SFD-235s",
       "card_name": "Yasuo - Windrider (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3491,7 +3515,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-235.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-235s.webp",
       "effect": "[Ganking] (I can move from battlefield to battlefield.)The third time I move in a turn, you score 1 point.",
       "power": "4",
       "counter": "",
@@ -3503,7 +3527,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-235",
+      "card_set_id": "SFD-235v",
       "card_name": "Yasuo - Windrider (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3512,7 +3536,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-235.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-235v.webp",
       "effect": "[Ganking] (I can move from battlefield to battlefield.)The third time I move in a turn, you score 1 point.",
       "power": "4",
       "counter": "",
@@ -3524,7 +3548,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-237",
+      "card_set_id": "SFD-237v",
       "card_name": "Karma - Channeler (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3533,7 +3557,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-237.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-237v.webp",
       "effect": "[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)When you recycle one or more cards, buff a friendly unit. (If it doesn't have a buff, it gets a +1  buff. Runes aren't cards.)",
       "power": "6",
       "counter": "",
@@ -3545,7 +3569,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-237",
+      "card_set_id": "SFD-237s",
       "card_name": "Karma - Channeler (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -3554,7 +3578,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-237.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-237s.webp",
       "effect": "[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)When you recycle one or more cards, buff a friendly unit. (If it doesn't have a buff, it gets a +1  buff. Runes aren't cards.)",
       "power": "6",
       "counter": "",
@@ -3692,7 +3716,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-120",
+      "card_set_id": "UNL-120a",
       "card_name": "Rengar - Trophy Hunter (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -3701,7 +3725,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-120.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-120a.webp",
       "effect": "[Ambush]I can be played to a battlefield where there are enemy units.",
       "power": "6",
       "counter": "",
@@ -3797,7 +3821,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-147",
+      "card_set_id": "UNL-147a",
       "card_name": "Baron Nashor (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -3806,7 +3830,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-147.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-147a.webp",
       "effect": "As you play me, add the Baron Pit battlefield token to the board if it's not there already. If you do, I enter there.I can't be chosen by enemy spells and abilities.Other friendly units have +2 .",
       "power": "12",
       "counter": "",
@@ -3818,7 +3842,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "UNL-236",
+      "card_set_id": "UNL-236s",
       "card_name": "Kha'Zix - Voidreaver (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -3827,7 +3851,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-236.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-236s.webp",
       "effect": "When you win a combat, gain 1 XP.Spend 1 XP, : [Buff] a unit.Spend 2 XP, : Move an exhausted friendly unit from a battlefield to its base.",
       "power": "",
       "counter": "",
@@ -4784,7 +4808,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-088",
+      "card_set_id": "SFD-088a",
       "card_name": "Renata Glasc - Mastermind (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -4793,7 +4817,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-088.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-088a.webp",
       "effect": ":rb_energy_1:: Draw 1.:rb_energy_4:, : Score 1 point.Use my abilities only while I'm at a battlefield.",
       "power": "4",
       "counter": "",
@@ -4847,7 +4871,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-058",
+      "card_set_id": "UNL-058a",
       "card_name": "Lillia - Protector of Dreams (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -4856,7 +4880,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-058.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-058a.webp",
       "effect": "When you play a token unit, give me +1  this turn.Your token units have [Tank].",
       "power": "4",
       "counter": "",
@@ -4889,7 +4913,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-090",
+      "card_set_id": "UNL-090a",
       "card_name": "LeBlanc - Everywhere At Once (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -4898,7 +4922,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-090.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-090a.webp",
       "effect": "[Backline]Your [Temporary] effects at my battlefield don't trigger.",
       "power": "4",
       "counter": "",
@@ -4931,7 +4955,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-051",
+      "card_set_id": "UNL-051a",
       "card_name": "Ivern - Nurturer (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -4940,7 +4964,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-051.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-051a.webp",
       "effect": "When you play me or when I hold, look at the top 3 cards of your Main Deck. You may reveal a unit from among them and draw it. Recycle the rest. Then if you revealed a Bird, Cat, Dog, or Poro, do this: [Buff] a friendly unit.",
       "power": "4",
       "counter": "",
@@ -4952,7 +4976,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "UNL-087",
+      "card_set_id": "UNL-087a",
       "card_name": "Blue Sentinel (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -4961,7 +4985,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-087.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-087a.webp",
       "effect": "[Shield 2]Your hold effects for holding here trigger an additional time.When I hold, [Add]  at the start of your next Main Phase.",
       "power": "4",
       "counter": "",
@@ -5099,7 +5123,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-030",
+      "card_set_id": "UNL-030a",
       "card_name": "Vi - Hotheaded (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5108,7 +5132,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-030.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-030a.webp",
       "effect": "[Deflect]:rb_energy_2:: Double my Might this turn.",
       "power": "3",
       "counter": "",
@@ -5246,7 +5270,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-145",
+      "card_set_id": "UNL-145a",
       "card_name": "Pyke - Returned (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5255,7 +5279,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-145.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-145a.webp",
       "effect": "[Hidden][Backline]Once each turn, when an enemy unit dies while I'm at a battlefield, play a Gold gear token exhausted.",
       "power": "3",
       "counter": "",
@@ -5456,7 +5480,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-237",
+      "card_set_id": "UNL-237s",
       "card_name": "Poppy - Keeper of the Hammer (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5465,7 +5489,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-237.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-237s.webp",
       "effect": "When you hold, gain 1 XP.Spend 3 XP, : Draw 1.",
       "power": "",
       "counter": "",
@@ -5561,7 +5585,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-119",
+      "card_set_id": "UNL-119a",
       "card_name": "Kha'Zix - Evolving Hunter (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5570,7 +5594,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-119.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-119a.webp",
       "effect": "[Hunt]When I attack, you may spend 3 XP to deal damage equal to my Might to an enemy unit here.",
       "power": "5",
       "counter": "",
@@ -5603,7 +5627,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-113",
+      "card_set_id": "UNL-113a",
       "card_name": "Master Yi - Tempered (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5612,7 +5636,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-113.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-113a.webp",
       "effect": "[Hunt 2][Level 6][&gt;] I have [Deflect] and [Ganking].",
       "power": "4",
       "counter": "",
@@ -5687,7 +5711,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-060",
+      "card_set_id": "UNL-060a",
       "card_name": "Vilemaw (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5696,7 +5720,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-060.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-060a.webp",
       "effect": "[Ambush]Enemy units here with less Might than me don't deal combat damage.When I hold, draw 1.",
       "power": "8",
       "counter": "",
@@ -5708,7 +5732,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "UNL-059",
+      "card_set_id": "UNL-059a",
       "card_name": "Master Yi - Unstoppable (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5717,7 +5741,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-059.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-059a.webp",
       "effect": "[Level 3][&gt;] I cost :rb_energy_2: less.[Level 6][&gt;] I cost :rb_energy_4: less instead.[Level 11][&gt;] I cost :rb_energy_6: less instead.[Level 16][&gt;] I can't be chosen by enemy spells and abilities.",
       "power": "12",
       "counter": "",
@@ -5729,7 +5753,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "UNL-022",
+      "card_set_id": "UNL-022a",
       "card_name": "Jhin - Murderous Artist (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5738,7 +5762,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-022.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-022a.webp",
       "effect": "[Deflect][Ganking]When I move, [Add] :rb_energy_1:.",
       "power": "4",
       "counter": "",
@@ -5897,7 +5921,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-089",
+      "card_set_id": "UNL-089a",
       "card_name": "Jhin - Meticulous Killer (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -5906,7 +5930,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-089.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-089a.webp",
       "effect": "[Vision]If you've spent :rb_energy_4: or more to play a spell this turn, you may play me for .",
       "power": "4",
       "counter": "",
@@ -6044,7 +6068,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-233",
+      "card_set_id": "UNL-233v",
       "card_name": "Ivern - Green Father (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6053,7 +6077,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-233.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-233v.webp",
       "effect": "When you conquer or hold, you may exhaust me to replace that battlefield with a Brush battlefield token.",
       "power": "",
       "counter": "",
@@ -6065,7 +6089,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-237",
+      "card_set_id": "UNL-237v",
       "card_name": "Poppy - Keeper of the Hammer (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6074,7 +6098,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-237.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-237v.webp",
       "effect": "When you hold, gain 1 XP.Spend 3 XP, : Draw 1.",
       "power": "",
       "counter": "",
@@ -6170,7 +6194,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-236",
+      "card_set_id": "UNL-236v",
       "card_name": "Kha'Zix - Voidreaver (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6179,7 +6203,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-236.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-236v.webp",
       "effect": "When you win a combat, gain 1 XP.Spend 1 XP, : [Buff] a unit.Spend 2 XP, : Move an exhausted friendly unit from a battlefield to its base.",
       "power": "",
       "counter": "",
@@ -6191,7 +6215,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-234",
+      "card_set_id": "UNL-234s",
       "card_name": "Diana - Scorn of the Moon (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6200,7 +6224,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-234.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-234s.webp",
       "effect": "[Reaction][&gt;] : [Add] :rb_energy_1:. Spend this Energy only during showdowns.",
       "power": "",
       "counter": "",
@@ -6212,7 +6236,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-234",
+      "card_set_id": "UNL-234v",
       "card_name": "Diana - Scorn of the Moon (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6221,7 +6245,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-234.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-234v.webp",
       "effect": "[Reaction][&gt;] : [Add] :rb_energy_1:. Spend this Energy only during showdowns.",
       "power": "",
       "counter": "",
@@ -6233,7 +6257,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-233",
+      "card_set_id": "UNL-233s",
       "card_name": "Ivern - Green Father (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6242,7 +6266,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-233.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-233s.webp",
       "effect": "When you conquer or hold, you may exhaust me to replace that battlefield with a Brush battlefield token.",
       "power": "",
       "counter": "",
@@ -6275,7 +6299,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-230",
+      "card_set_id": "UNL-230s",
       "card_name": "Lillia - Bashful Bloom (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6284,7 +6308,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-230.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-230s.webp",
       "effect": ":rb_energy_4:, : Play a ready 3  Sprite unit token with [Temporary]. This ability costs :rb_energy_1: less for each friendly unit with [Temporary].",
       "power": "",
       "counter": "",
@@ -6296,7 +6320,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-230",
+      "card_set_id": "UNL-230v",
       "card_name": "Lillia - Bashful Bloom (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6305,7 +6329,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-230.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-230v.webp",
       "effect": ":rb_energy_4:, : Play a ready 3  Sprite unit token with [Temporary]. This ability costs :rb_energy_1: less for each friendly unit with [Temporary].",
       "power": "",
       "counter": "",
@@ -6338,7 +6362,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-177",
+      "card_set_id": "UNL-177a",
       "card_name": "Ivern - Friend to All (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6347,7 +6371,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-177.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-177a.webp",
       "effect": "As you play me, choose Bird, Cat, Dog, or Poro. I gain that tag.When I conquer or hold, score 1 point if your units have all of the following tags among them — Bird, Cat, Dog, and Poro.",
       "power": "6",
       "counter": "",
@@ -6401,7 +6425,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-149",
+      "card_set_id": "UNL-149a",
       "card_name": "Diana - No Longer Human (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -6410,7 +6434,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-149.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-149a.webp",
       "effect": "[Ambush]When you play a spell, give me +2  this turn.",
       "power": "3",
       "counter": "",
@@ -9740,7 +9764,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-116",
+      "card_set_id": "UNL-116a",
       "card_name": "Poppy - Paragon (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -9749,7 +9773,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-116.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-116a.webp",
       "effect": "[Deflect]When you play me, if an opponent's score is within 3 points of the Victory Score, ready me and gain 3 XP.",
       "power": "5",
       "counter": "",
@@ -9803,7 +9827,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-029",
+      "card_set_id": "UNL-029a",
       "card_name": "Red Brambleback (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -9812,7 +9836,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-029.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-029a.webp",
       "effect": "[Accelerate]Your conquer effects for conquering here trigger an additional time.When I conquer, [Buff] a friendly unit.",
       "power": "4",
       "counter": "",
@@ -9950,7 +9974,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-229",
+      "card_set_id": "UNL-229s",
       "card_name": "Vi - Piltover Enforcer (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -9959,7 +9983,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-229.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-229s.webp",
       "effect": "When you conquer, if you assigned 3 or more excess damage, you may exhaust me to ready a unit.",
       "power": "",
       "counter": "",
@@ -9971,7 +9995,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-229",
+      "card_set_id": "UNL-229v",
       "card_name": "Vi - Piltover Enforcer (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -9980,7 +10004,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-229.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-229v.webp",
       "effect": "When you conquer, if you assigned 3 or more excess damage, you may exhaust me to ready a unit.",
       "power": "",
       "counter": "",
@@ -10076,7 +10100,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-228",
+      "card_set_id": "UNL-228v",
       "card_name": "Pyke - Bloodharbor Ripper (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10085,7 +10109,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-228.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-228v.webp",
       "effect": ":rb_energy_1:, : Return a friendly unit at a battlefield to its owner's hand. Play a Gold gear token exhausted.",
       "power": "",
       "counter": "",
@@ -10181,7 +10205,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-235",
+      "card_set_id": "UNL-235s",
       "card_name": "LeBlanc - Deceiver (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10190,7 +10214,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-235.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-235s.webp",
       "effect": "When you conquer or hold, you may discard 1 and exhaust me to play a ready Reflection unit token there. It becomes a copy of another unit there. Give it [Temporary].",
       "power": "",
       "counter": "",
@@ -10202,7 +10226,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-235",
+      "card_set_id": "UNL-235v",
       "card_name": "LeBlanc - Deceiver (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10211,7 +10235,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-235.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-235v.webp",
       "effect": "When you conquer or hold, you may discard 1 and exhaust me to play a ready Reflection unit token there. It becomes a copy of another unit there. Give it [Temporary].",
       "power": "",
       "counter": "",
@@ -10223,7 +10247,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-232",
+      "card_set_id": "UNL-232s",
       "card_name": "Vex - Gloomist (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10232,7 +10256,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-232.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-232s.webp",
       "effect": "When you or an ally hold, you may exhaust me to draw 1.",
       "power": "",
       "counter": "",
@@ -10244,7 +10268,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-232",
+      "card_set_id": "UNL-232v",
       "card_name": "Vex - Gloomist (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10253,7 +10277,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-232.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-232v.webp",
       "effect": "When you or an ally hold, you may exhaust me to draw 1.",
       "power": "",
       "counter": "",
@@ -10265,7 +10289,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-231",
+      "card_set_id": "UNL-231s",
       "card_name": "Master Yi - Wuju Master (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10274,7 +10298,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-231.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-231s.webp",
       "effect": "[Level 6][&gt;] Your units have +1 .[Level 11][&gt;] Your units enter ready.",
       "power": "",
       "counter": "",
@@ -10286,7 +10310,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-172",
+      "card_set_id": "UNL-172a",
       "card_name": "LeBlanc - Fragmented (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10295,7 +10319,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-172.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-172a.webp",
       "effect": "[Assault][Deathknell][&gt;] Draw 1. If it's your Beginning Phase, draw 2 instead.",
       "power": "3",
       "counter": "",
@@ -10307,7 +10331,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "UNL-227",
+      "card_set_id": "UNL-227v",
       "card_name": "Rengar - Pridestalker (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10316,7 +10340,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-227.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-227v.webp",
       "effect": "When you play a unit, give a unit +1  this turn.",
       "power": "",
       "counter": "",
@@ -10328,7 +10352,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-226",
+      "card_set_id": "UNL-226v",
       "card_name": "Jhin - Virtuoso (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10337,7 +10361,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-226.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-226v.webp",
       "effect": "When you play a spell, if you spent :rb_energy_4: or more, you may banish it. Then, if there are four spells banished with me, put each in its trash, channel 4 runes, and draw 1.",
       "power": "",
       "counter": "",
@@ -10412,7 +10436,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-178",
+      "card_set_id": "UNL-178a",
       "card_name": "Poppy - Defender of the Meek (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10421,7 +10445,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-178.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-178a.webp",
       "effect": "You may spend 3 XP as an additional cost to play me. If you do, I cost :rb_energy_3: less.[Ambush][Tank]",
       "power": "5",
       "counter": "",
@@ -10454,7 +10478,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-176",
+      "card_set_id": "UNL-176a",
       "card_name": "Vi - Peacekeeper (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10463,7 +10487,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-176.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-176a.webp",
       "effect": "[Ambush]When I attack, [Stun] an enemy unit here.",
       "power": "5",
       "counter": "",
@@ -10769,7 +10793,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-143",
+      "card_set_id": "UNL-143a",
       "card_name": "Kha'Zix - Mutating Horror (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10778,7 +10802,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-143.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-143a.webp",
       "effect": "[Ambush]When I attack or defend, if an enemy unit is alone here, give me +2  this turn and gain 2 XP.",
       "power": "4",
       "counter": "",
@@ -10832,7 +10856,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-024",
+      "card_set_id": "UNL-024a",
       "card_name": "Rengar - Unseen (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -10841,7 +10865,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-024.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-024a.webp",
       "effect": "[Accelerate][Assault 2][Deflect][Ganking]",
       "power": "4",
       "counter": "",
@@ -11105,7 +11129,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-231",
+      "card_set_id": "UNL-231v",
       "card_name": "Master Yi - Wuju Master (Overnumbered)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11114,7 +11138,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-231.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-231v.webp",
       "effect": "[Level 6][&gt;] Your units have +1 .[Level 11][&gt;] Your units enter ready.",
       "power": "",
       "counter": "",
@@ -11126,7 +11150,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-227",
+      "card_set_id": "UNL-227s",
       "card_name": "Rengar - Pridestalker (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11135,7 +11159,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-227.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-227s.webp",
       "effect": "When you play a unit, give a unit +1  this turn.",
       "power": "",
       "counter": "",
@@ -11147,7 +11171,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-228",
+      "card_set_id": "UNL-228s",
       "card_name": "Pyke - Bloodharbor Ripper (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11156,7 +11180,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-228.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-228s.webp",
       "effect": ":rb_energy_1:, : Return a friendly unit at a battlefield to its owner's hand. Play a Gold gear token exhausted.",
       "power": "",
       "counter": "",
@@ -11168,7 +11192,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-226",
+      "card_set_id": "UNL-226s",
       "card_name": "Jhin - Virtuoso (Signature)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11177,7 +11201,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-226.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-226s.webp",
       "effect": "When you play a spell, if you spent :rb_energy_4: or more, you may banish it. Then, if there are four spells banished with me, put each in its trash, channel 4 runes, and draw 1.",
       "power": "",
       "counter": "",
@@ -11189,7 +11213,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-079",
+      "card_set_id": "UNL-079a",
       "card_name": "Diana - Lunari (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11198,7 +11222,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-079.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-079a.webp",
       "effect": "When a showdown begins here, you may pay :rb_energy_1:. If you do, [Predict], then reveal the top card of your Main Deck. If it's a spell, draw it.",
       "power": "3",
       "counter": "",
@@ -11399,7 +11423,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-082",
+      "card_set_id": "UNL-082a",
       "card_name": "Lillia - Fae Fawn (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11408,7 +11432,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-082.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-082a.webp",
       "effect": "[Accelerate]When I move from a location, play a 3  Sprite unit token with [Temporary] there.",
       "power": "3",
       "counter": "",
@@ -11462,7 +11486,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-055",
+      "card_set_id": "UNL-055a",
       "card_name": "Vex - Mocking (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -11471,7 +11495,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-055.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-055a.webp",
       "effect": "[Shield][Tank]When you [Stun] an enemy unit at a battlefield, you may move me to that battlefield.",
       "power": "5",
       "counter": "",
@@ -12617,7 +12641,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "UNL-150",
+      "card_set_id": "UNL-150a",
       "card_name": "Vex - Apathetic (Alternate Art)",
       "set_id": "UNL",
       "set_name": "Unleashed",
@@ -12626,7 +12650,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/UNL/UNL-150.webp",
+      "card_image": "assets/images/riftbound/UNL/UNL-150a.webp",
       "effect": "[Deflect]When an opponent plays a unit while I'm at a battlefield, [Stun] it. They can't move it this turn.",
       "power": "4",
       "counter": "",
@@ -13352,7 +13376,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-205",
+      "card_set_id": "OGN-205a",
       "card_name": "Yasuo - Windrider (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -13361,7 +13385,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-205.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-205a.webp",
       "effect": "[Ganking] (I can move from battlefield to battlefield.)The third time I move in a turn, you score 1 point.",
       "power": "4",
       "counter": "",
@@ -13436,7 +13460,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-202",
+      "card_set_id": "OGN-202a",
       "card_name": "Jinx - Rebel (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -13445,7 +13469,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-202.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-202a.webp",
       "effect": "When you discard one or more cards, ready me and give me +1  this turn.",
       "power": "5",
       "counter": "",
@@ -13562,7 +13586,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-197",
+      "card_set_id": "OGN-197a",
       "card_name": "Teemo - Scout (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -13571,7 +13595,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-197.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-197a.webp",
       "effect": "[Hidden] (Hide now for  to react with later for :rb_energy_0:.)When you play me, give me +3  this turn.",
       "power": "1",
       "counter": "",
@@ -13667,7 +13691,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-193",
+      "card_set_id": "OGN-193a",
       "card_name": "Miss Fortune - Buccaneer (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -13676,7 +13700,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-193.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-193a.webp",
       "effect": "You may play me to an open battlefield.Friendly units may be played to open battlefields.",
       "power": "4",
       "counter": "",
@@ -13835,7 +13859,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-151",
+      "card_set_id": "OGN-151a",
       "card_name": "Lee Sin - Centered (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -13844,7 +13868,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-151.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-151a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)Other buffed friendly units at my battlefield have +2 .",
       "power": "6",
       "counter": "",
@@ -14087,7 +14111,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-164",
+      "card_set_id": "OGN-164a",
       "card_name": "Sett - Brawler (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -14096,7 +14120,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-164.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-164a.webp",
       "effect": "When I'm played and when I conquer, buff me. (If I don't have a buff, I get a +1  buff.)Spend my buff: Give me +4  this turn.",
       "power": "4",
       "counter": "",
@@ -14360,7 +14384,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-162",
+      "card_set_id": "OGN-162a",
       "card_name": "Miss Fortune - Captain (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -14369,7 +14393,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-162.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-162a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)[Ganking] (I can move from battlefield to battlefield.)The first time I move each turn, you may ready something else that's exhausted.",
       "power": "5",
       "counter": "",
@@ -14465,7 +14489,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-158",
+      "card_set_id": "OGN-158a",
       "card_name": "Volibear - Imposing (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -14474,7 +14498,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-158.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-158a.webp",
       "effect": "[Shield 3] (+3  while I'm a defender.)[Tank] (I must be assigned combat damage first.)When an opponent moves to a battlefield other than mine, draw 1. (Bases are not battlefield.)",
       "power": "10",
       "counter": "",
@@ -14780,7 +14804,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-246",
+      "card_set_id": "OGN-246a",
       "card_name": "Viktor - Leader (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -14789,7 +14813,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-246.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-246a.webp",
       "effect": "When another non-Recruit unit you control dies, play a 1  Recruit unit token into your base.",
       "power": "4",
       "counter": "",
@@ -14864,7 +14888,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-243",
+      "card_set_id": "OGN-243a",
       "card_name": "Darius - Executioner (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -14873,7 +14897,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-243.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-243a.webp",
       "effect": "[Legion] — When you play me, ready me. (Get the effect if you've played another card this turn)Other friendly units have +1  here.",
       "power": "6",
       "counter": "",
@@ -15746,7 +15770,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-240",
+      "card_set_id": "OGN-240a",
       "card_name": "Sett - Kingpin (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -15755,7 +15779,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-240.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-240a.webp",
       "effect": "[Tank] (I must be assigned combat damage first.)I get +1  for each buffed friendly unit at my battlefield.",
       "power": "5",
       "counter": "",
@@ -15809,7 +15833,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-238",
+      "card_set_id": "OGN-238a",
       "card_name": "Leona - Determined (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -15818,7 +15842,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-238.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-238a.webp",
       "effect": "[Shield] (+1  while I'm a defender.)When I attack, stun an enemy unit here. (It doesn't deal combat damage this turn.)",
       "power": "4",
       "counter": "",
@@ -16355,7 +16379,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-041",
+      "card_set_id": "OGN-041a",
       "card_name": "Volibear - Furious (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -16364,7 +16388,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-041.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-041a.webp",
       "effect": "[Deflect 2] (Opponents must pay  to choose me with a spell or ability.)When I attack, deal 5 damage split among any number of enemy units here.",
       "power": "9",
       "counter": "",
@@ -16418,7 +16442,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-039",
+      "card_set_id": "OGN-039a",
       "card_name": "Kai'Sa - Survivor (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -16427,7 +16451,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-039.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-039a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)When I conquer, draw 1.",
       "power": "4",
       "counter": "",
@@ -16607,7 +16631,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-066",
+      "card_set_id": "OGN-066a",
       "card_name": "Ahri - Alluring (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -16616,7 +16640,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-066.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-066a.webp",
       "effect": "When I hold, you score 1 point.",
       "power": "4",
       "counter": "",
@@ -17300,7 +17324,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-027",
+      "card_set_id": "OGN-027a",
       "card_name": "Darius - Trifarian (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -17309,7 +17333,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-027.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-027a.webp",
       "effect": "When you play your second card in a turn, give me +2  this turn and ready me.",
       "power": "5",
       "counter": "",
@@ -17426,7 +17450,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-030",
+      "card_set_id": "OGN-030a",
       "card_name": "Jinx - Demolitionist (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -17435,7 +17459,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-030.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-030a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)[Assault 2] (+2  while I'm an attacker.)When you play me, discard 2.",
       "power": "4",
       "counter": "",
@@ -17720,7 +17744,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-121",
+      "card_set_id": "OGN-121a",
       "card_name": "Teemo - Strategist (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -17729,7 +17753,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-121.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-121a.webp",
       "effect": "[Hidden] (Hide now for  to react with later for :rb_energy_0:.)When I defend or I'm played from [Hidden], reveal the top 5 cards of your Main Deck. Deal 1 to an enemy unit here for each card with [Hidden], then recycle them.",
       "power": "2",
       "counter": "",
@@ -17930,7 +17954,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-112",
+      "card_set_id": "OGN-112a",
       "card_name": "Kai'Sa - Evolutionary (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -17939,7 +17963,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-112.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-112a.webp",
       "effect": "[Ganking] (I can move from battlefield to battlefield.)When I conquer, you may play a spell from your trash with Energy cost less than your points without paying its Energy cost. Then recycle it. (You must still pay its Power cost.)",
       "power": "6",
       "counter": "",
@@ -18497,7 +18521,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-078",
+      "card_set_id": "OGN-078a",
       "card_name": "Lee Sin - Ascetic (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -18506,7 +18530,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-078.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-078a.webp",
       "effect": "[Shield] (+1  while I'm a defender.): Buff me. (I get a +1  buff.)I can have any number of buffs.",
       "power": "5",
       "counter": "",
@@ -18665,7 +18689,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-079",
+      "card_set_id": "OGN-079a",
       "card_name": "Leona - Zealot (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -18674,7 +18698,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-079.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-079a.webp",
       "effect": "If an opponent's score is within 3 points of the Victory Score, I enter ready.Stunned enemy units here have -8 , to a minimum of 1 .",
       "power": "6",
       "counter": "",
@@ -18770,7 +18794,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-076",
+      "card_set_id": "OGN-076a",
       "card_name": "Yasuo - Remorseful (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -18779,7 +18803,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-076.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-076a.webp",
       "effect": "When I attack, deal damage equal to my Might to an enemy unit here.",
       "power": "6",
       "counter": "",
@@ -19295,7 +19319,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-233",
+      "card_set_id": "SFD-233v",
       "card_name": "Yone - Blademaster (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19304,7 +19328,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-233.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-233v.webp",
       "effect": "[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for  less, even if it's already attached.)When I conquer an open battlefield, deal damage equal to my Might to an enemy unit in a base.",
       "power": "5",
       "counter": "",
@@ -19337,7 +19361,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-120",
+      "card_set_id": "SFD-120a",
       "card_name": "Sivir - Ambitious (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19346,7 +19370,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-120.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-120a.webp",
       "effect": "[Deflect 2] (Opponents must pay  to choose me with a spell or Ability.)When I conquer after an attack, if you assigned 5 or more excess damage to enemy units, you may deal that much to an enemy unit.",
       "power": "7",
       "counter": "",
@@ -19400,7 +19424,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-171",
+      "card_set_id": "SFD-171a",
       "card_name": "Renata Glasc - Industrialist (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19409,7 +19433,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-171.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-171a.webp",
       "effect": "Your tokens enter ready.",
       "power": "4",
       "counter": "",
@@ -19421,7 +19445,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "SFD-177",
+      "card_set_id": "SFD-177a",
       "card_name": "Azir - Sovereign (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19430,7 +19454,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-177.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-177a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)When I attack, you may move any number of your token units to this battlefield.",
       "power": "4",
       "counter": "",
@@ -19484,7 +19508,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-233",
+      "card_set_id": "SFD-233s",
       "card_name": "Yone - Blademaster (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19493,7 +19517,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-233.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-233s.webp",
       "effect": "[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for  less, even if it's already attached.)When I conquer an open battlefield, deal damage equal to my Might to an enemy unit in a base.",
       "power": "5",
       "counter": "",
@@ -19526,7 +19550,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-241",
+      "card_set_id": "SFD-241v",
       "card_name": "Lucian - Purifier (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19535,7 +19559,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-241.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-241v.webp",
       "effect": "Your Equipment each give [Assault]. (+1  while equipped unit is an attacker.)",
       "power": "",
       "counter": "",
@@ -19547,7 +19571,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-243",
+      "card_set_id": "SFD-243v",
       "card_name": "Rek'sai - Void Burrower (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19556,7 +19580,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-243.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-243v.webp",
       "effect": "When you conquer, you may exhaust me to reveal the top 2 cards of your Main Deck. You may banish one, then play it. Recycle the rest.",
       "power": "",
       "counter": "",
@@ -19589,7 +19613,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-085",
+      "card_set_id": "SFD-085a",
       "card_name": "Ornn - Forge God (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19598,7 +19622,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-085.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-085a.webp",
       "effect": "[Deflect 2] (Opponents must pay  to choose me with a spell or ability.)[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for  less, even if it's already attached.)I have +1  for each friendly gear.",
       "power": "4",
       "counter": "",
@@ -19652,7 +19676,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-082",
+      "card_set_id": "SFD-082a",
       "card_name": "Ezreal - Dashing (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -19661,7 +19685,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-082.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-082a.webp",
       "effect": "When I attack or defend, deal damage equal to my Might to an enemy unit here.I don't deal combat damage.: [Action] — Move me to your base.",
       "power": "3",
       "counter": "",
@@ -20324,7 +20348,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-236",
+      "card_set_id": "SFD-236v",
       "card_name": "Darius - Executioner (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20333,7 +20357,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-236.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-236v.webp",
       "effect": "[Legion] — When you play me, ready me. (Get the effect if you've played another card this turn)Other friendly units have +1  here.",
       "power": "6",
       "counter": "",
@@ -20429,7 +20453,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-251",
+      "card_set_id": "SFD-251v",
       "card_name": "Fiora - Grand Duelist (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20438,7 +20462,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-251.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-251v.webp",
       "effect": "When one of your units becomes [Mighty], you may exhaust me to channel 1 rune exhausted. (A unit is Mighty while it has 5+ .)",
       "power": "",
       "counter": "",
@@ -20450,7 +20474,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-242",
+      "card_set_id": "SFD-242v",
       "card_name": "Draven - Glorious Executioner (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20459,7 +20483,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-242.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-242v.webp",
       "effect": "When you win a combat, draw 1. (You win if only your units remain after combat.)",
       "power": "",
       "counter": "",
@@ -20492,7 +20516,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-180",
+      "card_set_id": "SFD-180a",
       "card_name": "Fiora - Worthy (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20501,7 +20525,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-180.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-180a.webp",
       "effect": "When a unit you control becomes [Mighty], you may pay  to ready it. (A unit is Mighty while it has 5+ .)",
       "power": "3",
       "counter": "",
@@ -20618,7 +20642,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-058",
+      "card_set_id": "SFD-058a",
       "card_name": "Ornn - Blacksmith (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20627,7 +20651,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-058.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-058a.webp",
       "effect": "When you play me or when I hold, look at the top 4 cards of your Main Deck. You may reveal a gear from among them and draw it. Then recycle the rest.",
       "power": "5",
       "counter": "",
@@ -20681,7 +20705,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-054",
+      "card_set_id": "SFD-054a",
       "card_name": "Jax - Unmatched (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20690,7 +20714,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-054.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-054a.webp",
       "effect": "[Deflect] (Opponents must pay  to choose me with a spell or ability.)Each Equipment in your hand has [Quick-Draw]. (It gains [Reaction]. When you play it, attach it to a unit you control.)",
       "power": "5",
       "counter": "",
@@ -20744,7 +20768,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-050",
+      "card_set_id": "SFD-050a",
       "card_name": "Azir - Ascendant (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20753,7 +20777,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-050.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-050a.webp",
       "effect": ": [Action] — Choose a unit you control. Move me to its location and it to my original location. If it's equipped, you may attach one of its Equipment to me. Use only once per turn.",
       "power": "6",
       "counter": "",
@@ -20891,7 +20915,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-236",
+      "card_set_id": "SFD-236s",
       "card_name": "Darius - Executioner (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -20900,7 +20924,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-236.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-236s.webp",
       "effect": "[Legion] — When you play me, ready me. (Get the effect if you've played another card this turn)Other friendly units have +1  here.",
       "power": "6",
       "counter": "",
@@ -20996,7 +21020,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-026",
+      "card_set_id": "SFD-026a",
       "card_name": "Rumble - Hotheaded (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -21005,7 +21029,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-026.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-026a.webp",
       "effect": "Your Mechs each have [Assault]. (+1  while we're attackers.)When I conquer, you may recycle another friendly unit to play a Mech from your trash. Reduce its Energy cost by the Might of the unit you recycled.",
       "power": "4",
       "counter": "",
@@ -21626,7 +21650,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-149",
+      "card_set_id": "SFD-149a",
       "card_name": "Ezreal - Prodigy (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -21635,7 +21659,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-149.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-149a.webp",
       "effect": "When you play me, discard 1, then draw 2.Optional additional costs you pay cost :rb_energy_1: or  less.",
       "power": "3",
       "counter": "",
@@ -21731,7 +21755,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-028",
+      "card_set_id": "SFD-028a",
       "card_name": "Lucian - Gunslinger (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -21740,7 +21764,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-028.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-028a.webp",
       "effect": "[Assault] (+1  while I'm an attacker.)When I attack, deal damage equal to my [Assault] to an enemy unit here.",
       "power": "2",
       "counter": "",
@@ -21752,7 +21776,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "SFD-143",
+      "card_set_id": "SFD-143a",
       "card_name": "Sivir - Mercenary (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -21761,7 +21785,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-143.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-143a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)If you've spent at least  this turn, I have +2  and [Ganking]. (I can move from battlefield to battlefield.)",
       "power": "4",
       "counter": "",
@@ -21815,7 +21839,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-110",
+      "card_set_id": "SFD-110a",
       "card_name": "Fiora - Peerless (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -21824,7 +21848,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-110.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-110a.webp",
       "effect": "When I attack or defend one on one, double my Might this combat.",
       "power": "3",
       "counter": "",
@@ -21878,7 +21902,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-089",
+      "card_set_id": "SFD-089a",
       "card_name": "Rumble - Scrapper (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -21887,7 +21911,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-089.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-089a.webp",
       "effect": "Your Mechs have +1  (including me).When I hold, play a 3  Mech unit token to your base.",
       "power": "4",
       "counter": "",
@@ -22109,7 +22133,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-229",
+      "card_set_id": "SFD-229v",
       "card_name": "Seal of Insight (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22118,7 +22142,7 @@
       "card_type": "Gear",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-229.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-229v.webp",
       "effect": ": [Reaction] — [Add] . (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -22256,7 +22280,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-222",
+      "card_set_id": "SFD-222v",
       "card_name": "Seal of Rage (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22265,7 +22289,7 @@
       "card_type": "Gear",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-222.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-222v.webp",
       "effect": ": [Reaction] — [Add] . (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -22277,7 +22301,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-224",
+      "card_set_id": "SFD-224v",
       "card_name": "Aphelios - Exalted (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22286,7 +22310,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-224.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-224v.webp",
       "effect": "When you attach an Equipment to me, choose one that hasn't been chosen this turn —Ready 2 runes.Channel 1 rune exhausted.Buff a friendly unit.",
       "power": "4",
       "counter": "",
@@ -22298,7 +22322,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-224",
+      "card_set_id": "SFD-224s",
       "card_name": "Aphelios - Exalted (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22307,7 +22331,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-224.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-224s.webp",
       "effect": "When you attach an Equipment to me, choose one that hasn't been chosen this turn —Ready 2 runes.Channel 1 rune exhausted.Buff a friendly unit.",
       "power": "4",
       "counter": "",
@@ -22340,7 +22364,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-238",
+      "card_set_id": "SFD-238v",
       "card_name": "Seal of Unity (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22349,7 +22373,7 @@
       "card_type": "Gear",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-238.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-238v.webp",
       "effect": ": [Reaction] — [Add] . (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -22361,7 +22385,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-239",
+      "card_set_id": "SFD-239v",
       "card_name": "Soraka - Wanderer (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22370,7 +22394,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-239.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-239v.webp",
       "effect": "I must be assigned combat damage last.If another unit you control here would die, if it has less Might than me, instead heal it, exhaust it, and recall it. (Send it to base. This isn't a move.)",
       "power": "4",
       "counter": "",
@@ -22382,7 +22406,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-239",
+      "card_set_id": "SFD-239s",
       "card_name": "Soraka - Wanderer (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22391,7 +22415,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-239.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-239s.webp",
       "effect": "I must be assigned combat damage last.If another unit you control here would die, if it has less Might than me, instead heal it, exhaust it, and recall it. (Send it to base. This isn't a move.)",
       "power": "4",
       "counter": "",
@@ -22403,7 +22427,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-245",
+      "card_set_id": "SFD-245v",
       "card_name": "Jax - Grandmaster At Arms (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22412,7 +22436,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-245.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-245v.webp",
       "effect": ":rb_energy_1:, : Attach a detached Equipment you control to a unit you control.: Attach an attached Equipment you control to a unit you control.",
       "power": "",
       "counter": "",
@@ -22424,7 +22448,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-247",
+      "card_set_id": "SFD-247v",
       "card_name": "Azir - Emperor of the Sands (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22433,7 +22457,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-247.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-247v.webp",
       "effect": "Sand Soldiers you play have [Weaponmaster]. (When they're played, you may [Equip] one of your Equipment to them for  less.):rb_energy_1:, : Play a 2  Sand Soldier unit token to your base. Use only if you've played an Equipment this turn.",
       "power": "",
       "counter": "",
@@ -22445,7 +22469,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-248",
+      "card_set_id": "SFD-248v",
       "card_name": "Ezreal - Prodigal Explorer (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22454,7 +22478,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-248.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-248v.webp",
       "effect": ": [Reaction] — Draw 1. Use only if you've chosen enemy units and/or gear twice this turn with spells or unit abilities.",
       "power": "",
       "counter": "",
@@ -22466,7 +22490,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-250",
+      "card_set_id": "SFD-250v",
       "card_name": "Sivir - Battle Mistress (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22475,7 +22499,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-250.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-250v.webp",
       "effect": "When you recycle a rune, you may exhaust me to play a Gold gear token exhausted.When one or more enemy units die, ready me.",
       "power": "",
       "counter": "",
@@ -22487,7 +22511,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-029",
+      "card_set_id": "SFD-029a",
       "card_name": "Rek'Sai - Breacher (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -22496,7 +22520,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-029.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-029a.webp",
       "effect": "[Accelerate] (You may pay :rb_energy_1: as an additional cost to have me enter ready.)[Assault] (+1  while I'm an attacker.)Friendly units played from anywhere other than a player's hand have [Accelerate].",
       "power": "3",
       "counter": "",
@@ -22865,7 +22889,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-119",
+      "card_set_id": "OGN-119a",
       "card_name": "Ahri - Inquisitive (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -22874,7 +22898,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-119.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-119a.webp",
       "effect": "When I attack or defend, give an enemy unit here -2  this turn, to a minimum of 1 .",
       "power": "3",
       "counter": "",
@@ -22886,7 +22910,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "OGN-117",
+      "card_set_id": "OGN-117a",
       "card_name": "Viktor - Innovator (Alternate Art)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -22895,7 +22919,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-117.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-117a.webp",
       "effect": "When you play a card on an opponent's turn, play a 1  Recruit unit token in your base.",
       "power": "3",
       "counter": "",
@@ -22907,7 +22931,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "OGN-310",
+      "card_set_id": "OGN-310s",
       "card_name": "Sett - The Boss (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -22916,7 +22940,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-310.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-310s.webp",
       "effect": "When a buffed unit you control would die, you may pay  and exhaust me to spend its buff and recall it exhausted instead. (Send it to base. This isn't a move.)When you conquer, ready me.",
       "power": "",
       "counter": "",
@@ -23138,7 +23162,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-310",
+      "card_set_id": "OGN-310v",
       "card_name": "Sett - The Boss (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23147,7 +23171,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-310.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-310v.webp",
       "effect": "When a buffed unit you control would die, you may pay  and exhaust me to spend its buff and recall it exhausted instead. (Send it to base. This isn't a move.)When you conquer, ready me.",
       "power": "",
       "counter": "",
@@ -23348,7 +23372,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-300",
+      "card_set_id": "OGN-300v",
       "card_name": "Volibear - Relentless Storm (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23357,7 +23381,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-300.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-300v.webp",
       "effect": "When you play a [Mighty] unit, you may exhaust me to channel 1 rune exhausted. (A unit is Mighty while it has 5+ .)",
       "power": "",
       "counter": "",
@@ -23369,7 +23393,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-299",
+      "card_set_id": "OGN-299s",
       "card_name": "Kai'Sa - Daughter of the Void (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23378,7 +23402,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-299.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-299s.webp",
       "effect": ": [Reaction] — [Add] . Use only to play spells. (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -23390,7 +23414,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-299",
+      "card_set_id": "OGN-299v",
       "card_name": "Kai'Sa - Daughter of the Void (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23399,7 +23423,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-299.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-299v.webp",
       "effect": ": [Reaction] — [Add] . Use only to play spells. (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -23537,7 +23561,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-300",
+      "card_set_id": "OGN-300s",
       "card_name": "Volibear - Relentless Storm (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23546,7 +23570,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-300.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-300s.webp",
       "effect": "When you play a [Mighty] unit, you may exhaust me to channel 1 rune exhausted. (A unit is Mighty while it has 5+ .)",
       "power": "",
       "counter": "",
@@ -23726,7 +23750,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-305",
+      "card_set_id": "OGN-305v",
       "card_name": "Yasuo - Unforgiven (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23735,7 +23759,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-305.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-305v.webp",
       "effect": ":rb_energy_2:, : Move a friendly unit to or from its base.",
       "power": "",
       "counter": "",
@@ -23747,7 +23771,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-309",
+      "card_set_id": "OGN-309s",
       "card_name": "Miss Fortune - Bounty Hunter (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23756,7 +23780,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-309.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-309s.webp",
       "effect": ": Give a unit [Ganking] this turn. (It can move from battlefield to battlefield.)",
       "power": "",
       "counter": "",
@@ -23768,7 +23792,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-309",
+      "card_set_id": "OGN-309v",
       "card_name": "Miss Fortune - Bounty Hunter (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23777,7 +23801,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-309.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-309v.webp",
       "effect": ": Give a unit [Ganking] this turn. (It can move from battlefield to battlefield.)",
       "power": "",
       "counter": "",
@@ -23789,7 +23813,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-308",
+      "card_set_id": "OGN-308s",
       "card_name": "Viktor - Herald of the Arcane (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23798,7 +23822,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-308.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-308s.webp",
       "effect": ":rb_energy_1:, : Play a 1  Recruit unit token.",
       "power": "",
       "counter": "",
@@ -23810,7 +23834,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-308",
+      "card_set_id": "OGN-308v",
       "card_name": "Viktor - Herald of the Arcane (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23819,7 +23843,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-308.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-308v.webp",
       "effect": ":rb_energy_1:, : Play a 1  Recruit unit token.",
       "power": "",
       "counter": "",
@@ -23831,7 +23855,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-307",
+      "card_set_id": "OGN-307s",
       "card_name": "Teemo - Swift Scout (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23840,7 +23864,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-307.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-307s.webp",
       "effect": "You may pay :rb_energy_1: to hide a card with [Hidden] instead of .:rb_energy_1:, : Put a Teemo unit you own into your hand from your Champion Zone or the board.",
       "power": "",
       "counter": "",
@@ -23852,7 +23876,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-307",
+      "card_set_id": "OGN-307v",
       "card_name": "Teemo - Swift Scout (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23861,7 +23885,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-307.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-307v.webp",
       "effect": "You may pay :rb_energy_1: to hide a card with [Hidden] instead of .:rb_energy_1:, : Put a Teemo unit you own into your hand from your Champion Zone or the board.",
       "power": "",
       "counter": "",
@@ -23873,7 +23897,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-306",
+      "card_set_id": "OGN-306s",
       "card_name": "Leona - Radiant Dawn (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23882,7 +23906,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-306.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-306s.webp",
       "effect": "When you stun one or more enemy units, buff a friendly unit. (If it doesn't have a buff, it gets a +1  buff.)",
       "power": "",
       "counter": "",
@@ -23894,7 +23918,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-306",
+      "card_set_id": "OGN-306v",
       "card_name": "Leona - Radiant Dawn (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23903,7 +23927,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-306.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-306v.webp",
       "effect": "When you stun one or more enemy units, buff a friendly unit. (If it doesn't have a buff, it gets a +1  buff.)",
       "power": "",
       "counter": "",
@@ -23915,7 +23939,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-305",
+      "card_set_id": "OGN-305s",
       "card_name": "Yasuo - Unforgiven (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23924,7 +23948,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-305.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-305s.webp",
       "effect": ":rb_energy_2:, : Move a friendly unit to or from its base.",
       "power": "",
       "counter": "",
@@ -23957,7 +23981,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-304",
+      "card_set_id": "OGN-304s",
       "card_name": "Lee Sin - Blind Monk (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23966,7 +23990,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-304.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-304s.webp",
       "effect": ":rb_energy_1:, : Buff a friendly unit. (If it doesn't have a buff, it gets a +1  buff.)",
       "power": "",
       "counter": "",
@@ -23978,7 +24002,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-304",
+      "card_set_id": "OGN-304v",
       "card_name": "Lee Sin - Blind Monk (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -23987,7 +24011,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-304.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-304v.webp",
       "effect": ":rb_energy_1:, : Buff a friendly unit. (If it doesn't have a buff, it gets a +1  buff.)",
       "power": "",
       "counter": "",
@@ -23999,7 +24023,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-303",
+      "card_set_id": "OGN-303s",
       "card_name": "Ahri - Nine-Tailed Fox (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -24008,7 +24032,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-303.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-303s.webp",
       "effect": "When an enemy unit attacks a battlefield you control, give it -1  this turn, to a minimum of 1 .",
       "power": "",
       "counter": "",
@@ -24020,7 +24044,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-303",
+      "card_set_id": "OGN-303v",
       "card_name": "Ahri - Nine-Tailed Fox (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -24029,7 +24053,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-303.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-303v.webp",
       "effect": "When an enemy unit attacks a battlefield you control, give it -1  this turn, to a minimum of 1 .",
       "power": "",
       "counter": "",
@@ -24041,7 +24065,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-302",
+      "card_set_id": "OGN-302s",
       "card_name": "Darius - Hand of Noxus (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -24050,7 +24074,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-302.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-302s.webp",
       "effect": ": [Reaction], [Legion] — [Add] :rb_energy_1:. (Abilities that add resources can't be reacted to. Get the effect if you've played a card this turn.)",
       "power": "",
       "counter": "",
@@ -24062,7 +24086,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-302",
+      "card_set_id": "OGN-302v",
       "card_name": "Darius - Hand of Noxus (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -24071,7 +24095,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-302.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-302v.webp",
       "effect": ": [Reaction], [Legion] — [Add] :rb_energy_1:. (Abilities that add resources can't be reacted to. Get the effect if you've played a card this turn.)",
       "power": "",
       "counter": "",
@@ -24083,7 +24107,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-301",
+      "card_set_id": "OGN-301s",
       "card_name": "Jinx - Loose Cannon (Signature)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -24092,7 +24116,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-301.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-301s.webp",
       "effect": "At start of your Beginning Phase, draw 1 if you have one or fewer cards in your hand.",
       "power": "",
       "counter": "",
@@ -24104,7 +24128,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "OGN-301",
+      "card_set_id": "OGN-301v",
       "card_name": "Jinx - Loose Cannon (Overnumbered)",
       "set_id": "OGN",
       "set_name": "Origins",
@@ -24113,7 +24137,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/OGN/OGN-301.webp",
+      "card_image": "assets/images/riftbound/OGN/OGN-301v.webp",
       "effect": "At start of your Beginning Phase, draw 1 if you have one or fewer cards in your hand.",
       "power": "",
       "counter": "",
@@ -24377,7 +24401,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-231",
+      "card_set_id": "SFD-231v",
       "card_name": "Seal of Strength (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24386,7 +24410,7 @@
       "card_type": "Gear",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-231.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-231v.webp",
       "effect": ": [Reaction] — [Add] . (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -24398,7 +24422,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-226",
+      "card_set_id": "SFD-226v",
       "card_name": "Seal of Focus (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24407,7 +24431,7 @@
       "card_type": "Gear",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-226.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-226v.webp",
       "effect": ": [Reaction] — [Add] . (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -24419,7 +24443,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-232",
+      "card_set_id": "SFD-232s",
       "card_name": "Sett - Brawler (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24428,7 +24452,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-232.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-232s.webp",
       "effect": "When I'm played and when I conquer, buff me. (If I don't have a buff, I get a +1  buff.)Spend my buff: Give me +4  this turn.",
       "power": "4",
       "counter": "",
@@ -24440,7 +24464,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-232",
+      "card_set_id": "SFD-232v",
       "card_name": "Sett - Brawler (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24449,7 +24473,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-232.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-232v.webp",
       "effect": "When I'm played and when I conquer, buff me. (If I don't have a buff, I get a +1  buff.)Spend my buff: Give me +4  this turn.",
       "power": "4",
       "counter": "",
@@ -24461,7 +24485,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-223",
+      "card_set_id": "SFD-223s",
       "card_name": "Vayne - Hunter (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24470,7 +24494,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-223.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-223s.webp",
       "effect": "[Assault 3] (+3  while I'm an attacker.)If an opponent controls a battlefield, I enter ready.When I conquer, you may pay :rb_energy_1: to return me to my owner's hand.",
       "power": "2",
       "counter": "",
@@ -24482,7 +24506,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-223",
+      "card_set_id": "SFD-223v",
       "card_name": "Vayne - Hunter (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24491,7 +24515,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-223.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-223v.webp",
       "effect": "[Assault 3] (+3  while I'm an attacker.)If an opponent controls a battlefield, I enter ready.When I conquer, you may pay :rb_energy_1: to return me to my owner's hand.",
       "power": "2",
       "counter": "",
@@ -24524,7 +24548,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-119",
+      "card_set_id": "SFD-119a",
       "card_name": "Jax - Unrelenting (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24533,7 +24557,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-119.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-119a.webp",
       "effect": "[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for  less, even if it's already attached.)When you attach an Equipment to me, you may pay :rb_energy_1: to draw 1.",
       "power": "3",
       "counter": "",
@@ -24545,7 +24569,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "SFD-170",
+      "card_set_id": "SFD-170a",
       "card_name": "Rek'Sai - Swarm Queen (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24554,7 +24578,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-170.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-170a.webp",
       "effect": "When I attack, you may reveal the top 2 cards of your Main Deck. You may play one. Then recycle the rest. If the played card is a unit, you may play it here.",
       "power": "5",
       "counter": "",
@@ -24608,7 +24632,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-148",
+      "card_set_id": "SFD-148a",
       "card_name": "Draven - Audacious (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24617,7 +24641,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-148.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-148a.webp",
       "effect": "[Deflect] (Opponents must pay  to choose me with a spell or ability.)The first time I win a combat each turn, you score 1 point.When I die in combat, choose an opponent. They score 1 point.",
       "power": "6",
       "counter": "",
@@ -24734,7 +24758,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-244",
+      "card_set_id": "SFD-244v",
       "card_name": "Ornn - Fire Below the Mountain (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24743,7 +24767,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-244.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-244v.webp",
       "effect": ": [Reaction] — [Add] . Use only to play gear or use gear abilities. (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -24944,7 +24968,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-113",
+      "card_set_id": "SFD-113a",
       "card_name": "Lucian - Merciless (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -24953,7 +24977,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-113.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-113a.webp",
       "effect": "[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for  less, even if it's already attached.)The first time I conquer each turn, ready me.",
       "power": "3",
       "counter": "",
@@ -25007,7 +25031,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-057",
+      "card_set_id": "SFD-057a",
       "card_name": "Irelia - Fervent (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25016,7 +25040,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-057.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-057a.webp",
       "effect": "[Deflect] (Opponents must pay  to choose me with a spell or ability.)When you choose or ready me, give me +1  this turn.",
       "power": "4",
       "counter": "",
@@ -25049,7 +25073,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-020",
+      "card_set_id": "SFD-020a",
       "card_name": "Draven - Vanquisher (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25058,7 +25082,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-020.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-020a.webp",
       "effect": "When I win a combat, play a Gold gear token exhausted.When I attack or defend, you may pay . If you do, give me +2  this turn.",
       "power": "4",
       "counter": "",
@@ -25070,7 +25094,7 @@
       "is_parallel": true
     },
     {
-      "card_set_id": "SFD-249",
+      "card_set_id": "SFD-249v",
       "card_name": "Renata Glasc - Chem-Baroness (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25079,7 +25103,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-249.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-249v.webp",
       "effect": "When you or an ally hold, you may exhaust me to play a Gold gear token exhausted.While your score is within 3 points of the Victory Score, your Gold [ADD] an additional :rb_energy_1:.",
       "power": "",
       "counter": "",
@@ -25091,7 +25115,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-246",
+      "card_set_id": "SFD-246v",
       "card_name": "Irelia - Blade Dancer (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25100,7 +25124,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-246.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-246v.webp",
       "effect": "When you choose a friendly unit, you may exhaust me and pay  to ready it.When you conquer, you may pay :rb_energy_1: to ready me.",
       "power": "",
       "counter": "",
@@ -25112,7 +25136,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-227",
+      "card_set_id": "SFD-227v",
       "card_name": "Ahri - Inquisitive (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25121,7 +25145,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-227.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-227v.webp",
       "effect": "When I attack or defend, give an enemy unit here -2  this turn, to a minimum of 1 .",
       "power": "3",
       "counter": "",
@@ -25343,7 +25367,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-240",
+      "card_set_id": "SFD-240v",
       "card_name": "Rumble - Mechanized Menace (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25352,7 +25376,7 @@
       "card_type": "Legend",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-240.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-240v.webp",
       "effect": "Your Mechs have [Shield]. (+1  while they're defenders.)",
       "power": "",
       "counter": "",
@@ -25364,7 +25388,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-234",
+      "card_set_id": "SFD-234v",
       "card_name": "Seal of Discord (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25373,7 +25397,7 @@
       "card_type": "Gear",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-234.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-234v.webp",
       "effect": ": [Reaction] — [Add] . (Abilities that add resources can't be reacted to.)",
       "power": "",
       "counter": "",
@@ -25385,7 +25409,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-225",
+      "card_set_id": "SFD-225s",
       "card_name": "Irelia - Fervent (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25394,7 +25418,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-225.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-225s.webp",
       "effect": "[Deflect] (Opponents must pay  to choose me with a spell or ability.)When you choose or ready me, give me +1  this turn.",
       "power": "4",
       "counter": "",
@@ -25406,7 +25430,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-225",
+      "card_set_id": "SFD-225v",
       "card_name": "Irelia - Fervent (Overnumbered)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25415,7 +25439,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-225.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-225v.webp",
       "effect": "[Deflect] (Opponents must pay  to choose me with a spell or ability.)When you choose or ready me, give me +1  this turn.",
       "power": "4",
       "counter": "",
@@ -25658,7 +25682,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-227",
+      "card_set_id": "SFD-227s",
       "card_name": "Ahri - Inquisitive (Signature)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25667,7 +25691,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-227.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-227s.webp",
       "effect": "When I attack or defend, give an enemy unit here -2  this turn, to a minimum of 1 .",
       "power": "3",
       "counter": "",
@@ -25679,7 +25703,7 @@
       "is_parallel": false
     },
     {
-      "card_set_id": "SFD-141",
+      "card_set_id": "SFD-141a",
       "card_name": "Irelia - Graceful (Alternate Art)",
       "set_id": "SFD",
       "set_name": "Spiritforged",
@@ -25688,7 +25712,7 @@
       "card_type": "Unit",
       "producto": "BOOSTER",
       "category": "BOOSTER",
-      "card_image": "assets/images/riftbound/SFD/SFD-141.webp",
+      "card_image": "assets/images/riftbound/SFD/SFD-141a.webp",
       "effect": "Your spells that choose me cost :rb_energy_1: or  less.",
       "power": "4",
       "counter": "",

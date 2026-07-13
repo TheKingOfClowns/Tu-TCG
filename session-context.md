@@ -1,7 +1,7 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-07-11
+2026-07-13
 
 ## Proyecto
 App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Pokémon, Magic, Digimon, Dragon Ball, Yu-Gi-Oh!, Riftbound). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
@@ -18,16 +18,22 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - `js/binder/binder.js` — `renderCollectionList()` + `renderBinder()` + drag & drop
 - `js/venta/venta.js` — `renderVentaList()` + `renderVentaView()` + precios
 - `js/explore/explore.js` — `renderExploreView()` + `renderExploreDetail()`
-- `js/deck/deck.js` — `showDeckPicker()` + `renderDeckView()` + `saveDeck()`
+- `js/deck/deck.js` — `showDeckPicker_OP()` + `renderDeckView_OP()` + `saveDeck_OP()` para One Piece
+- `js/deck/deck_riftbound.js` — `showDeckPicker_RB()` + `renderDeckView_RB()` + `saveDeck_RB()` para Riftbound
+- `js/deck/dispatcher.js` — Rutea `showDeckPicker`, `renderDeckView`, `saveDeck` según `currentTcg`
 - `js/modals/modals.js` — `openCardInModal()`, `renderModalInfo()`, etc. **Variantes filtradas por idioma.**
 - `auth.js` — Autenticación Supabase
 - `profile.js` — Página de perfil de usuario
 - `supabase.js` — Configuración del cliente Supabase
 - `data/games/onepiece/cards_master.json` — 9,813 cartas (4,846 EN + 4,967 JA)
-- `config/games.json` — Registro de TCGs
-- `assets/logos/` — 7 logos .webp de TCGs
+- `config/games.json` — Registro de TCGs (one_piece, riftbound, etc.)
+- `assets/logos/` — 8 logos .webp de TCGs
 - `assets/images/onepiece/` — 9,708 archivos webp en disco (algunas imágenes compartidas entre variantes)
-- `_tools/scrape_set.js` — Scraper reutilizable
+- `assets/images/riftbound/{OGN,OGS,SFD,UNL,VEN,OPP,PR,JDG}/` — 1,045 imágenes webp de Riftbound
+- `data/games/riftbound/cards_master.json` — 1,224 cartas Riftbound
+- `_tools/scrape_set.js` — Scraper reutilizable One Piece
+- `_tools/scrape_riftbound.js` — Scraper Riftbound desde Riftcodex API
+- `riot.txt` — Código de verificación Riot API (`b7f27c09-91c8-4cac-ad7d-156fce73e46d`)
 - `_headers` — Cache headers para Cloudflare Pages
 
 ## Diseño (Nexus Design System)
@@ -59,6 +65,37 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - Toggle idioma: `catalogLangToggle` (EN | JA | Todos), `trackingLangSelect` (Solo EN | Solo JA | Ambos)
 - Búsqueda catálogo: `#searchInput` (FUNCIONAL, debounce 250ms → `renderCards()`)
 - **ELIMINADO**: `#topBarSearch` / `#globalSearchInput`
+- Filtro tipo: `#typeFilter` (Unit, Spell, Legend, Gear, Battlefield, Rune)
+
+## Últimos cambios (2026-07-13)
+
+### Integración Riftbound — COMPLETADO
+- **Fuente de datos**: API de Riftcodex (`https://api.riftcodex.com`), gratis, sin auth.
+- **1,224 cartas** en `data/games/riftbound/cards_master.json`.
+- **8 sets**: OGN (Origins, 352), OGS (Proving Grounds, 24), SFD (Spiritforged, 288), UNL (Unleashed, 280), VEN (Vendetta, 131), OPP (Organized Play Promos, 133), PR (Promos, 13), JDG (Judge Promos, 3).
+- **1,045 imágenes webp** en `assets/images/riftbound/{set}/`.
+- **Doble encoding Windows-1252 corregido**: la API de Riftcodex sirve texto con double-encoding (UTF-8 → CP1252 → Latin-1). Script de mapeo CP1252 completo aplicado en `js/explore/explore.js`, `js/deck/deck.js`, `js/modals/modals.js`, `cards_master.json` (168 entradas afectadas).
+- **Filtro "Tipo"** agregado en `index.html` (`select#typeFilter`), `script.js` y `catalog.js`. Tipos: Unit, Spell, Legend, Gear, Battlefield, Rune.
+- **Colores**: Mind, Order, Calm, Body, Chaos, Fury, Colorless.
+- **Rarezas**: 6 rarezas.
+- **Runes corregidas**: VEN renombradas a `VEN-R01`-`VEN-R06`, OPP a `OPP-XXXb`, OGN alternate art a `OGN-XXXa` — 24 Runes total con IDs únicos e imágenes propias.
+- **catalog.js** actualizado con `cargarFiltros()` para Riftbound (sets, colores, rarezas, tipos).
+- **Config**: `config/games.json` con riftbound `"enabled": true`, `getTcgPrefix()` retorna `"rb"`, `cargarCartas()` matchea `currentTcg`, `selectTcg()` llama `await cargarCartas()`.
+- **Commit**: `ca3c232`
+
+### Deck Builder Riftbound — COMPLETADO
+- **Arquitectura**: cada TCG tiene su propio archivo de deck builder (NO monolito con ifs). `dispatcher.js` rutea según `currentTcg`.
+- **Reglas oficiales**: Legend (1, define colores), Main Deck (40, max 3 copias/nombre), Rune Deck (12, solo colores Legend), Battlefields (3, nombres únicos), Sideboard (0-8 opcional, solo Unit/Spell/Gear), Chosen Champion (Unit Champion con mismo `feature`, obligatorio).
+- **6 modos de picker**: legend, champion (overlay modal, no prompt), main, runes, battlefield, sideboard — cada uno con sus propios filtros y límites.
+- **5 zonas en el render**: Legend, Chosen Champion, Main Deck, Rune Deck, Battlefields + Sideboard.
+- **Validaciones**: color matching automático, max 3 copias por nombre en main, nombres únicos de battlefields, filtrado de cartas inválidas al cambiar Legend.
+- **Champion feature match**: `cardFeature === legendFeature || cardFeature.startsWith(legendFeature + "/")` (Riftcodex usa `"Jinx/Zaun"` para Units y `"Jinx"` para Legends).
+- **Champion multi-select**: el picker muestra champions compatibles (filtrados por feature + color), permite elegir 1-3 (con +/-), los auto-agrega al Main Deck y setea el primero como Chosen Champion. Flujo: Legend → Champion (elige 1-3) → Main Deck (completar 37-39).
+- **One Piece**: intacto, solo se renombraron funciones a `_OP`. Sin regresión.
+
+### Pendiente Riftbound
+- **Runes faltantes**: Riftcodex no tiene Runes para SFD, UNL, OGS, PR, JDG. `riftbound.gg` retorna 403.
+- **API de Riot**: development key obtenida pero Riftbound requiere aplicación aprobada (production key). `riot.txt` deployado, app registrada, esperando revisión.
 
 ## Últimos cambios (2026-07-11)
 
@@ -103,17 +140,20 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 
 ### Refactorización modular
 - Módulos cargan DESPUÉS de `script.js`, sobreescribiendo funciones vía redeclaración.
-- Orden: state.js → config.js → script.js → registry.js → catalog.js → binder.js → venta.js → explore.js → deck.js → modals.js → profile.js
+- Orden: state.js → config.js → script.js → registry.js → catalog.js → binder.js → venta.js → explore.js → deck.js → deck_riftbound.js → dispatcher.js → modals.js → profile.js
 
 ### Deploy
-- Último deploy: `9d4a1c5` (corregir 4,057 imágenes JA + filtrar variantes por idioma en modal)
+- Último commit: `ca3c232` (integración Riftbound completa)
+- Pendiente de commit: deck builder Riftbound + dispatcher + refactor OP
 - URL: `https://main.tutcg.pages.dev`
 - NO hacer deploy sin que el usuario lo pida explícitamente.
 
 ## Próximo paso
-- Cuando salgan nuevos sets en `asia-en.onepiece-cardgame.com`, correr `_tools/scrape_set.js`.
+- Obtener API key de Riot para bajar Runes de SFD/UNL faltantes.
+- Cuando salgan nuevos sets de One Piece en `asia-en.onepiece-cardgame.com`, correr `_tools/scrape_set.js`.
 
 ## Convenciones
 - Diseño: glass-panel, toggles deslizantes, modales estilizados
 - Nunca hacer deploy sin que el usuario lo pida explícitamente
 - Leer este archivo al iniciar cada sesión
+- **Cada TCG tiene sus propios archivos**: nuevo TCG = nuevos archivos JS independientes (deck, config, etc.). Se reutilizan helpers globales de `script.js` (getCardKey, formatearNombre, etc.) pero la lógica de cada TCG está aislada. Si falla uno, no afecta a los demás.

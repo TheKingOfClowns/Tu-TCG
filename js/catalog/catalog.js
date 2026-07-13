@@ -330,17 +330,30 @@ function actualizarFiltrosPorExpansion() {
   } else if (esPromo) {
     rarityFilter.innerHTML = `<option value="">Todas las rarezas</option>`;
   } else {
-    rarityFilter.innerHTML = `
-      <option value="">Todas las rarezas</option>
-      <option value="L">L</option><option value="C">C</option><option value="UC">UC</option>
-      <option value="R">R</option><option value="SR">SR</option>
-      <option value="SEC">SEC</option><option value="SP">SP</option>
-      <option value="AA">AA</option>`;
-    typeFilter.innerHTML = `
-      <option value="">Todos los tipos</option>
-      <option value="LEADER">LEADER</option><option value="CHARACTER">CHARACTER</option>
-      <option value="EVENT">EVENT</option><option value="STAGE">STAGE</option>
-      <option value="DON!!">DON!!</option>`;
+    if (currentTcg === "riftbound") {
+      rarityFilter.innerHTML = `
+        <option value="">Todas las rarezas</option>
+        <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
+        <option value="Rare">Rare</option><option value="Epic">Epic</option>
+        <option value="Promo">Promo</option><option value="Showcase">Showcase</option>`;
+      typeFilter.innerHTML = `
+        <option value="">Todos los tipos</option>
+        <option value="Unit">Unit</option><option value="Spell">Spell</option>
+        <option value="Legend">Legend</option><option value="Gear">Gear</option>
+        <option value="Battlefield">Battlefield</option><option value="Rune">Rune</option>`;
+    } else {
+      rarityFilter.innerHTML = `
+        <option value="">Todas las rarezas</option>
+        <option value="L">L</option><option value="C">C</option><option value="UC">UC</option>
+        <option value="R">R</option><option value="SR">SR</option>
+        <option value="SEC">SEC</option><option value="SP">SP</option>
+        <option value="AA">AA</option>`;
+      typeFilter.innerHTML = `
+        <option value="">Todos los tipos</option>
+        <option value="LEADER">LEADER</option><option value="CHARACTER">CHARACTER</option>
+        <option value="EVENT">EVENT</option><option value="STAGE">STAGE</option>
+        <option value="DON!!">DON!!</option>`;
+    }
   }
   if (prevRarity) {
     const match = rarityFilter.querySelector(`option[value="${prevRarity}"]`);

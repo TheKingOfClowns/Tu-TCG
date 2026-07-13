@@ -1,7 +1,7 @@
 ﻿// Deck Picker & Deck View
 // _deckPickerResolve y _deckPickerInterval ya los declara script.js
 
-function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots) {
+function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots) {
   const isMulti = mode === "main" || mode === "don";
   return new Promise(resolve => {
     try {
@@ -262,7 +262,7 @@ document.getElementById("deckPickerOverlay")?.addEventListener("click", (e) => {
   }
 });
 // ─── Deck View ─────────────────────────────────────────────────────────
-function renderDeckView(type, col, grid, title, toggleContainer) {
+function renderDeckView_OP(type, col, grid, title, toggleContainer) {
   const isSale = type === "sale";
   title.textContent = col.name;
   if (toggleContainer) {
@@ -367,13 +367,13 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
   grid.innerHTML = html;
   // Event handlers
   grid.querySelectorAll("[data-leaderremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); col.leader = null; saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer); });
+    btn.addEventListener("click", e => { e.stopPropagation(); col.leader = null; saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
   });
   grid.querySelectorAll("[data-mainremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-mainremove")); const entry = col.cards[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer); });
+    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-mainremove")); const entry = col.cards[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
   });
   grid.querySelectorAll("[data-donremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-donremove")); col.dons.splice(i, 1); saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer); });
+    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-donremove")); col.dons.splice(i, 1); saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
   });
   grid.querySelectorAll(".deck-card-slot .card-img-wrap img, .deck-leader-card .card-img-wrap img, .deck-don-slot .card-img-wrap img").forEach(img => {
     img.addEventListener("click", function(e) {
@@ -405,20 +405,20 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
     });
   });
   grid.querySelectorAll("[data-leaderprice]").forEach(inp => {
-    inp.addEventListener("change", () => { if (col.leader) col.leader.customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck(isSale); });
+    inp.addEventListener("change", () => { if (col.leader) col.leader.customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
   });
   grid.querySelectorAll("[data-mainprice]").forEach(inp => {
-    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-mainprice")); if (col.cards[i]) col.cards[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck(isSale); });
+    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-mainprice")); if (col.cards[i]) col.cards[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
   });
   grid.querySelectorAll("[data-donprice]").forEach(inp => {
-    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-donprice")); if (col.dons[i]) col.dons[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck(isSale); });
+    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-donprice")); if (col.dons[i]) col.dons[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
   });
   // Picker triggers
   function pickLeader() {
-    showDeckPicker("leader").then(picked => {
+    showDeckPicker_OP("leader").then(picked => {
       if (!picked) return;
       col.leader = { _key: getCardKey(picked), card_set_id: picked.card_set_id, card_name: picked.card_name, card_image: picked.card_image, card_color: picked.card_color, card_type: picked.card_type, set_id: picked.set_id, customPrice: 0 };
-      saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
+      saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
     });
   }
   const leaderPlaceholder = grid.querySelector(".deck-leader-placeholder");
@@ -446,7 +446,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
       (col.cards || []).forEach(c => {
         if (c.card_set_id) existingCounts[c.card_set_id] = (existingCounts[c.card_set_id] || 0) + (c.quantity || 1);
       });
-      const pickedArr = await showDeckPicker("main", lColor, existingKeys, lSetId, existingCounts, remaining);
+      const pickedArr = await showDeckPicker_OP("main", lColor, existingKeys, lSetId, existingCounts, remaining);
       if (pickedArr && pickedArr.length) {
         pickedArr.forEach(c => {
           const mainTotal = col.cards.reduce((s, card) => s + (card.quantity || 1), 0);
@@ -464,7 +464,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
             col.cards.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, customPrice: 0 });
   }
 });
-        saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
+        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
       }
     });
     el.style.cursor = "pointer";
@@ -476,7 +476,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
       const remaining = 10 - totalDons;
       if (remaining <= 0) { alert("Ya tienes 10 DON!!"); return; }
       const existingKeys = (col.dons || []).map(c => c._key).filter(Boolean);
-      const pickedArr = await showDeckPicker("don", "", existingKeys, "", null, remaining);
+      const pickedArr = await showDeckPicker_OP("don", "", existingKeys, "", null, remaining);
       if (pickedArr && pickedArr.length) {
         const toAdd = pickedArr;
         if (!col.dons) col.dons = [];
@@ -484,7 +484,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
           if (col.dons.length >= 10) return;
           col.dons.push({ _key: getCardKey(c), card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, customPrice: 0 });
         });
-        saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
+        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
       }
     });
     el.style.cursor = "pointer";
@@ -499,7 +499,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
       const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
       if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
         col.cards = [];
-        saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
+        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
       }
     };
   }
@@ -509,11 +509,11 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
       if (!col.dons?.length) return;
       if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
         col.dons = [];
-        saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
+        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
       }
     };
   }
 }
-function saveDeck(isSale) {
+function saveDeck_OP(isSale) {
   if (isSale) guardarVenta(); else guardarCollections();
 }

@@ -1182,6 +1182,59 @@ body {
   color: var(--text-tertiary);
   font-size: var(--text-sm);
 }
+.deck-champion-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: linear-gradient(135deg, #f0a500, #e07b00);
+  color: #000;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-extrabold);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  z-index: 2;
+  letter-spacing: 0.5px;
+}
+.deck-champion-placeholder {
+  width: 200px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.deck-champion-card {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid #f0a500;
+  width: 140px;
+}
+.deck-champion-card .card-img-wrap img {
+  width: 100%;
+  display: block;
+}
+.deck-champion-slot {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+.deck-champion-set-btn {
+  font-size: var(--text-xs);
+  padding: 2px 6px;
+  background: rgba(240, 165, 0, 0.15);
+  color: #f0a500;
+  border: 1px solid rgba(240, 165, 0, 0.4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.deck-champion-set-btn:hover {
+  background: rgba(240, 165, 0, 0.25);
+}
 .deck-main-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(120px, 1fr));

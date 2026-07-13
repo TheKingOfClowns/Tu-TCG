@@ -60,7 +60,15 @@ function mapCard(apiCard) {
   const setId = apiCard.set.set_id.toUpperCase();
   const collectorNum = String(apiCard.collector_number);
   const paddedNum = collectorNum.padStart(3, '0');
-  const cardSetId = setId + '-' + paddedNum;
+
+  // Detect variant type for unique card_set_id
+  let variantSuffix = '';
+  const name = apiCard.name || '';
+  if (name.includes('(Alternate Art)')) variantSuffix = 'a';
+  else if (name.includes('(Signature)')) variantSuffix = 's';
+  else if (name.includes('(Overnumbered)')) variantSuffix = 'v';
+
+  const cardSetId = setId + '-' + paddedNum + variantSuffix;
 
   const producto = getProducto(setId);
   const domains = apiCard.classification.domain || [];
