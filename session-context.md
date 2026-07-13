@@ -21,6 +21,9 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - `js/deck/deck.js` — `showDeckPicker_OP()` + `renderDeckView_OP()` + `saveDeck_OP()` para One Piece
 - `js/deck/deck_riftbound.js` — `showDeckPicker_RB()` + `renderDeckView_RB()` + `saveDeck_RB()` para Riftbound
 - `js/deck/dispatcher.js` — Rutea `showDeckPicker`, `renderDeckView`, `saveDeck` según `currentTcg`
+- `js/tracking/tracking_riftbound.js` — Override de funciones de tracking para Riftbound (sin DON, Champions, rarezas RB)
+- `js/binder/binder_riftbound.js` — Override de pedirCrearColeccion, renderCollectionList, renderBinder para RB
+- `js/venta/venta_riftbound.js` — Override de pedirCrearVenta, renderVentaList/Grouped/Individual, buildVentaCardHTML, attachVentaEvents para RB
 - `js/modals/modals.js` — `openCardInModal()`, `renderModalInfo()`, etc. **Variantes filtradas por idioma.**
 - `auth.js` — Autenticación Supabase
 - `profile.js` — Página de perfil de usuario
@@ -69,6 +72,31 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 - Filtro tipo: `#typeFilter` (Unit, Spell, Legend, Gear, Battlefield, Rune)
 
 ## Últimos cambios (2026-07-13)
+
+### Arquitectura modular Riftbound — COMPLETADO
+- **Cada TCG tiene sus propios archivos JS**: tracking, binder, venta y deck tienen versión RB independiente con dispatchers.
+- Archivos nuevos:
+  - `js/tracking/tracking_riftbound.js` — Override de funciones de tracking (pedirCrearTracking, renderTrackingExtra, getAvailableSets, buildTrackingCardList, trackingCardPasses, confirmCreateTracking)
+  - `js/binder/binder_riftbound.js` — Override de pedirCrearColeccion, renderCollectionList, renderBinder
+  - `js/venta/venta_riftbound.js` — Override de pedirCrearVenta, renderVentaList, renderVentaGrouped, renderVentaIndividual, buildVentaCardHTML, attachVentaEvents
+- **Dispatcher**: cada función global se reemplaza con un dispatcher que rutea a `_RB` o `_OP` según `currentTcg`. El dispatcher resetea el DOM a defaults antes de delegar.
+
+### Fixes Riftbound
+- **Sin DON en tracking**: el `<option value="don">` se oculta con `display:none` en RB, el idioma también oculto pero configurado para futuro JA.
+- **Champions**: el tracking cambia "Personaje/s" → "Champions" y "Personaje" → "Champion" en el DOM de RB.
+- **Rarezas RB**: tracking usa Common, Uncommon, Rare, Epic, Promo, Showcase, AA.
+- **AA filter**: `esCartaAA_RB(carta)` detecta sufijos `a`/`s`/`v` en `card_set_id`. Funciona en catálogo y tracking.
+- **Badge único Promo**: si `rareza === "Promo"`, no se muestra el badge violeta duplicado. Variantes AA/Sig/OV muestran badge combinado (ej: "Common - OV").
+- **Playset x3**: límite de playset es 3 en Riftbound (4 en OP). PS badge se activa a 3 copias.
+- **Deck sin descripción**: la opción de crear deck dice solo "Deck" (sin "líder + 50 cartas + 10 DON!!"). El contador de deck en binder muestra "X cartas".
+- **Badges en binder/venta**: las cartas de Riftbound ahora muestran su rareza/variante en binder y venta.
+- **3 tildes Promo Cards**: `getAvailableSets_RB` corrige bug que agregaba "Promo Cards" 3 veces (OPP, PR, JDG). Solo 1 entrada.
+- **Toggle idioma catálogo**: oculto en Riftbound, forzado a "en".
+
+### Fix imágenes base AA — COMPLETADO
+- **52 imágenes base corregidas**: cartas comunes/rares/epics con variante AA tenían la imagen de la variante en lugar de la base.
+- **Script**: `_tools/fix_riftbound_base_images.js` — consulta Riftcodex API, detecta pares base+AA con hash idéntico, re-descarga la imagen correcta.
+- **Resultado**: 0 de 84 pares base+AA con imágenes idénticas.
 
 ### Integración Riftbound — COMPLETADO
 - **Fuente de datos**: API de Riftcodex (`https://api.riftcodex.com`), gratis, sin auth.
@@ -152,11 +180,11 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Poké
 
 ### Refactorización modular
 - Módulos cargan DESPUÉS de `script.js`, sobreescribiendo funciones vía redeclaración.
-- Orden: state.js → config.js → script.js → registry.js → catalog.js → binder.js → venta.js → explore.js → deck.js → deck_riftbound.js → dispatcher.js → modals.js → profile.js
+- Orden: state.js → config.js → script.js → registry.js → catalog.js → binder.js → binder_riftbound.js → venta.js → venta_riftbound.js → explore.js → deck.js → deck_riftbound.js → dispatcher.js → tracking_riftbound.js → modals.js → profile.js
 
 ### Deploy
-- Último commit: `1311c50` (deck builder Riftbound, fix variantes AA/Sig/OV, fix tracking)
-- Último deploy: `1311c50`
+- Último commit: `0839641` (arquitectura modular completa Riftbound + fixes)
+- Último deploy: `0839641`
 - URL: `https://main.tutcg.pages.dev`
 - NO hacer deploy sin que el usuario lo pida explícitamente.
 
