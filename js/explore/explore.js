@@ -1,11 +1,11 @@
-﻿// â”€â”€â”€ Explore / Public Binders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+﻿// ─── Explore / Public Binders ─────────────────────────────────────────────
 async function renderExploreView() {
   const container = document.getElementById("exploreContainer");
   if (!container) return;
   container.className = "explore-grid";
-  container.innerHTML = '<div class="loader" style="text-align:center;padding:40px;color:var(--text-tertiary)">Cargando binders pÃºblicosâ€¦</div>';
+  container.innerHTML = '<div class="loader" style="text-align:center;padding:40px;color:var(--text-tertiary)">Cargando binders públicos…</div>';
   if (!isAuthenticated()) {
-    container.innerHTML = '<div class="collection-empty"><p>Inicia sesiÃ³n para explorar binders pÃºblicos</p></div>';
+    container.innerHTML = '<div class="collection-empty"><p>Inicia sesión para explorar binders públicos</p></div>';
     return;
   }
   try {
@@ -24,7 +24,7 @@ async function renderExploreView() {
     }
     if (!filteredBinders || !filteredBinders.length) {
       const tcgName = currentTcg ? (tcgList.find(t => t.id === currentTcg)?.name || "") : "";
-      container.innerHTML = `<div class="collection-empty"><p>No hay binders pÃºblicos aÃºn${tcgName ? " para " + tcgName : ""}</p><p style="font-size:var(--text-sm);color:var(--text-tertiary)">Los usuarios pueden publicar sus colecciones y ventas desde la vista de Binder o Venta</p></div>`;
+      container.innerHTML = `<div class="collection-empty"><p>No hay binders públicos aún${tcgName ? " para " + tcgName : ""}</p><p style="font-size:var(--text-sm);color:var(--text-tertiary)">Los usuarios pueden publicar sus colecciones y ventas desde la vista de Binder o Venta</p></div>`;
       return;
     }
     container.innerHTML = "";
@@ -41,7 +41,7 @@ async function renderExploreView() {
         if (prof?.avatar_url) avatarUrl = prof.avatar_url;
       } catch (e) { console.error("Explore profile fetch error:", e); }
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
-      const typeLabel = b.type === "sale" ? "Venta" : "ColecciÃ³n";
+      const typeLabel = b.type === "sale" ? "Venta" : "Colección";
       const isOwner = authUser && b.user_id === authUser.id;
       // Get cover image from first card
       let coverImg = null;
@@ -77,7 +77,7 @@ async function renderExploreView() {
     }
   } catch (e) {
     console.error("Explore error:", e);
-    container.innerHTML = '<div class="collection-empty"><p>Error al cargar binders pÃºblicos</p></div>';
+    container.innerHTML = '<div class="collection-empty"><p>Error al cargar binders públicos</p></div>';
   }
 }
 function openExploreDetail(binder) {
@@ -91,7 +91,7 @@ function renderExploreDetail() {
   const b = exploreDetailBinder;
   title.textContent = b.name;
   const cards = b.binder_cards || [];
-  const typeLabel = b.type === "sale" ? "Venta" : "ColecciÃ³n";
+  const typeLabel = b.type === "sale" ? "Venta" : "Colección";
   container.innerHTML = `
     <div class="explore-detail-header">
       <span class="explore-badge ${b.type}">${typeLabel}</span>

@@ -1,4 +1,4 @@
-// Deck Picker & Deck View
+﻿// Deck Picker & Deck View
 // _deckPickerResolve y _deckPickerInterval ya los declara script.js
 
 function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots) {
@@ -61,9 +61,9 @@ function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCo
       if (mode === "don") return (cartas || []).filter(c => (c.card_type === "DON!!" || c.category === "DON") && !existing.has(getCardKey(c)));
       return [];
     }
-    if (mode === "leader") title.textContent = "Elegir lÃ­der";
-    else if (mode === "main") title.textContent = "Agregar cartas al deck (mÃ¡x 50)";
-    else if (mode === "don") title.textContent = "Elegir DON!! (mÃ¡x 10)";
+    if (mode === "leader") title.textContent = "Elegir líder";
+    else if (mode === "main") title.textContent = "Agregar cartas al deck (máx 50)";
+    else if (mode === "don") title.textContent = "Elegir DON!! (máx 10)";
     function updateInfo() {
       let total;
       if (mode === "main" || mode === "don") {
@@ -74,7 +74,7 @@ function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCo
       const max = mode === "main" ? 50 : mode === "don" ? 10 : 1;
       const avail = getFiltered().length;
       if (isMulti) {
-        info.textContent = `${total} seleccionadas Â· ${avail} disponibles Â· mÃ¡x ${max}`;
+        info.textContent = `${total} seleccionadas · ${avail} disponibles · máx ${max}`;
         if (confirmBtn) confirmBtn.disabled = total === 0;
       } else {
         info.textContent = `${avail} disponibles`;
@@ -240,12 +240,12 @@ function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCo
     }
     // Now check cartas state
     if (!cartas || !cartas.length) {
-      grid.innerHTML = '<div class="deck-picker-empty">Cargando catÃ¡logo de cartasâ€¦</div>';
+      grid.innerHTML = '<div class="deck-picker-empty">Cargando catálogo de cartas…</div>';
       updateInfo();
       let retries = 0;
       const retry = setInterval(() => {
         if (cartas && cartas.length) { clearInterval(retry); _deckPickerInterval = null; renderPicker(""); }
-        else if (++retries > 20) { clearInterval(retry); _deckPickerInterval = null; grid.innerHTML = '<div class="deck-picker-empty">Error al cargar catÃ¡logo</div>'; }
+        else if (++retries > 20) { clearInterval(retry); _deckPickerInterval = null; grid.innerHTML = '<div class="deck-picker-empty">Error al cargar catálogo</div>'; }
       }, 500);
       _deckPickerInterval = retry;
     } else {
@@ -261,7 +261,7 @@ document.getElementById("deckPickerOverlay")?.addEventListener("click", (e) => {
     if (_deckPickerInterval) { clearInterval(_deckPickerInterval); _deckPickerInterval = null; }
   }
 });
-// â”€â”€â”€ Deck View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Deck View ─────────────────────────────────────────────────────────
 function renderDeckView(type, col, grid, title, toggleContainer) {
   const isSale = type === "sale";
   title.textContent = col.name;
@@ -273,7 +273,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
         <span class="public-toggle-track">
           <span class="public-toggle-thumb"></span>
         </span>
-        <span class="public-toggle-label ${col.is_public ? "active" : ""}">PÃºblico</span>
+        <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
       </label>
     ` : "";
     const chk = document.getElementById(isSale ? "ventaPublicCheck" : "binderPublicCheck");
@@ -286,7 +286,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
   title.textContent = `${col.name} (${totalCards} cartas)`;
   let html = `<div class="deck-container">`;
   // Leader section
-  html += `<div class="deck-section deck-leader-section"><h3 class="deck-section-title">LÃ­der</h3><div class="deck-leader-slot">`;
+  html += `<div class="deck-section deck-leader-section"><h3 class="deck-section-title">Líder</h3><div class="deck-leader-slot">`;
   if (leader) {
     const full = leader._key ? cartasMap[leader._key] : null;
     const img = leader.card_image || full?.card_image || "TUTCG.webp";
@@ -303,10 +303,10 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
       html += `<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="${cp}" data-leaderprice="1"></div>`;
     }
     html += `</div></div>
-      <button class="btn-ghost btn-xs" id="deckChangeLeaderBtn">Cambiar lÃ­der</button>
-      <button class="binder-remove" data-leaderremove="1" style="position:static;margin-top:var(--space-2)">&times; Quitar lÃ­der</button>`;
+      <button class="btn-ghost btn-xs" id="deckChangeLeaderBtn">Cambiar líder</button>
+      <button class="binder-remove" data-leaderremove="1" style="position:static;margin-top:var(--space-2)">&times; Quitar líder</button>`;
   } else {
-    html += `<div class="deck-empty-slot deck-leader-placeholder">Elige un lÃ­der</div>`;
+    html += `<div class="deck-empty-slot deck-leader-placeholder">Elige un líder</div>`;
   }
   html += `</div></div>`;
   // Main deck section
@@ -326,14 +326,14 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
     }
     html += `<div class="deck-card-slot" data-key="${c._key || ""}" data-mainidx="${i}">
       <div class="card-img-wrap"><img src="${img}" onerror="this.src='TUTCG.webp'">
-        <span class="deck-card-qty">Ã—${qty}</span>
+        <span class="deck-card-qty">×${qty}</span>
       </div>
       ${priceHTML}
       <button class="binder-remove" data-mainremove="${i}">&times;</button>
     </div>`;
   });
   if (mainTotal < 50) {
-    html += `<div class="deck-add-more-btn deck-empty-slot">+ Agregar mÃ¡s (${50 - mainTotal} libres)</div>`;
+    html += `<div class="deck-add-more-btn deck-empty-slot">+ Agregar más (${50 - mainTotal} libres)</div>`;
   }
   html += `</div></div>`;
   // DON!! section
@@ -435,7 +435,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
   const mainEmpty = grid.querySelectorAll(".deck-add-more-btn, .deck-empty-slot:not(.deck-leader-placeholder)");
   mainEmpty.forEach(el => {
     el.addEventListener("click", async () => {
-      if (!col.leader) { alert("Primero debes elegir un lÃ­der."); return; }
+      if (!col.leader) { alert("Primero debes elegir un líder."); return; }
       const lColor = col.leader?.card_color || "";
       const existingKeys = (col.cards || []).map(c => c._key).filter(Boolean);
       const mainTotal = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
@@ -471,7 +471,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
   });
   grid.querySelectorAll(".deck-don-add").forEach(el => {
     el.addEventListener("click", async () => {
-      if (!col.leader) { alert("Primero debes elegir un lÃ­der."); return; }
+      if (!col.leader) { alert("Primero debes elegir un líder."); return; }
       const totalDons = col.dons?.length || 0;
       const remaining = 10 - totalDons;
       if (remaining <= 0) { alert("Ya tienes 10 DON!!"); return; }
@@ -497,7 +497,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
     clearPageBtn.onclick = () => {
       if (!col.cards.length) return;
       const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-      if (confirm(`Â¿Vaciar las ${total} cartas del deck?`)) {
+      if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
         col.cards = [];
         saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
       }
@@ -507,7 +507,7 @@ function renderDeckView(type, col, grid, title, toggleContainer) {
     clearAllBtn.textContent = "Vaciar dones";
     clearAllBtn.onclick = () => {
       if (!col.dons?.length) return;
-      if (confirm(`Â¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
+      if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
         col.dons = [];
         saveDeck(isSale); renderDeckView(type, col, grid, title, toggleContainer);
       }

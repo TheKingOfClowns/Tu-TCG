@@ -1,4 +1,4 @@
-// â”€â”€â”€ Selection Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+﻿// ─── Selection Mode ───────────────────────────────────────────────────────
 function toggleSelectionMode() {
   selectionMode = !selectionMode;
   const btn = document.getElementById("seleccionarBtn");
@@ -48,7 +48,7 @@ function reapplySelectionClasses() {
     if (key && selectedCards[key]) el.classList.add("selected");
   });
 }
-// â”€â”€â”€ Pending Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Pending Cards ────────────────────────────────────────────────────────
 function actualizarBadge() {
   const source = selectionMode ? selectedCards : pendingCards;
   const keys = Object.keys(source);
@@ -59,7 +59,7 @@ function actualizarBadge() {
   else { btn.textContent = "Agregar a"; }
 }
 function limpiarPendientes() { pendingCards = {}; actualizarBadge(); actualizarBadgesEnPagina(); }
-// â”€â”€â”€ Create / Rename Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Create / Rename Modal ──────────────────────────────────────────────
 // Create / Rename Modal
 function showCreateModal(opts) {
   const overlay = document.getElementById("createModalOverlay");
@@ -89,7 +89,7 @@ function hideCreateModal() {
   document.getElementById("createModalOverlay").style.display = "none";
   _createCallback = null;
 }
-// â”€â”€â”€ Add Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Add Modal ───────────────────────────────────────────────────────────
 function mostrarAddModal() {
   const overlay = document.getElementById("addModalOverlay");
   const list = document.getElementById("addModalList");
@@ -118,7 +118,7 @@ function mostrarAddModal() {
     <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);margin-left:auto;flex-shrink:0">${(pc.category || pc.producto) === "DON" ? (pc.variant || "") : (pc.card_set_id || "")}</span>`;
   const pendHeader = document.createElement("div");
   pendHeader.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)";
-  pendHeader.innerHTML = `<span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Pendientes Â· ${pendKeys.length} cartas Â· ${totalCount} copias</span>`;
+  pendHeader.innerHTML = `<span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Pendientes · ${pendKeys.length} cartas · ${totalCount} copias</span>`;
   pendSection.appendChild(pendHeader);
   const pendGrid = document.createElement("div");
   pendGrid.style.cssText = "display:flex;flex-direction:column;gap:2px";
@@ -138,7 +138,7 @@ function mostrarAddModal() {
     const toggleBtn = document.createElement("button");
     toggleBtn.style.cssText = "margin-top:var(--space-1);padding:4px 8px;font-size:10px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:var(--font-mono)";
     let expanded = false;
-    const updateLabel = () => { toggleBtn.textContent = expanded ? "â–² Mostrar menos" : `â–¼ +${pendKeys.length - maxShow} mÃ¡s`; };
+    const updateLabel = () => { toggleBtn.textContent = expanded ? "▲ Mostrar menos" : `▼ +${pendKeys.length - maxShow} más`; };
     updateLabel();
     toggleBtn.addEventListener("click", () => {
       expanded = !expanded;
@@ -205,7 +205,7 @@ function mostrarAddModal() {
       });
     }
   } else {
-    list.innerHTML += "<p style='color:var(--text-tertiary);padding:20px 10px;font-size:var(--text-sm);text-align:center'>Crea una colecciÃ³n primero</p>";
+    list.innerHTML += "<p style='color:var(--text-tertiary);padding:20px 10px;font-size:var(--text-sm);text-align:center'>Crea una colección primero</p>";
     document.getElementById("addModalConfirm").style.display = "none";
   }
   overlay.style.display = "flex";
@@ -213,7 +213,7 @@ function mostrarAddModal() {
 function confirmarAdd() {
   const overlay = document.getElementById("addModalOverlay");
   const checks = overlay.querySelectorAll("#addModalList input:checked");
-  if (!checks.length) { alert("Selecciona al menos una colecciÃ³n"); return; }
+  if (!checks.length) { alert("Selecciona al menos una colección"); return; }
   checks.forEach(cb => {
     const colId = cb.value;
     const isVenta = cb.hasAttribute("data-venta");
@@ -225,11 +225,11 @@ function confirmarAdd() {
         const key = getCardKey(pc);
         const cardType = pc.card_type || "";
         if (cardType === "LEADER") {
-          if (col.leader && !confirm("Ya hay un lÃ­der. Â¿Reemplazarlo?")) return;
+          if (col.leader && !confirm("Ya hay un líder. ¿Reemplazarlo?")) return;
           col.leader = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, customPrice: 0 };
         } else if (cardType === "DON!!" || cardType === "DON") {
           const donCount = col.dons?.length || 0;
-          if (donCount + pc.count > 10) { alert("MÃ¡ximo 10 DON!! en el deck"); return; }
+          if (donCount + pc.count > 10) { alert("Máximo 10 DON!! en el deck"); return; }
           if (!col.dons) col.dons = [];
           for (let i = 0; i < pc.count; i++) {
             col.dons.push({ _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, customPrice: 0 });
@@ -238,12 +238,12 @@ function confirmarAdd() {
           if (col.leader && pc.card_color && col.leader.card_color) {
             const lc = col.leader.card_color?.split("/").map(s => s.trim()) || [];
             if (!lc.some(c => pc.card_color?.includes(c))) {
-              if (!confirm("Esta carta no coincide con el color del lÃ­der. Â¿Agregar de todas formas?")) return;
+              if (!confirm("Esta carta no coincide con el color del líder. ¿Agregar de todas formas?")) return;
             }
           }
           const mainTotal = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
           const newTotal = mainTotal + pc.count;
-          if (newTotal > 50) { alert("MÃ¡ximo 50 cartas en el deck. Solo caben " + (50 - mainTotal) + " mÃ¡s."); return; }
+          if (newTotal > 50) { alert("Máximo 50 cartas en el deck. Solo caben " + (50 - mainTotal) + " más."); return; }
           const existing = col.cards.find(c => c._key === key);
           if (existing) {
             if (isUnlimited(pc)) {
