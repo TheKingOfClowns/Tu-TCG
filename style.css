@@ -1266,14 +1266,16 @@ body {
   pointer-events: none;
 }
 .deck-card-slot .binder-remove,
-.deck-don-slot .binder-remove {
+.deck-don-slot .binder-remove,
+.deck-champion-card .binder-remove {
   left: 4px;
   right: auto;
   width: 28px;
   height: 28px;
 }
 .deck-card-slot:hover .binder-remove,
-.deck-don-slot:hover .binder-remove { opacity: 1; }
+.deck-don-slot:hover .binder-remove,
+.deck-champion-card:hover .binder-remove { opacity: 1; }
 .deck-don-row {
   display: flex;
   gap: 0;

@@ -352,6 +352,14 @@
 
         <div class="catalog-results-bar" id="resultsCounter" style="display:none">Cargando cartas…</div>
 
+        <div id="catalogAddBanner" style="display:none;align-items:center;justify-content:space-between;padding:var(--space-3);background:linear-gradient(135deg,rgba(0,240,255,0.1),rgba(99,102,241,0.1));border:1px solid rgba(0,240,255,0.2);border-radius:var(--radius-md);margin-bottom:var(--space-2)">
+          <span style="font-size:var(--text-sm);color:var(--text-secondary)">Agregando a: <strong id="catalogAddBinderName" style="color:var(--accent)"></strong></span>
+          <div style="display:flex;gap:var(--space-2)">
+            <button class="btn-ghost btn-xs" id="catalogAddBack" style="font-size:10px">Volver al binder</button>
+            <button class="btn-ghost btn-xs" id="catalogAddCancel" style="font-size:10px;color:var(--text-muted)">✕</button>
+          </div>
+        </div>
+
         <div class="catalog-grid" id="cards-container" style="display:none"></div>
 
         <div class="catalog-pagination" id="catalogPagination" style="display:none">

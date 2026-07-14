@@ -1,11 +1,11 @@
 // ─── Deck Dispatcher ────────────────────────────────────────────────────────
 // Routes showDeckPicker, renderDeckView, and saveDeck to the correct TCG
 
-function showDeckPicker(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
+function showDeckPicker(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
   if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") {
-    return showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys);
+    return showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys);
   }
-  return showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots);
+  return showDeckPicker_OP(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots);
 }
 
 function renderDeckView(type, col, grid, title, toggleContainer) {

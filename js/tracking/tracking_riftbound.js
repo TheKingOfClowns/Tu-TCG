@@ -20,6 +20,18 @@ function _esCartaAA(carta) {
   return /^\w+-\d+[asv]$/i.test(carta.card_set_id || "");
 }
 
+function getUniqueCharacterNames_RB() {
+  var names = new Set();
+  cartas.forEach(function(c) {
+    var f = (c.feature || "").trim();
+    if (!f) return;
+    names.add(f);
+    var slash = f.indexOf("/");
+    if (slash !== -1) names.add(f.substring(0, slash));
+  });
+  return Array.from(names).sort();
+}
+
 function getAvailableSets_RB() {
   const groups = { booster: [], starter: [], promo: [] };
   const seen = new Set();
@@ -64,7 +76,7 @@ function buildTrackingCardList_RB(type, config) {
     cartas.forEach(c => {
       if (!sets.includes(c.set_id)) return;
       if (mode === "base") {
-        if (c.is_parallel) return;
+        if (c.is_parallel || _esCartaAA(c)) return;
         const pt = (c.print_type || "").toLowerCase();
         if (pt.includes("alt") || pt.includes("aa") || pt.includes("parallel")) return;
         if ((c.rarity || c.rareza) === "AA") return;
@@ -75,7 +87,8 @@ function buildTrackingCardList_RB(type, config) {
   } else if (type === "character") {
     const charName = (config.character || "").trim().toLowerCase();
     cartas.forEach(c => {
-      if (c.card_name && c.card_name.trim().toLowerCase() === charName) {
+      var f = (c.feature || "").trim().toLowerCase();
+      if (f && f.split("/").indexOf(charName) !== -1) {
         if (!trackingCardPasses_RB(c, config)) return;
         cards.push({ _key: getCardKey(c), owned: false });
       }
@@ -129,7 +142,20 @@ function pedirCrearTracking_RB(preFillName) {
   }
   typeSelect.value = "expansion";
   extraPanel.innerHTML = "";
-  renderTrackingExtra_RB("expansion", extraPanel);
+  if (_appendTo) {
+    var existingCol = collections[_appendTo];
+    if (existingCol && existingCol.tracking_type) {
+      typeSelect.value = existingCol.tracking_type || "expansion";
+    }
+  }
+  renderTrackingExtra_RB(typeSelect.value, extraPanel);
+  if (_appendTo) {
+    var existingCol2 = collections[_appendTo];
+    if (existingCol2 && existingCol2.tracking_config && existingCol2.tracking_config.mode) {
+      var modeSelect = document.getElementById("trackingSetMode");
+      if (modeSelect) modeSelect.value = existingCol2.tracking_config.mode;
+    }
+  }
   overlay.style.display = "flex";
   setTimeout(function() { nameInput.focus(); }, 100);
 }
@@ -180,7 +206,7 @@ function renderTrackingExtra_RB(type, panel) {
       var query = charInput.value.trim().toLowerCase();
       var suggestions = document.getElementById("trackingCharSuggestions");
       if (query.length < 2) { suggestions.innerHTML = ""; return; }
-      var names = getUniqueCharacterNames().filter(function(n) { return n.toLowerCase().includes(query); }).slice(0, 20);
+      var names = getUniqueCharacterNames_RB().filter(function(n) { return n.toLowerCase().includes(query); }).slice(0, 20);
       suggestions.innerHTML = names.map(function(n) {
         return '<div class="tracking-suggestion" style="padding:6px 10px;cursor:pointer;font-size:var(--text-xs);color:var(--text-secondary);border-radius:var(--radius-sm)" onmouseover="this.style.background=\'var(--bg-input)\'" onmouseout="this.style.background=\'transparent\'">' + n + '</div>';
       }).join("");

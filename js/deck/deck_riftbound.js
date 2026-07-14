@@ -20,7 +20,11 @@ function isChampionMatch_legend(legend, card) {
   if (card.attribute !== "Champion") return false;
   var legendFeature = legend.feature || "";
   var cardFeature = card.feature || "";
-  return cardFeature === legendFeature || cardFeature.startsWith(legendFeature + "/");
+  if (cardFeature === legendFeature) return true;
+  if (cardFeature.includes("/" + legendFeature + "/")) return true;
+  if (cardFeature.endsWith("/" + legendFeature)) return true;
+  if (cardFeature.startsWith(legendFeature + "/")) return true;
+  return false;
 }
 
 function countByName_legend(cardsArr) {
@@ -34,7 +38,7 @@ function countByName_legend(cardsArr) {
 
 // ─── Deck Picker ───────────────────────────────────────────────────────────
 
-function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
+function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
   const isMulti = mode !== "legend";
   return new Promise(resolve => {
     try {
@@ -44,7 +48,7 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
     const title = document.getElementById("deckPickerTitle");
     const grid = document.getElementById("deckPickerGrid");
     const search = document.getElementById("deckPickerSearch");
-    const info = document.getElementById("deckPickerInfo");
+    let info = document.getElementById("deckPickerInfo");
     const footer = document.querySelector(".deck-picker-footer");
     if (!footer) return;
     search.value = "";
@@ -65,16 +69,18 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
         <span id="deckPickerInfo" class="deck-picker-info"></span>
         <button class="btn-ghost" id="deckPickerCancel">Cancelar</button>`;
     }
+    info = document.getElementById("deckPickerInfo");
     const cancelBtn = document.getElementById("deckPickerCancel");
     overlay.style.display = "flex";
     setTimeout(() => search.focus(), 100);
-    const leaderColors = leaderColor ? leaderColor.split("/").map(s => s.trim()).filter(Boolean) : [];
+    const legendColors = legendColor ? legendColor.split("/").map(s => s.trim()).filter(Boolean) : [];
 
     function getFiltered() {
       if (mode === "legend") return (cartas || []).filter(c => c.card_type === "Legend");
       if (mode === "main") {
         let base = (cartas || []).filter(c =>
-          c.card_type === "Unit" || c.card_type === "Spell" || c.card_type === "Gear"
+          (c.card_type === "Unit" || c.card_type === "Spell" || c.card_type === "Gear") &&
+          c.attribute !== "Champion"
         );
         if (existingCounts) {
           base = base.filter(c => {
@@ -82,17 +88,17 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
             return existCount < 3;
           });
         }
-        if (leaderColors.length) {
+        if (legendColors.length) {
           base = base.filter(c => {
             if (!c.card_color) return false;
             const cardColors = c.card_color.split("/").map(s => s.trim());
-            return leaderColors.some(lc => cardColors.includes(lc));
+            return legendColors.some(lc => cardColors.includes(lc));
           });
         }
-        if (leaderSetId) {
+        if (legendSetId) {
           base.sort((a, b) => {
-            const aMatch = a.set_id === leaderSetId ? 0 : 1;
-            const bMatch = b.set_id === leaderSetId ? 0 : 1;
+            const aMatch = a.set_id === legendSetId ? 0 : 1;
+            const bMatch = b.set_id === legendSetId ? 0 : 1;
             return aMatch - bMatch;
           });
         }
@@ -100,10 +106,10 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
       }
       if (mode === "runes") {
         let base = (cartas || []).filter(c => c.card_type === "Rune");
-        if (leaderColors.length) {
+        if (legendColors.length) {
           base = base.filter(c => {
             if (!c.card_color) return false;
-            return leaderColors.some(lc => c.card_color.includes(lc));
+            return legendColors.some(lc => c.card_color.includes(lc));
           });
         }
         return base;
@@ -115,15 +121,19 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
         var base = (cartas || []).filter(function(c) {
           return c.card_type === "Unit" && c.attribute === "Champion";
         });
-        if (leaderColors.length) {
+        if (legendColors.length) {
           base = base.filter(function(c) {
-            return matchesLegendColors_legend(c, leaderColors);
+            return matchesLegendColors_legend(c, legendColors);
           });
         }
         if (legendFeature) {
           base = base.filter(function(c) {
             var feat = c.feature || "";
-            return feat === legendFeature || feat.startsWith(legendFeature + "/");
+            if (feat === legendFeature) return true;
+            if (feat.includes("/" + legendFeature + "/")) return true;
+            if (feat.endsWith("/" + legendFeature)) return true;
+            if (feat.startsWith(legendFeature + "/")) return true;
+            return false;
           });
         }
         return base;
@@ -167,7 +177,7 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
       const q = (query || "").toLowerCase().trim();
       let results = getFiltered();
       if (results.length === 0 && !q) {
-        grid.innerHTML = '<div class="deck-picker-empty">No hay cartas disponibles (' + mode + ')' + (leaderColor ? " para color " + leaderColor : "") + '</div>';
+        grid.innerHTML = '<div class="deck-picker-empty">No hay cartas disponibles (' + mode + ')' + (legendColor ? " para color " + legendColor : "") + '</div>';
         updateInfo();
         return;
       }
@@ -235,7 +245,15 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
             const existingQty = mode === "main" ? (existingCounts && existingCounts[c.card_name] || 0) : 0;
             const selectedQty = selectedCounts[key] || 0;
             const totalSelected = Object.values(selectedCounts).reduce((s, n) => s + n, 0);
-            if (mode === "main" && existingQty + selectedQty >= 3) return;
+            if (mode === "main" || mode === "champion") {
+              var _nameSel = 0;
+              Object.keys(selectedCounts).forEach(function(k) {
+                var sc = mode === "main" ? cartas.find(function(cc) { return cc.card_set_id === k; }) : cartas.find(function(cc) { return getCardKey(cc) === k; });
+                if (sc && sc.card_name === c.card_name) _nameSel += selectedCounts[k];
+              });
+              var _existQty = (existingCounts && existingCounts[c.card_name] || 0);
+              if (_existQty + _nameSel >= 3) return;
+            }
             if (totalSelected >= remainingSlots) return;
             selectedCounts[key] = selectedQty + 1;
             selectedPerKey[cardKey] = (selectedPerKey[cardKey] || 0) + 1;
@@ -257,9 +275,16 @@ function showDeckPicker_RB(mode, leaderColor, existingKeys, leaderSetId, existin
           const totalSelected = Object.values(selectedCounts).reduce((s, n) => s + n, 0);
           const current = selectedCounts[key] || 0;
           if (btn.getAttribute("data-action") === "incr") {
-            if (mode === "main") {
-              const existQty = existingCounts ? (existingCounts[cartas.find(c2 => c2.card_set_id === key)?.card_name] || 0) : 0;
-              if (existQty + current >= 3) return;
+            if (mode === "main" || mode === "champion") {
+              var _cardInc = mode === "main" ? cartas.find(function(c2) { return c2.card_set_id === key; }) : cartas.find(function(c2) { return getCardKey(c2) === key; });
+              var _cardName = _cardInc ? _cardInc.card_name : "";
+              var _existQty = existingCounts ? (existingCounts[_cardName] || 0) : 0;
+              var _ns = 0;
+              Object.keys(selectedCounts).forEach(function(k) {
+                var sc = mode === "main" ? cartas.find(function(cc) { return cc.card_set_id === k; }) : cartas.find(function(cc) { return getCardKey(cc) === k; });
+                if (sc && sc.card_name === _cardName) _ns += selectedCounts[k];
+              });
+              if (_existQty + _ns >= 3) return;
             }
             if (totalSelected >= remainingSlots) return;
             selectedCounts[key] = current + 1;
@@ -336,17 +361,24 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
     if (chk) chk.onchange = () => toggleBinderPublic(isSale ? currentVentaId : currentCollectionId);
   }
 
+  // Migrate old championKey format — extracted to renderBinder_RB / renderVentaView
+  // (No-op: col.championKey is never set in current code)
+
   const legend = col.legend;
-  const mainCards = col.cards || [];
+  const champions = col.champions || [];
+  const mainCards = (col.cards || []).filter(c => {
+    const full = c._key ? cartasMap[c._key] : null;
+    return !(full && full.card_type === "Unit" && full.attribute === "Champion");
+  });
   const runes = col.runes || [];
   const battlefields = col.battlefields || [];
   const sideboard = col.sideboard || [];
-  const championKey = col.championKey;
 
   const legendColors = getLegendColors_legend(legend);
+  const championsTotal = champions.reduce((s, c) => s + (c.quantity || 1), 0);
   const mainTotal = mainCards.reduce((s, c) => s + (c.quantity || 1), 0);
   const runesTotal = runes.reduce((s, c) => s + (c.quantity || 1), 0);
-  const totalCards = (legend ? 1 : 0) + mainTotal + runesTotal + battlefields.length + sideboard.length;
+  const totalCards = (legend ? 1 : 0) + championsTotal + mainTotal + runesTotal + battlefields.length + sideboard.length;
 
   title.textContent = col.name + " (" + totalCards + " cartas)";
 
@@ -370,48 +402,45 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
       html += '<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-legendprice="1"></div>';
     }
     html += '</div></div>' +
-      '<button class="btn-ghost btn-xs" id="deckChangeLegendBtn">Cambiar Legend</button>' +
-      '<button class="binder-remove" data-legendremove="1" style="position:static;margin-top:var(--space-2)">&times; Quitar Legend</button>';
+      '<button class="btn-ghost btn-xs" id="deckChangeLegendBtn">Cambiar Legend</button>';
   } else {
     html += '<div class="deck-empty-slot deck-leader-placeholder deck-legend-placeholder">Elegi una Legend</div>';
   }
   html += '</div></div>';
 
-  // ── Chosen Champion ──
-  html += '<div class="deck-section"><h3 class="deck-section-title">Chosen Champion</h3><div class="deck-champion-slot">';
-  if (championKey) {
-    const champ = mainCards.find(c => c._key === championKey);
-    if (champ) {
-      const full = cartasMap[champ._key];
-      const img = champ.card_image || full?.card_image || "TUTCG.webp";
-      const name = champ.card_name || full?.card_name || "";
-      html += '<div class="deck-champion-card" data-key="' + (champ._key || "") + '">' +
-        '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>' +
-        '<div class="card-body"><h3>' + name + '</h3><span class="card-set-id">' + (champ.card_set_id || "") + '</span></div>' +
-        '<button class="binder-remove" data-championclear="1">&times;</button>' +
-      '</div>';
-    } else {
-      col.championKey = null;
-      html += '<div class="deck-empty-slot deck-champion-placeholder">Elegi un Champion (parte del Main Deck)</div>';
-    }
+  // ── Champions ──
+  html += '<div class="deck-section"><h3 class="deck-section-title">Chosen Champion' + (champions.length ? ' (' + champions.length + (champions.length >= 3 ? '/3' : '') + ')' : '') + '</h3><div class="deck-champion-slot">';
+  champions.forEach(function(champ, ci) {
+    const full = champ._key ? cartasMap[champ._key] : null;
+    const img = champ.card_image || full?.card_image || "TUTCG.webp";
+    const name = champ.card_name || full?.card_name || "";
+    const qty = champ.quantity || 1;
+    const ccp = champ.customPrice != null ? champ.customPrice : 0;
+    html += '<div class="deck-champion-card" data-key="' + (champ._key || "") + '" data-championidx="' + ci + '">' +
+      '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'">' +
+        (qty > 1 ? '<span class="deck-card-qty">&times;' + qty + '</span>' : '') +
+      '</div>' +
+      '<div class="card-body"><h3>' + name + '</h3><span class="card-set-id">' + (champ.card_set_id || "") + '</span>' +
+        (isSale ? '<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + ccp + '" data-championprice="' + ci + '"></div>' : '') +
+      '</div>' +
+      '<button class="binder-remove" data-championremove="' + ci + '">&times;</button>' +
+    '</div>';
+  });
+  if (champions.length) {
+    html += '<button class="btn-ghost btn-xs" id="deckChangeChampionBtn" style="display:block;margin-top:var(--space-2)">Cambiar Champions</button>';
   } else {
-    html += '<div class="deck-empty-slot deck-champion-placeholder">Elegi un Champion (parte del Main Deck)</div>';
+    html += '<div class="deck-empty-slot deck-champion-placeholder">Elegi Champions</div>';
   }
   html += '</div></div>';
 
   // ── Main Deck section ──
   const mainLimit = 40;
-  html += '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Main Deck</h3><span class="deck-count">' + mainTotal + '/' + mainLimit + '</span></div><div class="deck-main-grid">';
+  const combinedTotal = championsTotal + mainTotal;
+  html += '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Main Deck</h3><span class="deck-count">' + combinedTotal + '/' + mainLimit + '</span></div><div class="deck-main-grid">';
   mainCards.forEach((c, i) => {
     const qty = c.quantity || 1;
     const full = c._key ? cartasMap[c._key] : null;
     const img = c.card_image || full?.card_image || "TUTCG.webp";
-    const isChamp = c._key === championKey;
-    const isValidChampion = full && isChampionMatch_legend(legend, full);
-    let championBadgeHTML = "";
-    if (isChamp) {
-      championBadgeHTML = '<span class="deck-champion-badge" title="Chosen Champion">CHAMPION</span>';
-    }
     let priceHTML = "";
     if (isSale) {
       const cp = c.customPrice != null ? c.customPrice : 0;
@@ -421,18 +450,16 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
     }
     html += '<div class="deck-card-slot" data-key="' + (c._key || "") + '" data-mainidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'">' +
-        championBadgeHTML +
         '<span class="deck-card-qty">&times;' + qty + '</span>' +
       '</div>' +
       priceHTML +
       '<div style="display:flex;gap:4px;justify-content:center;margin-top:4px">' +
-        (isChamp ? '' : (isValidChampion ? '<button class="btn-ghost btn-xs deck-champion-set-btn" data-championset="' + i + '" title="Elegir como Chosen Champion">Elegir Champion</button>' : '')) +
         '<button class="binder-remove" data-mainremove="' + i + '">&times;</button>' +
       '</div>' +
     '</div>';
   });
-  if (mainTotal < mainLimit) {
-    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="main">+ Agregar (' + (mainLimit - mainTotal) + ' libres)</div>';
+  if (combinedTotal < mainLimit) {
+    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="main">+ Agregar (' + (mainLimit - combinedTotal) + ' libres)</div>';
   }
   html += '</div></div>';
 
@@ -443,10 +470,12 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
     const qty = c.quantity || 1;
     const full = c._key ? cartasMap[c._key] : null;
     const img = c.card_image || full?.card_image || "TUTCG.webp";
+    const rcp = c.customPrice != null ? c.customPrice : 0;
     html += '<div class="deck-card-slot" data-key="' + (c._key || "") + '" data-runeidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'">' +
         '<span class="deck-card-qty">&times;' + qty + '</span>' +
       '</div>' +
+      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + rcp + '" data-runeprice="' + i + '"></div></div>' : '') +
       '<button class="binder-remove" data-runeremove="' + i + '">&times;</button>' +
     '</div>';
   });
@@ -461,8 +490,10 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
   battlefields.forEach((bf, i) => {
     const full = bf._key ? cartasMap[bf._key] : null;
     const img = bf.card_image || full?.card_image || "TUTCG.webp";
+    const bcp = bf.customPrice != null ? bf.customPrice : 0;
     html += '<div class="deck-card-slot" data-key="' + (bf._key || "") + '" data-bfidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>' +
+      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + bcp + '" data-bfprice="' + i + '"></div></div>' : '') +
       '<button class="binder-remove" data-bfremove="' + i + '">&times;</button>' +
     '</div>';
   });
@@ -477,13 +508,17 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
   sideboard.forEach((sb, i) => {
     const full = sb._key ? cartasMap[sb._key] : null;
     const img = sb.card_image || full?.card_image || "TUTCG.webp";
+    const scp = sb.customPrice != null ? sb.customPrice : 0;
     html += '<div class="deck-card-slot" data-key="' + (sb._key || "") + '" data-sbidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>' +
+      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + scp + '" data-sbprice="' + i + '"></div></div>' : '') +
       '<button class="binder-remove" data-sbremove="' + i + '">&times;</button>' +
     '</div>';
   });
-  if (sideboard.length < sbLimit) {
+  if (champions.length > 0 && sideboard.length < sbLimit) {
     html += '<div class="deck-add-more-btn deck-empty-slot" data-add="sideboard">+ Agregar (' + (sbLimit - sideboard.length) + ' libres)</div>';
+  } else if (champions.length === 0) {
+    html += '<div class="deck-empty-slot" style="grid-column:1/-1;text-align:center;padding:var(--space-6);color:var(--text-muted);font-size:var(--text-sm)">Elegi un Champion para habilitar el Sideboard</div>';
   }
   html += '</div></div>';
 
@@ -492,14 +527,14 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
 
   // ── Event handlers ──
 
-  // Legend remove
-  grid.querySelectorAll("[data-legendremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); col.legend = null; col.championKey = null; col.cards = []; col.runes = []; col.battlefields = []; saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); });
-  });
-
   // Main deck remove
   grid.querySelectorAll("[data-mainremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-mainremove")); const entry = col.cards[i]; if (!entry) return; if (col.championKey === entry._key) col.championKey = null; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); });
+    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-mainremove")); const entry = col.cards[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); });
+  });
+
+  // Champion remove
+  grid.querySelectorAll("[data-championremove]").forEach(btn => {
+    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-championremove")); const entry = (col.champions || [])[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.champions.splice(i, 1); saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); });
   });
 
   // Rune remove
@@ -517,31 +552,9 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
     btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-sbremove")); col.sideboard.splice(i, 1); saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); });
   });
 
-  // Chosen Champion clear
-  grid.querySelectorAll("[data-championclear]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); col.championKey = null; saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); });
-  });
-
-  // Chosen Champion set button
-  grid.querySelectorAll("[data-championset]").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const i = parseInt(btn.getAttribute("data-championset"));
-      const entry = col.cards[i];
-      if (!entry) return;
-      const full = cartasMap[entry._key];
-      if (!full) return;
-      if (!isChampionMatch_legend(legend, full)) {
-        alert("Este Champion no coincide con la Legend. Debe ser un Unit Champion con feature \"" + (legend?.feature || "") + "\".");
-        return;
-      }
-      col.championKey = entry._key;
-      saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer);
-    });
-  });
-
   // Image click → open modal
   grid.querySelectorAll(".deck-card-slot .card-img-wrap img, .deck-leader-card .card-img-wrap img, .deck-champion-card .card-img-wrap img").forEach(img => {
+    img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
       const slot = this.closest("[data-key]");
@@ -578,6 +591,13 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
           const f = cartasMap[entry._key];
           if (f) { navList.push(f); if (i < slotIdx) startIdx++; }
         });
+      } else if (slot.hasAttribute("data-championidx")) {
+        const slotIdx = parseInt(slot.getAttribute("data-championidx"));
+        navList = []; startIdx = 0;
+        champions.forEach((entry, i) => {
+          const f = cartasMap[entry._key];
+          if (f) { navList.push(f); if (i < slotIdx) startIdx++; }
+        });
       }
       openCardInModal(carta, navList, startIdx);
     });
@@ -593,18 +613,37 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
     inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-mainprice")); if (col.cards[i]) col.cards[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_RB(isSale); });
   });
 
+  // Champion prices
+  grid.querySelectorAll("[data-championprice]").forEach(inp => {
+    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-championprice")); if (col.champions && col.champions[i]) col.champions[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_RB(isSale); });
+  });
+
+  // Rune prices
+  grid.querySelectorAll("[data-runeprice]").forEach(inp => {
+    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-runeprice")); if (col.runes && col.runes[i]) col.runes[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_RB(isSale); });
+  });
+
+  // Battlefield prices
+  grid.querySelectorAll("[data-bfprice]").forEach(inp => {
+    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-bfprice")); if (col.battlefields && col.battlefields[i]) col.battlefields[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_RB(isSale); });
+  });
+
+  // Sideboard prices
+  grid.querySelectorAll("[data-sbprice]").forEach(inp => {
+    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-sbprice")); if (col.sideboard && col.sideboard[i]) col.sideboard[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_RB(isSale); });
+  });
+
   // ── Picker triggers ──
 
   function pickLegend() {
     showDeckPicker_RB("legend").then(picked => {
       if (!picked) return;
       col.legend = { _key: getCardKey(picked), card_set_id: picked.card_set_id, card_name: picked.card_name, card_image: picked.card_image, card_color: picked.card_color, card_type: picked.card_type, set_id: picked.set_id, feature: picked.feature, customPrice: 0 };
-      if (col.championKey) {
-        const champCard = cartasMap[col.championKey];
-        if (champCard && !isChampionMatch_legend(picked, champCard)) {
-          col.championKey = null;
-        }
-      }
+      col.champions = (col.champions || []).filter(function(ch) {
+        var full = cartasMap[ch._key];
+        if (!full) return false;
+        return isChampionMatch_legend(col.legend, full) && matchesLegendColors_legend(full, getLegendColors_legend(col.legend));
+      });
       col.cards = (col.cards || []).filter(c => {
         const full = cartasMap[c._key];
         if (!full) return false;
@@ -635,52 +674,61 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
     var lFeature = col.legend?.feature || "";
     showDeckPicker_RB("champion", lColor, [], "", null, 3, lFeature).then(function(picked) {
       if (!picked || !picked.length) return;
-      if (!col.cards) col.cards = [];
+      col.champions = [];
       picked.forEach(function(c) {
         var key = getCardKey(c);
-        var inDeck = col.cards.find(function(d) { return d._key === key; });
-        if (inDeck) {
-          var q = inDeck.quantity || 1;
-          if (q < 3) inDeck.quantity++;
+        var existing = col.champions.find(function(ch) { return ch._key === key; });
+        if (existing) {
+          existing.quantity = Math.min((existing.quantity || 1) + 1, 3);
         } else {
-          var mainTotal = col.cards.reduce(function(s, d) { return s + (d.quantity || 1); }, 0);
-          if (mainTotal >= 40) return;
-          var nameCount = col.cards.filter(function(d) { return d.card_name === c.card_name; }).reduce(function(s, d) { return s + (d.quantity || 1); }, 0);
-          if (nameCount >= 3) return;
-          col.cards.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, customPrice: 0 });
+          if (col.champions.length >= 3) return;
+          col.champions.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, attribute: "Champion", customPrice: 0 });
         }
       });
-      col.championKey = getCardKey(picked[0]);
       saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer);
     });
   }
 
-  const championPlaceholder = grid.querySelector(".deck-champion-placeholder");
+  var championPlaceholder = grid.querySelector(".deck-champion-placeholder");
   if (championPlaceholder) {
     championPlaceholder.addEventListener("click", pickChampion);
     championPlaceholder.style.cursor = "pointer";
   }
-
-  const championCard = grid.querySelector(".deck-champion-card");
-  if (championCard) championCard.style.cursor = "pointer";
-  const championImg = grid.querySelector(".deck-champion-card .card-img-wrap");
-  if (championImg) championImg.addEventListener("click", e => { e.stopPropagation(); pickChampion(); });
+  grid.querySelectorAll(".deck-champion-card .card-img-wrap").forEach(function(imgWrap) {
+    imgWrap.addEventListener("click", function(e) {
+      e.stopPropagation();
+      pickChampion();
+    });
+  });
+  grid.querySelectorAll(".deck-champion-card").forEach(function(champCard) {
+    champCard.style.cursor = "pointer";
+    champCard.addEventListener("click", function(e) {
+      if (e.target.closest(".binder-remove") || e.target.closest(".card-img-wrap")) return;
+      var key = champCard.getAttribute("data-key");
+      var carta = key ? cartasMap[key] : null;
+      if (carta) openCardInModal(carta);
+    });
+  });
+  var changeChampionBtn = document.getElementById("deckChangeChampionBtn");
+  if (changeChampionBtn) changeChampionBtn.addEventListener("click", function() { pickChampion(); });
 
   // Main deck add
   grid.querySelectorAll("[data-add=\"main\"]").forEach(el => {
     el.addEventListener("click", async () => {
       if (!col.legend) { alert("Primero elegi una Legend."); return; }
       const lColor = col.legend?.card_color || "";
+      const championsTotal2 = (col.champions || []).reduce((s, c) => s + (c.quantity || 1), 0);
       const mainTotal = (col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0);
-      const remaining = 40 - mainTotal;
+      const remaining = 40 - championsTotal2 - mainTotal;
       if (remaining <= 0) { alert("El Main Deck ya tiene 40 cartas."); return; }
       const lSetId = col.legend?.set_id || "";
       const existingCounts = countByName_legend(col.cards);
       const pickedArr = await showDeckPicker_RB("main", lColor, [], lSetId, existingCounts, remaining);
       if (pickedArr && pickedArr.length) {
         pickedArr.forEach(c => {
-          const mainTotal = (col.cards || []).reduce((s, card) => s + (card.quantity || 1), 0);
-          if (mainTotal >= 40) return;
+          const champsTot = (col.champions || []).reduce((s, cc) => s + (cc.quantity || 1), 0);
+          const mainTot = (col.cards || []).reduce((s, card) => s + (card.quantity || 1), 0);
+          if (champsTot + mainTot >= 40) return;
           const key = getCardKey(c);
           const name = c.card_name;
           const nameCount = (col.cards || []).filter(card => card.card_name === name).reduce((sum, card) => sum + (card.quantity || 1), 0);
@@ -690,7 +738,7 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
             existing.quantity++;
           } else {
             col.cards = col.cards || [];
-            col.cards.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, customPrice: 0 });
+            col.cards.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, attribute: c.attribute, customPrice: 0 });
           }
         });
         saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer);
@@ -778,11 +826,13 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
   if (clearPageBtn) {
     clearPageBtn.textContent = "Vaciar Main Deck";
     clearPageBtn.onclick = () => {
-      if (!(col.cards || []).length) return;
-      const total = (col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0);
-      if (confirm("Vacia las " + total + " cartas del Main Deck?")) {
+      const chTotal = (col.champions || []).reduce((s, c) => s + (c.quantity || 1), 0);
+      const mainTot = (col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0);
+      if (!chTotal && !mainTot) return;
+      const total = chTotal + mainTot;
+      if (confirm("Vacia las " + total + " cartas del Main Deck (incluyendo Champions)?")) {
         col.cards = [];
-        col.championKey = null;
+        col.champions = [];
         saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer);
       }
     };

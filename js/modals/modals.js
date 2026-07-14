@@ -21,9 +21,10 @@ function toggleCardSelection(imgEl) {
   if (!cardKey) return;
   const carta = cartasMap[cardKey];
   if (!carta) return;
+  const psMax = (typeof currentTcg !== "undefined" && currentTcg === "riftbound") ? 3 : 4;
   const next = selectedCards[cardKey] ? (
-    selectedCards[cardKey].count === 1 ? 4 :
-    selectedCards[cardKey].count === 4 ? 10 : 0
+    selectedCards[cardKey].count === 1 ? psMax :
+    selectedCards[cardKey].count === psMax ? 10 : 0
   ) : 1;
   if (next === 0) {
     delete selectedCards[cardKey];
@@ -198,9 +199,18 @@ function mostrarAddModal() {
       ventaIds.forEach(id => {
         const col = ventaCols[id];
         if (col.subtype === "deck") return;
+        var modeBadge = "";
+        if (col.display_mode === "playset") {
+          var vpsMax = (col.tcg === "riftbound") ? 3 : 4;
+          modeBadge = '<span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">x' + vpsMax + '</span>';
+        } else if (col.display_mode === "editable") {
+          modeBadge = '<span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">SL</span>';
+        } else {
+          modeBadge = '<span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">x1</span>';
+        }
         const label = document.createElement("label");
         label.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-sm);color:var(--text-secondary);transition:background var(--transition-fast)";
-        label.innerHTML = `<input type="checkbox" value="${id}" data-venta="true" style="accent-color:var(--accent);width:14px;height:14px"> <span style="flex:1">${col.name}</span> <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)">${col.cards.length}</span> <span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">Venta</span>`;
+        label.innerHTML = `<input type="checkbox" value="${id}" data-venta="true" style="accent-color:var(--accent);width:14px;height:14px"> <span style="flex:1">${col.name}</span> ${modeBadge} <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)">${col.cards.length}</span> <span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">Venta</span>`;
         list.appendChild(label);
       });
     }
@@ -208,12 +218,17 @@ function mostrarAddModal() {
     list.innerHTML += "<p style='color:var(--text-tertiary);padding:20px 10px;font-size:var(--text-sm);text-align:center'>Crea una colección primero</p>";
     document.getElementById("addModalConfirm").style.display = "none";
   }
+  if (addingToBinderId) {
+    var preCb = list.querySelector('input[value="' + addingToBinderId + '"]');
+    if (preCb) preCb.checked = true;
+  }
   overlay.style.display = "flex";
 }
 function confirmarAdd() {
   const overlay = document.getElementById("addModalOverlay");
   const checks = overlay.querySelectorAll("#addModalList input:checked");
   if (!checks.length) { alert("Selecciona al menos una colección"); return; }
+  var needsSave = false;
   checks.forEach(cb => {
     const colId = cb.value;
     const isVenta = cb.hasAttribute("data-venta");
@@ -245,17 +260,33 @@ function confirmarAdd() {
             var bfExist = (col.battlefields || []).find(function(b) { return b.card_name === pc.card_name; });
             if (bfExist) { alert("Ya tenes un Battlefield con ese nombre. Cada Battlefield debe tener nombre unico."); return; }
             col.battlefields.push({ _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, customPrice: 0 });
+          } else if (cardType === "Unit" && pc.attribute === "Champion") {
+            // Champion branch
+            if (!col.champions) col.champions = [];
+            var champTotal = col.champions.reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+            var mainTotalCh = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+            if (champTotal + mainTotalCh + pc.count > 40) { alert("Maximo 40 cartas en el Main Deck. Solo caben " + (40 - champTotal - mainTotalCh) + " mas."); return; }
+            if (col.champions.length >= 3 && !col.champions.find(function(ch) { return ch._key === key; })) { alert("Maximo 3 Champions diferentes."); return; }
+            var nameCountCh = col.champions.filter(function(ch) { return ch.card_name === pc.card_name; }).reduce(function(s, ch) { return s + (ch.quantity || 1); }, 0);
+            if (nameCountCh + pc.count > 3) { alert("Maximo 3 copias de \"" + (pc.card_name || "") + "\"."); return; }
+            var exCh = col.champions.find(function(ch) { return ch._key === key; });
+            if (exCh) {
+              exCh.quantity = Math.min((exCh.quantity || 1) + pc.count, 3);
+            } else {
+              col.champions.push({ _key: key, quantity: Math.min(pc.count, 3), card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, attribute: "Champion", customPrice: 0 });
+            }
           } else {
-            // Main deck: Unit/Spell/Gear
+            // Main deck: Unit/Spell/Gear (no Champions)
             if (col.legend && pc.card_color && col.legend.card_color) {
               var lc = col.legend.card_color.split("/").map(function(s) { return s.trim(); });
               if (!lc.some(function(c) { return pc.card_color.indexOf(c) >= 0; })) {
                 if (!confirm("Esta carta no coincide con los colores de la Legend. Agregar de todas formas?")) return;
               }
             }
+            var champTotalElse = (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
             var mainTotal = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
-            var newTotal = mainTotal + pc.count;
-            if (newTotal > 40) { alert("Maximo 40 cartas en el Main Deck. Solo caben " + (40 - mainTotal) + " mas."); return; }
+            var newTotal = champTotalElse + mainTotal + pc.count;
+            if (newTotal > 40) { alert("Maximo 40 cartas en el Main Deck. Solo caben " + (40 - champTotalElse - mainTotal) + " mas."); return; }
             var nameCount = (col.cards || []).filter(function(c) { return c.card_name === pc.card_name; }).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
             if (nameCount + pc.count > 3) { alert("Maximo 3 copias de \"" + (pc.card_name || "") + "\"."); return; }
             var ex = (col.cards || []).find(function(c) { return c._key === key; });
@@ -268,6 +299,7 @@ function confirmarAdd() {
           }
         } else {
           // ── One Piece deck handling (original) ──
+          if (pc.language !== "en") { alert("Solo cartas en Ingles para decks."); return; }
           if (cardType === "LEADER") {
           if (col.leader && !confirm("Ya hay un líder. ¿Reemplazarlo?")) return;
           col.leader = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, customPrice: 0 };
@@ -327,19 +359,31 @@ function confirmarAdd() {
     const isGrouped = isVenta && (col.display_mode === "playset" || col.display_mode === "editable");
     const colTcg = col.tcg || "one-piece";
     const playsetMax = colTcg === "riftbound" ? 3 : 4;
+    needsSave = true;
     Object.values(pendingCards).forEach(pc => {
       const key = getCardKey(pc);
       if (isGrouped) {
-        const existing = col.cards.find(c => c._key === key);
-        if (existing) {
-          existing.quantity = (existing.quantity || 1) + pc.count;
-          if (col.display_mode === "playset" && existing.quantity > playsetMax) existing.quantity = playsetMax;
-          if (existing.quantity > 999) existing.quantity = 999;
-        } else {
-          col.cards.push({ _key: key, quantity: col.display_mode === "playset" ? Math.min(pc.count, playsetMax) : Math.min(pc.count, 50), customPrice: 0, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset });
+        const maxPerStack = col.display_mode === "playset" ? playsetMax : 999;
+        var remaining = pc.count;
+        var cards = col.cards || [];
+        for (var ci = 0; ci < cards.length && remaining > 0; ci++) {
+          var existing = cards[ci];
+          if (existing._key !== key) continue;
+          var space = maxPerStack - (existing.quantity || 1);
+          if (space <= 0) continue;
+          var add = Math.min(remaining, space);
+          existing.quantity = (existing.quantity || 1) + add;
+          remaining -= add;
         }
+        while (remaining > 0) {
+          var qty = Math.min(remaining, maxPerStack);
+          cards.push({ _key: key, quantity: qty, customPrice: 0, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset });
+          remaining -= qty;
+        }
+        col.cards = cards;
       } else {
-        for (let i = 0; i < pc.count; i++) {
+        const maxCount = (isVenta && col.display_mode === "playset") ? Math.min(pc.count, playsetMax) : pc.count;
+        for (let i = 0; i < maxCount; i++) {
           const entry = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset };
           if (isVenta) entry.customPrice = 0;
           col.cards.push(entry);
@@ -347,8 +391,10 @@ function confirmarAdd() {
       }
     });
   });
-  guardarCollections();
-  guardarVenta();
+  if (needsSave) {
+    guardarCollections();
+    guardarVenta();
+  }
   overlay.style.display = "none";
   actualizarBotonesBinder();
   limpiarPendientes();
@@ -360,7 +406,7 @@ function renderModalInfo(carta) {
   document.getElementById("modalMainImg").src = carta.card_image || 'TUTCG.webp';
   document.getElementById("modalInfoCol").innerHTML = `
     <h2 class="modal-name">${formatearNombre(carta)}</h2>
-    <span class="modal-set-id">${carta.card_set_id || ""}</span>
+    <span class="modal-set-id">${(carta.category || carta.producto) === "DON" ? (carta.variant || carta.set_id || "") : (carta.card_set_id || "")}</span>
     <div class="modal-info-grid">
       ${rareza ? `<div class="modal-info-item"><span class="modal-info-label">Rareza</span><span>${rareza}</span></div>` : ""}
       ${carta.print_type ? `<div class="modal-info-item"><span class="modal-info-label">Tipo</span><span>${carta.print_type}</span></div>` : ""}

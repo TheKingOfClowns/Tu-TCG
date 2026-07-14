@@ -38,9 +38,10 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
     const existing = new Set(existingKeys || []);
     const leaderColors = leaderColor ? leaderColor.split("/").map(s => s.trim()).filter(Boolean) : [];
     function getFiltered() {
-      if (mode === "leader") return (cartas || []).filter(c => c.card_type === "LEADER");
+      const deckCards = (cartas || []).filter(c => c.language === "en");
+      if (mode === "leader") return deckCards.filter(c => c.card_type === "LEADER");
       if (mode === "main") {
-        let base = (cartas || []).filter(c =>
+        let base = deckCards.filter(c =>
           c.card_type === "CHARACTER" || c.card_type === "EVENT" || c.card_type === "STAGE"
         );
         if (existingCounts) {
@@ -58,7 +59,7 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
         }
         return base;
       }
-      if (mode === "don") return (cartas || []).filter(c => (c.card_type === "DON!!" || c.category === "DON") && !existing.has(getCardKey(c)));
+      if (mode === "don") return deckCards.filter(c => (c.card_type === "DON!!" || c.category === "DON") && !existing.has(getCardKey(c)));
       return [];
     }
     if (mode === "leader") title.textContent = "Elegir líder";
@@ -138,7 +139,7 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
           </div>
           <div class="card-body">
             <h3>${formatearNombre(c)}</h3>
-            <span class="card-set-id">${c.card_set_id || ""}</span>
+            <span class="card-set-id">${mode === "don" ? (c.variant || c.set_id || "") : (c.card_set_id || "")}</span>
             ${existing > 0 ? `<div style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">${existing} en deck</div>` : ""}
             ${controlsHTML}
           </div>`;
@@ -376,6 +377,7 @@ function renderDeckView_OP(type, col, grid, title, toggleContainer) {
     btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-donremove")); col.dons.splice(i, 1); saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
   });
   grid.querySelectorAll(".deck-card-slot .card-img-wrap img, .deck-leader-card .card-img-wrap img, .deck-don-slot .card-img-wrap img").forEach(img => {
+    img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
       const slot = this.closest("[data-key]");

@@ -5,6 +5,19 @@ function getFirstCardImage(cards, col) {
     const found = cartasMap[col.leader._key];
     if (found?.card_image) return found.card_image;
   }
+  if (col?.legend?.card_image) return col.legend.card_image;
+  if (col?.legend?._key) {
+    const found = cartasMap[col.legend._key];
+    if (found?.card_image) return found.card_image;
+  }
+  if (col?.champions?.length) {
+    const firstChamp = col.champions[0];
+    if (firstChamp.card_image) return firstChamp.card_image;
+    if (firstChamp._key) {
+      const found = cartasMap[firstChamp._key];
+      if (found?.card_image) return found.card_image;
+    }
+  }
   if (!cards || !cards.length) return null;
   const first = cards[0];
   if (first.card_image) return first.card_image;
@@ -19,6 +32,17 @@ function getTotalPrice(col) {
   const cards = col.cards || [];
   const isDeck = col.subtype === "deck";
   if (isDeck && col.leader && col.leader.customPrice != null) total += Number(col.leader.customPrice);
+  if (isDeck && col.legend && col.legend.customPrice != null) total += Number(col.legend.customPrice);
+  if (isDeck && col.champions) {
+    col.champions.forEach(function(ch) {
+      if (ch.customPrice != null) total += Number(ch.customPrice) * (ch.quantity || 1);
+    });
+  }
+  if (isDeck) {
+    (col.runes || []).forEach(function(r) { if (r.customPrice != null) total += Number(r.customPrice) * (r.quantity || 1); });
+    (col.battlefields || []).forEach(function(b) { if (b.customPrice != null) total += Number(b.customPrice); });
+    (col.sideboard || []).forEach(function(s) { if (s.customPrice != null) total += Number(s.customPrice); });
+  }
   cards.forEach(c => {
     const qty = c.quantity || 1;
     if (c.customPrice != null) total += Number(c.customPrice) * qty;
@@ -248,6 +272,7 @@ function renderBinder() {
     grid.appendChild(slot);
   }
   grid.querySelectorAll(".card img").forEach(img => {
+    img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
       const key = this.closest(".card")?.getAttribute("data-cardkey");
@@ -265,6 +290,17 @@ function renderBinder() {
   document.getElementById("binderNextBtn").disabled = binderPage >= totalPages;
   document.getElementById("binderPageInfo").textContent = "Página " + binderPage + " de " + totalPages;
   setupBinderDragDrop();
+  if (!grid.hasAttribute("data-empty-click")) {
+    grid.setAttribute("data-empty-click", "1");
+    grid.addEventListener("click", function(e) {
+      if (e.target.closest(".binder-empty")) {
+        addingToBinderId = currentCollectionId;
+        addingToBinderName = collections[currentCollectionId] ? collections[currentCollectionId].name : "";
+        addingToBinderType = "collection";
+        mostrarVista("catalog");
+      }
+    });
+  }
 }
 function removeFromCurrentCollection(realIdx) {
   const col = collections[currentCollectionId];

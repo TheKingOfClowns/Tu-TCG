@@ -206,6 +206,17 @@ function renderVentaView() {
   if (mode === "individual") renderVentaIndividual(col, grid);
   else if (mode === "playset") renderVentaGrouped(col, grid, "playset");
   else if (mode === "editable") renderVentaGrouped(col, grid, "editable");
+  if (!grid.hasAttribute("data-empty-click")) {
+    grid.setAttribute("data-empty-click", "1");
+    grid.addEventListener("click", function(e) {
+      if (e.target.closest(".binder-empty")) {
+        addingToBinderId = currentVentaId;
+        addingToBinderName = ventaCols[currentVentaId] ? ventaCols[currentVentaId].name : "";
+        addingToBinderType = "venta";
+        mostrarVista("catalog");
+      }
+    });
+  }
 }
 function buildVentaCardHTML(c, globalIdx, mode) {
   const cp = c.customPrice != null ? c.customPrice : 0;
@@ -259,7 +270,7 @@ function renderVentaIndividual(col, grid) {
       slot.setAttribute("data-cardkey", c._key || "");
       slot.innerHTML = buildVentaCardHTML(c, globalIdx, "individual");
     } else {
-      slot.className = "card venta-slot";
+      slot.innerHTML = '<div class="binder-empty">+</div>';
     }
     grid.appendChild(slot);
   }
@@ -270,16 +281,23 @@ function renderVentaGrouped(col, grid, mode) {
   const totalPages = Math.max(1, Math.ceil(cards.length / ventaPerPage));
   const start = (ventaPage - 1) * ventaPerPage;
   const pageCards = cards.slice(start, start + ventaPerPage);
-  pageCards.forEach((c, i) => {
+  for (let i = 0; i < ventaPerPage; i++) {
     const globalIdx = start + i;
     const slot = document.createElement("div");
-    slot.className = "card venta-slot venta-grouped";
-    slot.setAttribute("data-key", c._key || "");
-    slot.setAttribute("data-cardkey", c._key || "");
-    slot.setAttribute("data-global", globalIdx);
-    slot.innerHTML = buildVentaCardHTML(c, globalIdx, mode);
+    if (pageCards[i]) {
+      const c = pageCards[i];
+      slot.className = "card venta-slot venta-grouped";
+      slot.setAttribute("data-key", c._key || "");
+      slot.setAttribute("data-cardkey", c._key || "");
+      slot.setAttribute("data-global", globalIdx);
+      slot.innerHTML = buildVentaCardHTML(c, globalIdx, mode);
+    } else {
+      slot.className = "card venta-slot venta-grouped";
+      slot.setAttribute("data-global", globalIdx);
+      slot.innerHTML = '<div class="binder-empty">+</div>';
+    }
     grid.appendChild(slot);
-  });
+  }
   attachVentaEvents(col, mode, grid, totalPages);
 }
 function attachVentaEvents(col, mode, grid, totalPages) {
@@ -352,6 +370,7 @@ function attachVentaEvents(col, mode, grid, totalPages) {
   });
   // Click to open card modal
   grid.querySelectorAll(".venta-slot .card-img-wrap img").forEach(img => {
+    img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
       const key = this.closest(".venta-slot")?.getAttribute("data-cardkey");

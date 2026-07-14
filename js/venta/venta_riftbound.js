@@ -29,7 +29,7 @@ function pedirCrearVenta_RB() {
         '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Modo de visualización</label>' +
         '<select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
           '<option value="individual">Individual — una copia por slot</option>' +
-          '<option value="playset">Playset — máximo 3 copias por carta</option>' +
+          '<option value="playset">Playset — máximo ' + _getPlaysetMax() + ' copias por carta</option>' +
           '<option value="editable">Editable — cantidad libre por carta</option>' +
         '</select>' +
       '</div>',
@@ -37,7 +37,14 @@ function pedirCrearVenta_RB() {
       var subtype = document.getElementById("createVentaSubtype") ? document.getElementById("createVentaSubtype").value : "binder";
       var mode = document.getElementById("createVentaMode") ? document.getElementById("createVentaMode").value : "individual";
       var id = generarId();
-      ventaCols[id] = { id: id, name: nombre.trim(), subtype: subtype, cards: [], leader: null, dons: [], is_public: false, display_mode: mode, tcg: currentTcg || "riftbound" };
+      ventaCols[id] = { id: id, name: nombre.trim(), subtype: subtype, cards: [], is_public: false, display_mode: mode, tcg: currentTcg || "riftbound" };
+      if (subtype === "deck") {
+        ventaCols[id].legend = null;
+        ventaCols[id].champions = [];
+        ventaCols[id].runes = [];
+        ventaCols[id].battlefields = [];
+        ventaCols[id].sideboard = [];
+      }
       guardarVenta();
       renderVentaList();
     }
@@ -45,11 +52,11 @@ function pedirCrearVenta_RB() {
 }
 
 function renderVentaList_RB() {
-  var container = document.getElementById("ventaCollectionList");
+  var container = document.getElementById("ventaList");
   if (!container) return;
   container.innerHTML = "";
   var ids = Object.keys(ventaCols).filter(function(id) {
-    var tcg = ventaCols[id].tcg || "one-piece";
+    var tcg = ventaCols[id].tcg || "riftbound";
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
@@ -63,7 +70,7 @@ function renderVentaList_RB() {
     var col = ventaCols[id];
     var coverImg = getFirstCardImage(col.cards, col);
     var isDeck = col.subtype === "deck";
-    var deckCount = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) : col.cards.length;
+    var deckCount = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) : col.cards.length;
     var totalCards, badgeClass, badgeText;
     if (isDeck) {
       totalCards = deckCount + " cartas";
@@ -72,7 +79,9 @@ function renderVentaList_RB() {
       totalCards = col.cards.length + " cartas";
       badgeClass = "collection"; badgeText = col.display_mode === "playset" ? "Playset" : col.display_mode === "editable" ? "Editable" : "Individual";
     }
-    var price = getTotalPrice(col);
+    var tp = getTotalPrice(col);
+    var dp = col.customTotalPrice != null ? Number(col.customTotalPrice) : tp;
+    var isCustom = col.customTotalPrice != null;
     var div = document.createElement("div");
     div.className = "binder-cover-card";
     div.innerHTML = '<div class="binder-cover-img" style="background-image:url(' + (coverImg ? escapeAttr(coverImg) : "'TUTCG.webp'") + ')">' +
@@ -80,10 +89,10 @@ function renderVentaList_RB() {
       '<div class="binder-cover-meta">' +
         '<span class="binder-cover-name-badge">' + col.name + '</span>' +
         '<span class="binder-cover-badge ' + badgeClass + '">' + badgeText + '</span>' +
-        (price ? '<span class="binder-cover-price">$' + price.toFixed(2) + '</span>' : '') +
-        '<div class="binder-cover-price-row">' +
-          '<button class="btn-ghost btn-xs venta-edit-price-btn" data-id="' + id + '" style="font-size:10px">Editar total</button>' +
-          '<button class="btn-ghost btn-xs venta-reset-price-btn" data-id="' + id + '" style="font-size:10px">Reiniciar</button>' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:var(--space-1)">' +
+          '<span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$' + dp.toFixed(2) + '</span>' +
+          '<button class="btn-ghost btn-xs" data-action="editprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">✎</button>' +
+          (isCustom ? '<button class="btn-ghost btn-xs" data-action="resetprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="Restaurar precio calculado">↺</button>' : '') +
         '</div>' +
       '</div>' +
       '<div class="binder-cover-actions">' +
@@ -116,11 +125,55 @@ function renderVentaList_RB() {
       });
     });
   });
-  container.querySelectorAll(".venta-edit-price-btn").forEach(function(b) {
-    b.addEventListener("click", function(e) { e.stopPropagation(); pedirPrecioTotal(this); });
+  container.querySelectorAll("[data-action='editprice']").forEach(function(b) {
+    b.addEventListener("click", function() {
+      var id = b.getAttribute("data-id");
+      var col = ventaCols[id];
+      if (!col) return;
+      var card = b.closest(".binder-cover-card");
+      if (!card) return;
+      var priceSpan = card.querySelector("[data-totalprice]");
+      if (!priceSpan) return;
+      if (priceSpan.querySelector("input")) return;
+      var current = col.customTotalPrice != null ? col.customTotalPrice : getTotalPrice(col);
+      var input = document.createElement("input");
+      input.type = "number";
+      input.step = "0.5";
+      input.min = "0";
+      input.value = current.toFixed(2);
+      input.style.cssText = "width:80px;padding:2px 6px;border:1px solid var(--accent);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--accent);font-size:var(--text-sm);font-family:var(--font-mono);font-weight:var(--weight-bold);outline:none";
+      priceSpan.innerHTML = "";
+      priceSpan.appendChild(input);
+      input.focus();
+      input.select();
+      var save = function() {
+        var val = parseFloat(input.value);
+        if (isNaN(val) || val < 0) { renderVentaList(); return; }
+        var calc = getTotalPrice(col);
+        if (val === calc) delete col.customTotalPrice;
+        else col.customTotalPrice = val;
+        guardarVenta(); renderVentaList();
+      };
+      input.addEventListener("keydown", function(e) { if (e.key === "Enter") save(); if (e.key === "Escape") renderVentaList(); });
+      input.addEventListener("blur", save);
+    });
   });
-  container.querySelectorAll(".venta-reset-price-btn").forEach(function(b) {
-    b.addEventListener("click", function(e) { e.stopPropagation(); resetPrecios(this); });
+  container.querySelectorAll("[data-action='resetprice']").forEach(function(b) {
+    b.addEventListener("click", function() {
+      var id = b.getAttribute("data-id");
+      var col = ventaCols[id];
+      if (!col) return;
+      delete col.customTotalPrice;
+      guardarVenta(); renderVentaList();
+    });
+  });
+  container.querySelectorAll(".binder-cover-card").forEach(function(card) {
+    card.style.cursor = "pointer";
+    card.addEventListener("click", function(e) {
+      if (e.target.closest("button, input")) return;
+      var openBtn = card.querySelector("[data-action='open']");
+      if (openBtn) openVenta(openBtn.getAttribute("data-id"));
+    });
   });
 }
 
@@ -143,17 +196,17 @@ function renderVentaGrouped_RB(col, grid, mode) {
   for (var i = 0; i < ventaPerPage; i++) {
     var slot = document.createElement("div");
     var globalIdx = start + i;
-    slot.className = "venta-card fade-in";
+    slot.className = "venta-card";
     slot.setAttribute("data-global", globalIdx);
     if (pageCards[i]) {
       var c = pageCards[i];
-      var psMax = 3;
+      var psMax = _getPlaysetMax();
       var psTag = (c.quantity || 1) >= psMax ? '<span class="card-ps-badge">PS</span>' : "";
       var cp = c.customPrice != null ? c.customPrice : 0;
       var fullCard = c._key ? cartasMap[c._key] : null;
       var data = fullCard || c;
       var nombre = formatearNombre(data);
-      var rarityLabel = (data.category === "DON" || data.set_id === "PRB-01" || data.set_id === "PRB-02") ? "" : _getRarityBadge_RB(data);
+      var rarityLabel = _getRarityBadge_RB(data);
       var setId = data.card_set_id || "";
       var qtyHTML = '';
       if (mode === "playset") {
@@ -164,7 +217,7 @@ function renderVentaGrouped_RB(col, grid, mode) {
         qtyHTML = '<div class="venta-qty-control"><button class="venta-qty-btn" data-action="decr" data-ventaidx="' + globalIdx + '" data-mode="' + mode + '">&minus;</button><input type="number" class="venta-qty-input venta-qty-value" value="' + qe + '" min="1" max="50" data-ventaidx="' + globalIdx + '"><button class="venta-qty-btn" data-action="incr" data-ventaidx="' + globalIdx + '" data-mode="' + mode + '">+</button></div>';
       }
       slot.innerHTML = '<div class="card-img-wrap">' +
-        '<img src="' + (c.card_image || fullCard ? fullCard.card_image : 'TUTCG.webp') + '" onerror="this.src=\'TUTCG.webp\'" loading="lazy"></div>' +
+        '<img src="' + (c.card_image || (fullCard && fullCard.card_image) || 'TUTCG.webp') + '" onerror="this.src=\'TUTCG.webp\'" loading="lazy"></div>' +
         '<div class="card-body">' +
           '<h3>' + nombre + '</h3>' +
           (rarityLabel ? '<span class="card-print-type">' + rarityLabel + '</span>' : '') +
@@ -178,7 +231,8 @@ function renderVentaGrouped_RB(col, grid, mode) {
     }
     grid.appendChild(slot);
   }
-  grid.querySelectorAll(".card img").forEach(function(img) {
+  grid.querySelectorAll(".venta-card img").forEach(function(img) {
+    img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
       var wrapper = this.closest(".venta-card");
@@ -210,11 +264,12 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
     });
   });
   grid.querySelectorAll(".venta-qty-btn").forEach(function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function(e) {
+      e.stopPropagation();
       var idx = parseInt(btn.getAttribute("data-ventaidx"));
       var btnMode = btn.getAttribute("data-mode") || "playset";
       var action = btn.getAttribute("data-action");
-      var max = btnMode === "editable" ? 50 : 3;
+      var max = btnMode === "editable" ? 50 : _getPlaysetMax();
       if (idx >= 0 && idx < col.cards.length) {
         var card = col.cards[idx];
         if (action === "incr") { card.quantity = Math.min((card.quantity || 1) + 1, max); }
@@ -230,6 +285,18 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
       if (idx >= 0 && idx < col.cards.length && !isNaN(val)) { col.cards[idx].quantity = Math.max(1, Math.min(val, 50)); guardarVenta(); renderVentaView(); }
     });
   });
+  grid.querySelectorAll(".card img, .venta-card img").forEach(function(img) {
+    img.style.cursor = "pointer";
+    img.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var key = (this.closest(".card") || this.closest(".venta-card"))?.getAttribute("data-cardkey");
+      var carta = key ? cartasMap[key] : null;
+      if (carta) {
+        var navList = (col.cards || []).map(function(entry) { return cartasMap[entry._key]; }).filter(Boolean);
+        openCardInModal(carta, navList);
+      }
+    });
+  });
 }
 
 function buildVentaCardHTML_RB(c, globalIdx, mode) {
@@ -238,18 +305,18 @@ function buildVentaCardHTML_RB(c, globalIdx, mode) {
   var data = fullCard || c;
   var nombre = formatearNombre(data);
   var rareza = _getRarityBadge_RB(data);
-  var setId = (data.category || data.producto) === "DON" ? (data.variant || "") : (data.card_set_id || "");
+  var setId = data.card_set_id || "";
   var qtyHTML = "";
   if (mode === "playset") {
     var q = c.quantity || 1;
-    var psTag = q >= 3 ? '<span class="card-ps-badge">PS</span>' : "";
+    var psTag = q >= _getPlaysetMax() ? '<span class="card-ps-badge">PS</span>' : "";
     qtyHTML = '<div class="venta-qty-control"><button class="venta-qty-btn" data-action="decr" data-ventaidx="' + globalIdx + '" data-mode="' + mode + '">&minus;</button><span class="venta-qty-value">' + q + '</span><button class="venta-qty-btn" data-action="incr" data-ventaidx="' + globalIdx + '" data-mode="' + mode + '">+</button>' + psTag + '</div>';
   } else if (mode === "editable") {
     var qe = c.quantity || 1;
     qtyHTML = '<div class="venta-qty-control"><button class="venta-qty-btn" data-action="decr" data-ventaidx="' + globalIdx + '" data-mode="' + mode + '">&minus;</button><input type="number" class="venta-qty-input venta-qty-value" value="' + qe + '" min="1" max="50" data-ventaidx="' + globalIdx + '"><button class="venta-qty-btn" data-action="incr" data-ventaidx="' + globalIdx + '" data-mode="' + mode + '">+</button></div>';
   }
   return '<div class="card-img-wrap">' +
-    '<img src="' + (c.card_image || fullCard ? fullCard.card_image : 'TUTCG.webp') + '" onerror="this.src=\'TUTCG.webp\'" loading="lazy"></div>' +
+    '<img src="' + (c.card_image || (fullCard && fullCard.card_image) || 'TUTCG.webp') + '" onerror="this.src=\'TUTCG.webp\'" loading="lazy"></div>' +
     '<div class="card-body">' +
       '<h3>' + nombre + '</h3>' +
       (rareza ? '<span class="card-print-type">' + rareza + '</span>' : '') +
@@ -279,6 +346,7 @@ function renderVentaIndividual_RB(col, grid) {
       slot.innerHTML = buildVentaCardHTML_RB(c, globalIdx, "individual");
     } else {
       slot.className = "card venta-slot";
+      slot.innerHTML = '<div class="binder-empty">+</div>';
     }
     grid.appendChild(slot);
   }

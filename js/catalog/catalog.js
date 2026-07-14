@@ -72,6 +72,20 @@ function renderCards() {
       });
   }
   cartasFiltradas = resultado;
+  var addedKeys = null;
+  if (addingToBinderId) {
+    var targetCol = addingToBinderType === "venta" ? ventaCols[addingToBinderId] : collections[addingToBinderId];
+    if (targetCol && targetCol.cards) {
+      addedKeys = new Set();
+      targetCol.cards.forEach(function(c) { if (c._key) addedKeys.add(c._key); });
+      if (targetCol.leader && targetCol.leader._key) addedKeys.add(targetCol.leader._key);
+      if (targetCol.legend && targetCol.legend._key) addedKeys.add(targetCol.legend._key);
+      if (targetCol.champions) targetCol.champions.forEach(function(ch) { if (ch._key) addedKeys.add(ch._key); });
+      if (targetCol.runes) targetCol.runes.forEach(function(r) { if (r._key) addedKeys.add(r._key); });
+      if (targetCol.battlefields) targetCol.battlefields.forEach(function(b) { if (b._key) addedKeys.add(b._key); });
+      if (targetCol.sideboard) targetCol.sideboard.forEach(function(s) { if (s._key) addedKeys.add(s._key); });
+    }
+  }
   const totalPages = Math.max(1, Math.ceil(resultado.length / cardsPerPage));
   resultsCounter.textContent = resultado.length.toLocaleString() + " cartas encontradas";
   if (currentPage > totalPages) currentPage = totalPages;
@@ -110,6 +124,10 @@ function renderCards() {
     let metaBadges = "";
     if (rarityBadge) metaBadges += `<span class="card-print-type">${rarityBadge}</span>`;
     if (promoBadge) metaBadges += `<span class="card-print-type card-print-type-promo">${promoBadge}</span>`;
+    var addedBadge = "";
+    if (addedKeys && addedKeys.has(cardKey)) {
+      addedBadge = '<span class="catalog-added-badge" style="position:absolute;top:4px;left:4px;background:rgba(0,240,255,0.15);color:var(--accent);font-size:10px;font-family:var(--font-mono);font-weight:var(--weight-bold);padding:1px 5px;border-radius:var(--radius-sm);z-index:2;pointer-events:none">✓</span>';
+    }
     const div = document.createElement("div");
     div.className = "card fade-in";
     div.setAttribute("data-cardid", cardId);
@@ -118,6 +136,7 @@ function renderCards() {
     div.style.animationDelay = (Math.random() * 0.1) + "s";
     div.innerHTML = `
       <div class="pending-card-badge" id="badge-${cardKey.replace(/[^a-zA-Z0-9]/g, '_')}">0</div>
+      ${addedBadge}
       <div class="card-img-wrap">
         <img src="${imgSrc}" onerror="this.src='TUTCG.webp'" onclick="abrirModal(this)" loading="lazy">
       </div>

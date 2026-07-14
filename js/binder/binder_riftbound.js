@@ -20,11 +20,13 @@ function pedirCrearColeccion_RB() {
     onConfirm: function(nombre) {
       var subtype = document.getElementById("createColSubtype") ? document.getElementById("createColSubtype").value : "binder";
       var id = generarId();
-      collections[id] = { id: id, name: nombre.trim(), subtype: subtype, cards: [], leader: null, dons: [], is_public: false, tcg: currentTcg || "riftbound" };
+      collections[id] = { id: id, name: nombre.trim(), subtype: subtype, cards: [], is_public: false, tcg: currentTcg || "riftbound" };
       if (subtype === "deck") {
         collections[id].legend = null;
+        collections[id].champions = [];
         collections[id].runes = [];
         collections[id].battlefields = [];
+        collections[id].sideboard = [];
       }
       guardarCollections();
       renderCollectionList();
@@ -37,7 +39,7 @@ function renderCollectionList_RB() {
   if (!container) return;
   container.innerHTML = "";
   var ids = Object.keys(collections).filter(function(id) {
-    var tcg = collections[id].tcg || "one-piece";
+    var tcg = collections[id].tcg || "riftbound";
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
@@ -52,7 +54,7 @@ function renderCollectionList_RB() {
     var coverImg = getFirstCardImage(col.cards, col);
     var isDeck = col.subtype === "deck";
     var isTracking = col.subtype === "tracking";
-    var deckCount = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) : col.cards.length;
+    var deckCount = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) : (col.cards || []).length;
     var totalCards, badgeClass, badgeText;
     if (isDeck) {
       totalCards = deckCount + " cartas";
@@ -64,14 +66,14 @@ function renderCollectionList_RB() {
       totalCards = owned + " / " + total;
       badgeClass = "collection"; badgeText = "Tracking";
     } else {
-      totalCards = col.cards.length + " cartas";
+      totalCards = (col.cards || []).length + " cartas";
       badgeClass = "collection"; badgeText = "Colección";
     }
     var div = document.createElement("div");
     div.className = "binder-cover-card";
     var progressSection = isTracking ? (function() {
-      var o = col.cards.filter(function(c) { return c.owned; }).length;
-      var t = col.target || col.cards.length;
+      var o = (col.cards || []).filter(function(c) { return c.owned; }).length;
+      var t = col.target || (col.cards || []).length;
       var p = t > 0 ? Math.round((o / t) * 100) : 0;
       return '<div class="tracking-cover-progress"><div class="tracking-cover-progress-bar"><div class="tracking-cover-progress-fill" style="width:' + p + '%"></div></div><span class="tracking-cover-progress-text">' + p + '% — ' + o + ' de ' + t + '</span></div>';
     })() : "";
@@ -184,7 +186,7 @@ function renderBinder_RB() {
       var fullBinderCard = c._key ? cartasMap[c._key] : null;
       var data = fullBinderCard || c;
       var nombre = formatearNombre(data);
-      var setId = (data.category || data.producto) === "DON" ? (data.variant || "") : (data.card_set_id || "");
+      var setId = data.card_set_id || "";
       var badge = "";
       if (fullBinderCard) {
         var r = obtenerRareza(fullBinderCard);
@@ -214,6 +216,7 @@ function renderBinder_RB() {
     grid.appendChild(slot);
   }
   grid.querySelectorAll(".card img").forEach(function(img) {
+    img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
       var key = this.closest(".card") ? this.closest(".card").getAttribute("data-cardkey") : null;
@@ -231,6 +234,17 @@ function renderBinder_RB() {
   document.getElementById("binderNextBtn").disabled = binderPage >= totalPages;
   document.getElementById("binderPageInfo").textContent = "Página " + binderPage + " de " + totalPages;
   setupBinderDragDrop();
+  if (!grid.hasAttribute("data-empty-click")) {
+    grid.setAttribute("data-empty-click", "1");
+    grid.addEventListener("click", function(e) {
+      if (e.target.closest(".binder-empty")) {
+        addingToBinderId = currentCollectionId;
+        addingToBinderName = collections[currentCollectionId] ? collections[currentCollectionId].name : "";
+        addingToBinderType = "collection";
+        mostrarVista("catalog");
+      }
+    });
+  }
 }
 
 // ─── Dispatch overrides ─────────────────────────────────────────────────

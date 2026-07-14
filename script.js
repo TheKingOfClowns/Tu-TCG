@@ -38,6 +38,9 @@ let ventaCols = {};
 let currentVentaId = null;
 let ventaPage = 1;
 const ventaPerPage = 20;
+let addingToBinderId = null;
+let addingToBinderName = null;
+let addingToBinderType = null;
 let rebuildingFilters = false;
 let exploreDetailBinder = null;
 const MANGA_PR01 = new Set([
@@ -569,23 +572,32 @@ function getCardKey(carta) {
 }
 // ─── Collections / Supabase + LocalStorage ──────────────────────────────
 function guardarCollections() {
+  if (!currentTcg) return;
   Object.values(collections).forEach(b => b._synced = false);
   localStorage.setItem(collectionsKey(), JSON.stringify(collections));
   if (isAuthenticated()) syncCollectionsToSupabase().catch(console.error);
 }
 function guardarVenta() {
+  if (!currentTcg) return;
   Object.values(ventaCols).forEach(b => b._synced = false);
   localStorage.setItem(ventaKey(), JSON.stringify(ventaCols));
   if (isAuthenticated()) syncVentaToSupabase().catch(console.error);
 }
 async function syncObjectToSupabase(obj, type) {
   if (!isAuthenticated()) return;
-  // Delete remote binders that no longer exist locally
+  // Determine TCG of local binders so we only compare against same-TCG remote binders
+  const localEntries = Object.values(obj);
+  const localTcg = (localEntries.length > 0 && localEntries[0].tcg) || currentTcg || "one-piece";
+  // Delete remote binders that no longer exist locally (same TCG only)
   const localIds = new Set(Object.keys(obj));
   try {
-    const { data: remote } = await supabaseClient.from("binders").select("id").eq("user_id", authUser.id).eq("type", type);
+    const { data: remote } = await supabaseClient.from("binders").select("id, config").eq("user_id", authUser.id).eq("type", type);
     if (remote) {
-      const toDelete = remote.filter(r => !localIds.has(r.id)).map(r => r.id);
+      const toDelete = remote.filter(r => {
+        if (localIds.has(r.id)) return false;
+        const remoteTcg = (r.config && r.config.tcg) || "one-piece";
+        return remoteTcg === localTcg;
+      }).map(r => r.id);
       if (toDelete.length) {
         await supabaseClient.from("binder_cards").delete().in("binder_id", toDelete);
         await supabaseClient.from("binders").delete().in("id", toDelete);
@@ -623,23 +635,44 @@ async function syncObjectToSupabase(obj, type) {
       await supabaseClient.from("binder_cards").delete().eq("binder_id", id);
       const allCardRows = [];
       if (binder.subtype === "deck") {
-        if (binder.leader) {
-          allCardRows.push({ binder_id: id, card_id: binder.leader._key || "", quantity: 1, price: binder.leader.customPrice ?? null, card_tag: "leader", sort_order: 0 });
-        }
-        if (binder.cards && binder.cards.length) {
-          const collapsed = {};
-          binder.cards.forEach((card, idx) => {
-            const key = card._key || "";
-            const qty = card.quantity || 1;
-            if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, sort_order: idx + 1, card_tag: "main" };
-            collapsed[key].quantity += qty;
-          });
-          allCardRows.push(...Object.values(collapsed).map(c => ({ ...c, binder_id: id })));
-        }
-        if (binder.dons && binder.dons.length) {
-          binder.dons.forEach((card, idx) => {
-            allCardRows.push({ binder_id: id, card_id: card._key || "", quantity: 1, price: card.customPrice ?? null, card_tag: "don", sort_order: idx + 10000 });
-          });
+        const deckTcg = config.tcg || "one-piece";
+        if (deckTcg === "riftbound") {
+          if (binder.legend) {
+            allCardRows.push({ binder_id: id, card_id: binder.legend._key || "", quantity: 1, price: binder.legend.customPrice ?? null, card_tag: "legend", sort_order: 0 });
+          }
+          const collapseTagged = (arr, tag, baseSort) => {
+            const collapsed = {};
+            (arr || []).forEach((card, idx) => {
+              const key = card._key || "";
+              if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, card_tag: tag, sort_order: baseSort + idx };
+              collapsed[key].quantity += (card.quantity || 1);
+            });
+            Object.values(collapsed).forEach(c => allCardRows.push({ ...c, binder_id: id }));
+          };
+          collapseTagged(binder.champions, "champion", 100);
+          collapseTagged(binder.cards, "main", 200);
+          collapseTagged(binder.runes, "rune", 300);
+          collapseTagged(binder.battlefields, "battlefield", 400);
+          collapseTagged(binder.sideboard, "sideboard", 500);
+        } else {
+          if (binder.leader) {
+            allCardRows.push({ binder_id: id, card_id: binder.leader._key || "", quantity: 1, price: binder.leader.customPrice ?? null, card_tag: "leader", sort_order: 0 });
+          }
+          if (binder.cards && binder.cards.length) {
+            const collapsed = {};
+            binder.cards.forEach((card, idx) => {
+              const key = card._key || "";
+              const qty = card.quantity || 1;
+              if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, sort_order: idx + 1, card_tag: "main" };
+              collapsed[key].quantity += qty;
+            });
+            allCardRows.push(...Object.values(collapsed).map(c => ({ ...c, binder_id: id })));
+          }
+          if (binder.dons && binder.dons.length) {
+            binder.dons.forEach((card, idx) => {
+              allCardRows.push({ binder_id: id, card_id: card._key || "", quantity: 1, price: card.customPrice ?? null, card_tag: "don", sort_order: idx + 10000 });
+            });
+          }
         }
       } else if (binder.subtype === "tracking") {
         if (binder.cards && binder.cards.length) {
@@ -714,15 +747,20 @@ function expandDbCardsGrouped(rows) {
 }
 function expandDbDeck(rows) {
   const sorted = (rows || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-  let leader = null;
-  const cards = [], dons = [];
+  let leader = null, legend = null;
+  const cards = [], dons = [], champions = [], runes = [], battlefields = [], sideboard = [];
   sorted.forEach((row) => {
     const entry = { _key: row.card_id, customPrice: row.price != null ? parseFloat(row.price) : 0 };
     if (row.card_tag === "leader") { leader = entry; }
+    else if (row.card_tag === "legend") { legend = entry; }
+    else if (row.card_tag === "champion") { entry.quantity = row.quantity; champions.push(entry); }
     else if (row.card_tag === "don") { dons.push(entry); }
+    else if (row.card_tag === "rune") { entry.quantity = row.quantity; runes.push(entry); }
+    else if (row.card_tag === "battlefield") { battlefields.push(entry); }
+    else if (row.card_tag === "sideboard") { sideboard.push(entry); }
     else { entry.quantity = row.quantity; cards.push(entry); }
   });
-  return { leader, cards, dons };
+  return { leader, legend, cards, dons, champions, runes, battlefields, sideboard };
 }
 function rebuildLocalFallback() {
   const key = collectionsKey();
@@ -745,16 +783,29 @@ async function initCollections() {
     const dbBinders = await loadBindersFromDb();
     if (dbBinders && dbBinders.length) {
       collections = {};
-      dbBinders.filter(b => b.type === "collection" || !b.type).forEach(b => {
+      const activeTcg = currentTcg || "one-piece";
+      dbBinders.filter(b => (b.type === "collection" || !b.type) && ((b.config && b.config.tcg) || "one-piece") === activeTcg).forEach(b => {
         const cfg = b.config || {};
         const subtype = cfg.subtype || "binder";
         if (subtype === "deck") {
           const deck = expandDbDeck(b.binder_cards);
-          collections[b.id] = {
+          const tcgVal = cfg.tcg || "one-piece";
+          const deckObj = {
             id: b.id, name: b.name, subtype: "deck",
-            leader: deck.leader, cards: deck.cards, dons: deck.dons,
-            is_public: b.is_public || false, tcg: cfg.tcg || "one-piece", _synced: true
+            cards: deck.cards, is_public: b.is_public || false,
+            tcg: tcgVal, _synced: true
           };
+          if (tcgVal === "riftbound") {
+            deckObj.legend = deck.legend;
+            deckObj.champions = deck.champions || [];
+            deckObj.runes = deck.runes || [];
+            deckObj.battlefields = deck.battlefields || [];
+            deckObj.sideboard = deck.sideboard || [];
+          } else {
+            deckObj.leader = deck.leader;
+            deckObj.dons = deck.dons;
+          }
+          collections[b.id] = deckObj;
         } else if (subtype === "tracking") {
           const trackingType = cfg.tracking_type || "expansion";
           const trackingConfig = cfg.tracking_config || {};
@@ -802,17 +853,30 @@ async function reloadVentaFromDb() {
   const dbBinders = await loadBindersFromDb();
   if (dbBinders && dbBinders.length) {
     ventaCols = {};
-    dbBinders.filter(b => b.type === "sale").forEach(b => {
+    const activeTcg = currentTcg || "one-piece";
+    dbBinders.filter(b => b.type === "sale" && ((b.config && b.config.tcg) || "one-piece") === activeTcg).forEach(b => {
       const cfg = b.config || {};
       const subtype = cfg.subtype || "binder";
       const mode = cfg.display_mode || "individual";
       if (subtype === "deck") {
         const deck = expandDbDeck(b.binder_cards);
-        ventaCols[b.id] = {
+        const tcgVal = cfg.tcg || "one-piece";
+        const deckObj = {
           id: b.id, name: b.name, subtype: "deck",
-          leader: deck.leader, cards: deck.cards, dons: deck.dons,
-          is_public: b.is_public || false, display_mode: mode, tcg: cfg.tcg || "one-piece", _synced: true
+          cards: deck.cards, is_public: b.is_public || false,
+          display_mode: mode, tcg: tcgVal, _synced: true
         };
+        if (tcgVal === "riftbound") {
+          deckObj.legend = deck.legend;
+          deckObj.champions = deck.champions || [];
+          deckObj.runes = deck.runes || [];
+          deckObj.battlefields = deck.battlefields || [];
+          deckObj.sideboard = deck.sideboard || [];
+        } else {
+          deckObj.leader = deck.leader;
+          deckObj.dons = deck.dons;
+        }
+        ventaCols[b.id] = deckObj;
       } else {
         const expandFn = mode === "individual" ? expandDbCards : expandDbCardsGrouped;
         ventaCols[b.id] = {
@@ -861,6 +925,19 @@ function getFirstCardImage(cards, col) {
     const found = cartasMap[col.leader._key];
     if (found?.card_image) return found.card_image;
   }
+  if (col?.legend?.card_image) return col.legend.card_image;
+  if (col?.legend?._key) {
+    const found = cartasMap[col.legend._key];
+    if (found?.card_image) return found.card_image;
+  }
+  if (col?.champions?.length) {
+    const firstChamp = col.champions[0];
+    if (firstChamp.card_image) return firstChamp.card_image;
+    if (firstChamp._key) {
+      const found = cartasMap[firstChamp._key];
+      if (found?.card_image) return found.card_image;
+    }
+  }
   if (!cards || !cards.length) return null;
   const first = cards[0];
   if (first.card_image) return first.card_image;
@@ -875,6 +952,17 @@ function getTotalPrice(col) {
   const cards = col.cards || [];
   const isDeck = col.subtype === "deck";
   if (isDeck && col.leader && col.leader.customPrice != null) total += Number(col.leader.customPrice);
+  if (isDeck && col.legend && col.legend.customPrice != null) total += Number(col.legend.customPrice);
+  if (isDeck && col.champions) {
+    col.champions.forEach(function(ch) {
+      if (ch.customPrice != null) total += Number(ch.customPrice) * (ch.quantity || 1);
+    });
+  }
+  if (isDeck) {
+    (col.runes || []).forEach(function(r) { if (r.customPrice != null) total += Number(r.customPrice) * (r.quantity || 1); });
+    (col.battlefields || []).forEach(function(b) { if (b.customPrice != null) total += Number(b.customPrice); });
+    (col.sideboard || []).forEach(function(s) { if (s.customPrice != null) total += Number(s.customPrice); });
+  }
   cards.forEach(c => {
     const qty = c.quantity || 1;
     if (c.customPrice != null) total += Number(c.customPrice) * qty;
@@ -1018,7 +1106,20 @@ function pedirCrearTracking(preFillName) {
   }
   typeSelect.value = "expansion";
   extraPanel.innerHTML = "";
-  renderTrackingExtra("expansion", extraPanel);
+  if (_appendTo) {
+    const existingCol = collections[_appendTo];
+    if (existingCol && existingCol.tracking_type) {
+      typeSelect.value = existingCol.tracking_type || "expansion";
+    }
+  }
+  renderTrackingExtra(typeSelect.value, extraPanel);
+  if (_appendTo) {
+    const existingCol = collections[_appendTo];
+    if (existingCol && existingCol.tracking_config && existingCol.tracking_config.mode) {
+      const modeSelect = document.getElementById("trackingSetMode");
+      if (modeSelect) modeSelect.value = existingCol.tracking_config.mode;
+    }
+  }
   overlay.style.display = "flex";
   setTimeout(() => nameInput.focus(), 100);
 }
@@ -1221,8 +1322,8 @@ function confirmCreateTracking() {
   const name = document.getElementById("trackingNameInput").value.trim();
   const type = document.getElementById("trackingTypeSelect").value;
   let config = {};
-  const includeAA = document.getElementById("trackingIncludeAA")?.classList?.contains("on") ?? false;
-  const includePromo = document.getElementById("trackingIncludePromo")?.classList?.contains("on") ?? false;
+  const includeAA = document.getElementById("trackingIncludeAA")?.classList?.contains("on") ?? true;
+  const includePromo = document.getElementById("trackingIncludePromo")?.classList?.contains("on") ?? true;
   if (!includeAA) config.include_aa = false;
   if (!includePromo) config.include_promo = false;
   config.language = document.getElementById("trackingLangSelect")?.value || "en";
@@ -1302,7 +1403,11 @@ function renderTrackingBinder(col, grid, title) {
     const chk = document.getElementById("binderPublicCheck");
     if (chk) chk.onchange = () => toggleBinderPublic(currentCollectionId);
   }
-  title.textContent = col.name;
+  if (col.tracking_type === "expansion" && col.tracking_config && col.tracking_config.mode === "base") {
+    title.innerHTML = col.name + ' <span class="tracking-mode-badge">Base Set</span>';
+  } else {
+    title.textContent = col.name;
+  }
   grid.innerHTML = "";
 
   const currentFilter = col._trackingFilter || "all";
@@ -2701,6 +2806,21 @@ function actualizarBadge() {
   else { btn.textContent = "Agregar a"; }
 }
 function limpiarPendientes() { pendingCards = {}; actualizarBadge(); actualizarBadgesEnPagina(); }
+function limpiarAddingState() {
+  addingToBinderId = null; addingToBinderName = null; addingToBinderType = null;
+  var banner = document.getElementById("catalogAddBanner");
+  if (banner) banner.style.display = "none";
+}
+function actualizarCatalogBanner() {
+  var banner = document.getElementById("catalogAddBanner");
+  if (!banner) return;
+  if (addingToBinderId) {
+    document.getElementById("catalogAddBinderName").textContent = addingToBinderName || "";
+    banner.style.display = "flex";
+  } else {
+    banner.style.display = "none";
+  }
+}
 // ─── Create / Rename Modal ──────────────────────────────────────────────
 let _createCallback = null;
 function showCreateModal(opts) {
@@ -3258,6 +3378,13 @@ function updateTcgHeroForView(view) {
   subtitle.textContent = subs[view] || "";
 }
 async function selectTcg(tcgId) {
+  // Save and clear previous TCG data
+  if (currentTcg && currentTcg !== tcgId) {
+    guardarCollections();
+    guardarVenta();
+    Object.keys(collections).forEach(k => delete collections[k]);
+    Object.keys(ventaCols).forEach(k => delete ventaCols[k]);
+  }
   currentTcg = tcgId;
   const tcg = tcgList.find(t => t.id === tcgId);
   if (!tcg) return;
@@ -3284,6 +3411,7 @@ async function selectTcg(tcgId) {
 }
 // ─── View System ──────────────────────────────────────────────────────────
 function mostrarVista(vista) {
+  if (vista !== "catalog") limpiarAddingState();
   document.getElementById("tcgSelector").classList.remove("active");
   document.getElementById("welcomeView").classList.remove("active");
   document.getElementById("catalogView").classList.remove("active");
@@ -3337,6 +3465,7 @@ function mostrarVista(vista) {
     document.getElementById("catalogPagination").style.display = "";
     document.getElementById("sidebarCatalog")?.classList.add("active");
     document.getElementById("bottomCatalog")?.classList.add("active");
+    actualizarCatalogBanner();
     cargarFiltros();
     if (currentTcg === "one-piece" || currentTcg === "riftbound") {
       renderCards();
@@ -3513,13 +3642,13 @@ document.querySelectorAll(".welcome-card").forEach(card => {
   });
 });
 // Header / Sidebar nav
-document.getElementById("sidebarLogo")?.addEventListener("click", () => { currentTcg = null; pendingView = null; mostrarVista("home"); });
-document.getElementById("welcomeBackBtn").addEventListener("click", () => { currentTcg = null; pendingView = null; mostrarVista("home"); });
+document.getElementById("sidebarLogo")?.addEventListener("click", () => { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); });
+document.getElementById("welcomeBackBtn").addEventListener("click", () => { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); });
 document.querySelectorAll(".sidebar-nav-item").forEach(item => {
   item.addEventListener("click", () => {
     const view = item.getAttribute("data-view");
-    if (view === "home") { currentTcg = null; pendingView = null; mostrarVista("home"); }
-    else if (view === "catalog") { currentTcg = null; pendingView = "catalog"; mostrarVista("catalog"); }
+    if (view === "home") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); }
+    else if (view === "catalog") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = "catalog"; mostrarVista("catalog"); }
     else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; mostrarVista("collections"); }
     else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; mostrarVista("ventaCols"); }
     else if (view === "explore") { if (!currentTcg) pendingView = "explore"; mostrarVista("explore"); }
@@ -3530,12 +3659,12 @@ document.querySelectorAll(".sidebar-nav-item").forEach(item => {
 document.querySelectorAll(".bottom-nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
     const view = btn.getAttribute("data-view");
-    if (view === "home") { currentTcg = null; pendingView = null; mostrarVista("home"); }
-    else if (view === "catalog") { currentTcg = null; pendingView = "catalog"; mostrarVista("catalog"); }
+    if (view === "home") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); }
+    else if (view === "catalog") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = "catalog"; mostrarVista("catalog"); }
     else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; mostrarVista("collections"); }
     else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; mostrarVista("ventaCols"); }
     else if (view === "explore") { if (!currentTcg) pendingView = "explore"; mostrarVista("explore"); }
-    else if (view === "tcgHome") { currentTcg = null; pendingView = null; mostrarVista("home"); }
+    else if (view === "tcgHome") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); }
   });
 });
 // Binder events
@@ -3667,6 +3796,13 @@ document.getElementById("agregarBtn").addEventListener("click", () => {
 });
 document.getElementById("seleccionarBtn").addEventListener("click", toggleSelectionMode);
 document.getElementById("cancelarPendBtn").addEventListener("click", limpiarPendientes);
+document.getElementById("catalogAddBack").addEventListener("click", function() {
+  var id = addingToBinderId; var type = addingToBinderType;
+  limpiarAddingState();
+  if (type === "venta") { currentVentaId = id; ventaPage = 1; mostrarVista("venta"); }
+  else { currentCollectionId = id; binderPage = 1; mostrarVista("binder"); }
+});
+document.getElementById("catalogAddCancel").addEventListener("click", limpiarAddingState);
 document.getElementById("createCollectionBtn").addEventListener("click", pedirCrearColeccion);
 // ─── Landing Page Buttons ────────────────────────────────────────────────
 document.querySelectorAll("[id^='landingLoginBtn']").forEach(btn => {
