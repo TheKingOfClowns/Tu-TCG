@@ -1,32 +1,38 @@
 // ─── Venta Dispatcher ─────────────────────────────────────────────────────
-// Routes venta functions to OP or RB implementation based on currentTcg.
+// Routes venta functions to the correct TCG implementation.
 
-function pedirCrearVenta() {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return pedirCrearVenta_RB();
-  return pedirCrearVenta_OP();
-}
+(function() {
+  var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
 
-function renderVentaList() {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return renderVentaList_RB();
-  return renderVentaList_OP();
-}
+  function _fn(name) {
+    var s = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+    return (s && window[name + "_" + s]) || window[name + "_OP"];
+  }
 
-function renderVentaGrouped(col, grid, mode) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return renderVentaGrouped_RB(col, grid, mode);
-  return renderVentaGrouped_OP(col, grid, mode);
-}
+  window.pedirCrearVenta = function pedirCrearVenta() {
+    return _fn("pedirCrearVenta")();
+  };
 
-function attachVentaEvents(col, mode, grid, totalPages) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return attachVentaEvents_RB(col, mode, grid, totalPages);
-  return attachVentaEvents_OP(col, mode, grid, totalPages);
-}
+  window.renderVentaList = function renderVentaList() {
+    return _fn("renderVentaList")();
+  };
 
-function buildVentaCardHTML(c, globalIdx, mode) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return buildVentaCardHTML_RB(c, globalIdx, mode);
-  return buildVentaCardHTML_OP(c, globalIdx, mode);
-}
+  window.renderVentaGrouped = function renderVentaGrouped(col, grid, mode) {
+    return _fn("renderVentaGrouped")(col, grid, mode);
+  };
 
-function renderVentaIndividual(col, grid) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return renderVentaIndividual_RB(col, grid);
-  return renderVentaIndividual_OP(col, grid);
-}
+  window.attachVentaEvents = function attachVentaEvents(col, mode, grid, totalPages) {
+    return _fn("attachVentaEvents")(col, mode, grid, totalPages);
+  };
+
+  window.buildVentaCardHTML = function buildVentaCardHTML(c, globalIdx, mode) {
+    return _fn("buildVentaCardHTML")(c, globalIdx, mode);
+  };
+
+  window.renderVentaIndividual = function renderVentaIndividual(col, grid) {
+    return _fn("renderVentaIndividual")(col, grid);
+  };
+})();
+
+// Event listener: registered here because pedirCrearVenta is defined in this file
+document.getElementById("createVentaBtn")?.addEventListener("click", pedirCrearVenta);

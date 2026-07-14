@@ -1,32 +1,33 @@
 // ─── Deck Dispatcher ────────────────────────────────────────────────────────
-// Routes showDeckPicker, renderDeckView, and saveDeck to the correct TCG
+// Routes deck functions to the correct TCG implementation.
+// Suffix resolution: reads tcgConfigs[currentTcg].short → "_OP" / "_RB" / "_PK"
 
-function showDeckPicker(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") {
-    return showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys);
-  }
-  return showDeckPicker_OP(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots);
-}
+(function() {
+  var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
 
-function renderDeckView(type, col, grid, title, toggleContainer) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") {
-    return renderDeckView_RB(type, col, grid, title, toggleContainer);
+  function _fn(name) {
+    var s = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+    return (s && window[name + "_" + s]) || window[name + "_OP"];
   }
-  return renderDeckView_OP(type, col, grid, title, toggleContainer);
-}
 
-function saveDeck(isSale) {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") {
-    return saveDeck_RB(isSale);
-  }
-  return saveDeck_OP(isSale);
-}
+  window.showDeckPicker = function showDeckPicker(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
+    return _fn("showDeckPicker")(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys);
+  };
 
-// Overlay click handler (uses the current showDeckPicker via dispatcher)
-document.getElementById("deckPickerOverlay")?.addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) {
-    document.getElementById("deckPickerOverlay").style.display = "none";
-    _deckPickerResolve = null;
-    if (_deckPickerInterval) { clearInterval(_deckPickerInterval); _deckPickerInterval = null; }
-  }
-});
+  window.renderDeckView = function renderDeckView(type, col, grid, title, toggleContainer) {
+    return _fn("renderDeckView")(type, col, grid, title, toggleContainer);
+  };
+
+  window.saveDeck = function saveDeck(isSale) {
+    return _fn("saveDeck")(isSale);
+  };
+
+  // Overlay click handler
+  document.getElementById("deckPickerOverlay")?.addEventListener("click", function(e) {
+    if (e.target === e.currentTarget) {
+      document.getElementById("deckPickerOverlay").style.display = "none";
+      _deckPickerResolve = null;
+      if (_deckPickerInterval) { clearInterval(_deckPickerInterval); _deckPickerInterval = null; }
+    }
+  });
+})();

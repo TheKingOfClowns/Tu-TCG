@@ -1,13 +1,10 @@
 // ─── Catalog Rendering ────────────────────────────────────────────────────
 // Dependencias (globales): state.catalog.*, DOM refs, helpers (getCardKey, etc.)
 
-function esCartaAA_RB(carta) {
-  return /^\w+-\d+[asv]$/i.test(carta.card_set_id || "");
-}
-
 function renderCards() {
-  let resultado = [...cartas];
-  const lang = state.catalog.catalogLanguage || "en";
+  var resultado = [...cartas];
+  var lang = state.catalog.catalogLanguage || "en";
+  var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) || null;
   if (lang !== "all") {
     resultado = resultado.filter(c => c.language === lang);
   }
@@ -34,11 +31,16 @@ function renderCards() {
   if (colorFilter.value) resultado = resultado.filter(carta => (carta.card_color || "").includes(colorFilter.value));
   if (rarityFilter.value) {
     if (rarityFilter.value === "L") {
-      resultado = resultado.filter(carta => carta.card_type === "LEADER");
-    } else if (rarityFilter.value === "AA" && currentTcg === "riftbound") {
-      resultado = resultado.filter(carta => esCartaAA_RB(carta));
+      resultado = resultado.filter(function(carta) { return carta.card_type === "LEADER"; });
+    } else if (rarityFilter.value === "AA") {
+      var detectAAFn = cfg && cfg.detectAA;
+      if (detectAAFn) {
+        resultado = resultado.filter(function(carta) { return detectAAFn(carta); });
+      } else {
+        resultado = resultado.filter(function(carta) { return obtenerRareza(carta) === "AA"; });
+      }
     } else {
-      resultado = resultado.filter(carta => obtenerRareza(carta) === rarityFilter.value);
+      resultado = resultado.filter(function(carta) { return obtenerRareza(carta) === rarityFilter.value; });
     }
   }
   if (typeFilter.value) {
@@ -109,11 +111,11 @@ function renderCards() {
       if (carta.print_type && carta.print_type !== rareza) {
         rarityBadge += rarityBadge ? " - " + carta.print_type : carta.print_type;
       }
-      if (currentTcg === "riftbound" && esCartaAA_RB(carta)) {
-        const suffix = (carta.card_set_id || "").match(/[asv]$/i);
-        const variantLabel = suffix ? { a: "AA", s: "Sig", v: "OV" }[suffix[0].toLowerCase()] : "AA";
-        if (variantLabel !== rareza) {
-          rarityBadge = rarityBadge ? rarityBadge + " - " + variantLabel : variantLabel;
+      var _detectAA = cfg && cfg.detectAA;
+      if (_detectAA && _detectAA(carta)) {
+        var _suffix = cfg.getAASuffix ? cfg.getAASuffix(carta.card_set_id) : "AA";
+        if (_suffix !== rareza) {
+          rarityBadge = rarityBadge ? rarityBadge + " - " + _suffix : _suffix;
         }
       }
     }
@@ -233,116 +235,97 @@ function actualizarBadgesEnPagina() {
 
 function cargarFiltros() {
   rebuildingFilters = true;
-  const prevExpansion = expansionFilter.value;
-  expansionFilter.innerHTML = `<option value="">Todas las expansiones</option>`;
-  if (currentTcg === "one-piece") {
-    const lang = state.catalog.catalogLanguage || "en";
-    const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
-    const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
-    const hasPromo = cartas.some(c => (c.category === "PROMO" || c.category === "OTHER") && (lang === "all" || c.language === lang));
-    const hasDon = cartas.some(c => c.category === "DON");
-    const filteredBooster = boosterSets.filter(s => {
-      if (lang === "all") return true;
-      return cartas.some(c => c.set_id === s && c.language === lang && c.category === "BOOSTER");
+  var prevExpansion = expansionFilter.value;
+  expansionFilter.innerHTML = '<option value="">Todas las expansiones</option>';
+
+  var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) || null;
+  var lang = state.catalog.catalogLanguage || "en";
+
+  // ── Expansion filter ──────────────────────────
+  var boosterSets = [...new Set(cartas.filter(function(c) { return c.category === "BOOSTER"; }).map(function(c) { return c.set_id; }).filter(Boolean))];
+  var starterSets = [...new Set(cartas.filter(function(c) { return c.category === "STARTER"; }).map(function(c) { return c.set_id; }).filter(Boolean))];
+
+  var filterByLang = cfg && cfg.hasLanguageFilter && lang !== "all";
+  var hasPromo = filterByLang
+    ? cartas.some(function(c) { return (c.category === "PROMO" || c.category === "OTHER") && c.language === lang; })
+    : cartas.some(function(c) { return c.category === "PROMO" || c.category === "OTHER"; });
+
+  var hasDon = cfg && cfg.cardTypes && cfg.cardTypes.indexOf("DON!!") !== -1 && cartas.some(function(c) { return c.category === "DON"; });
+
+  var filteredBooster = boosterSets;
+  var filteredStarter = starterSets;
+  if (filterByLang) {
+    filteredBooster = boosterSets.filter(function(s) {
+      return cartas.some(function(c) { return c.set_id === s && c.language === lang && c.category === "BOOSTER"; });
     });
-    const filteredStarter = starterSets.filter(s => {
-      if (lang === "all") return true;
-      return cartas.some(c => c.set_id === s && c.language === lang && c.category === "STARTER");
+    filteredStarter = starterSets.filter(function(s) {
+      return cartas.some(function(c) { return c.set_id === s && c.language === lang && c.category === "STARTER"; });
     });
-    const fragments = [];
-    if (filteredBooster.length) {
-      filteredBooster.sort((a, b) => getOrden(a) - getOrden(b));
-      let html = `<optgroup label="--- Booster ---">`;
-      filteredBooster.forEach(s => {
-        html += `<option value="${s}">${nombresExpansiones[s] || s}</option>`;
-      });
-      html += `</optgroup>`;
-      fragments.push(html);
-    }
-    if (filteredStarter.length) {
-      filteredStarter.sort((a, b) => getOrden(a) - getOrden(b));
-      let html = `<optgroup label="--- Starter ---">`;
-      filteredStarter.forEach(s => {
-        html += `<option value="${s}">${nombresExpansiones[s] || s}</option>`;
-      });
-      html += `</optgroup>`;
-      fragments.push(html);
-    }
-    if (hasPromo) {
-      fragments.push(`<optgroup label="--- Promo ---"><option value="PROMO">Promo Cards</option></optgroup>`);
-    }
-    if (hasDon) {
-      fragments.push(`<optgroup label="--- DON!! ---"><option value="DON!!">DON!! Cards</option></optgroup>`);
-    }
-    expansionFilter.innerHTML += fragments.join("");
-    if (prevExpansion) expansionFilter.value = prevExpansion;
-    colorFilter.innerHTML = `<option value="">Todos los colores</option>`;
-    ["Red","Blue","Green","Purple","Black","Yellow"].forEach(color => {
-      colorFilter.innerHTML += `<option value="${color}">${coloresES[color]}</option>`;
-    });
-    rarityFilter.innerHTML = `
-      <option value="">Todas las rarezas</option>
-      <option value="L">L</option><option value="C">C</option><option value="UC">UC</option>
-      <option value="R">R</option><option value="SR">SR</option>
-      <option value="SEC">SEC</option><option value="SP">SP</option>
-      <option value="AA">AA</option>`;
-    typeFilter.innerHTML = `
-      <option value="">Todos los tipos</option>
-      <option value="LEADER">LEADER</option><option value="CHARACTER">CHARACTER</option>
-      <option value="EVENT">EVENT</option><option value="STAGE">STAGE</option>
-      <option value="DON!!">DON!!</option>`;
-  } else if (currentTcg === "riftbound") {
-    const boosterSets = [...new Set(cartas.filter(c => c.category === "BOOSTER").map(c => c.set_id).filter(Boolean))];
-    const starterSets = [...new Set(cartas.filter(c => c.category === "STARTER").map(c => c.set_id).filter(Boolean))];
-    const hasPromo = cartas.some(c => c.category === "PROMO");
-    const fragments = [];
-    if (boosterSets.length) {
-      let html = `<optgroup label="--- Booster ---">`;
-      boosterSets.sort().forEach(s => {
-        const setName = cartas.find(c => c.set_id === s)?.set_name || s;
-        html += `<option value="${s}">${setName}</option>`;
-      });
-      html += `</optgroup>`;
-      fragments.push(html);
-    }
-    if (starterSets.length) {
-      let html = `<optgroup label="--- Starter ---">`;
-      starterSets.sort().forEach(s => {
-        const setName = cartas.find(c => c.set_id === s)?.set_name || s;
-        html += `<option value="${s}">${setName}</option>`;
-      });
-      html += `</optgroup>`;
-      fragments.push(html);
-    }
-    if (hasPromo) {
-      fragments.push(`<optgroup label="--- Promo ---"><option value="PROMO">Promo Cards</option></optgroup>`);
-    }
-    expansionFilter.innerHTML += fragments.join("");
-    if (prevExpansion) expansionFilter.value = prevExpansion;
-    colorFilter.innerHTML = `<option value="">Todos los colores</option>`;
-    ["Mind","Order","Calm","Body","Chaos","Fury","Colorless"].forEach(color => {
-      colorFilter.innerHTML += `<option value="${color}">${color}</option>`;
-    });
-    rarityFilter.innerHTML = `
-      <option value="">Todas las rarezas</option>
-      <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
-      <option value="Rare">Rare</option><option value="Epic">Epic</option>
-      <option value="Promo">Promo</option><option value="Showcase">Showcase</option>
-      <option value="AA">AA</option>`;
-    typeFilter.innerHTML = `
-      <option value="">Todos los tipos</option>
-      <option value="Unit">Unit</option><option value="Spell">Spell</option>
-      <option value="Legend">Legend</option><option value="Gear">Gear</option>
-      <option value="Battlefield">Battlefield</option><option value="Rune">Rune</option>`;
-  } else {
-    colorFilter.innerHTML = `<option value="">Todos los colores</option>`;
-    rarityFilter.innerHTML = `<option value="">Todas las rarezas</option>`;
-    typeFilter.innerHTML = `<option value="">Todos los tipos</option>`;
   }
-  const statCards = document.getElementById("statCards");
+
+  var getSetName, sortSets;
+  if (cfg && cfg.expansionNames && cfg.expansionOrder) {
+    getSetName = function(s) { return cfg.expansionNames[s] || s; };
+    sortSets = function(arr) { arr.sort(function(a, b) { return (cfg.expansionOrder[a] || 999) - (cfg.expansionOrder[b] || 999); }); };
+  } else {
+    getSetName = function(s) {
+      var found = cartas.find(function(c) { return c.set_id === s; });
+      return found ? (found.set_name || s) : s;
+    };
+    sortSets = function(arr) { arr.sort(); };
+  }
+
+  var fragments = [];
+  if (filteredBooster.length) {
+    sortSets(filteredBooster);
+    var html = '<optgroup label="--- Booster ---">';
+    filteredBooster.forEach(function(s) {
+      html += '<option value="' + s + '">' + getSetName(s) + '</option>';
+    });
+    html += '</optgroup>';
+    fragments.push(html);
+  }
+  if (filteredStarter.length) {
+    sortSets(filteredStarter);
+    var html = '<optgroup label="--- Starter ---">';
+    filteredStarter.forEach(function(s) {
+      html += '<option value="' + s + '">' + getSetName(s) + '</option>';
+    });
+    html += '</optgroup>';
+    fragments.push(html);
+  }
+  if (hasPromo) {
+    fragments.push('<optgroup label="--- Promo ---"><option value="PROMO">Promo Cards</option></optgroup>');
+  }
+  if (hasDon) {
+    fragments.push('<optgroup label="--- DON!! ---"><option value="DON!!">DON!! Cards</option></optgroup>');
+  }
+  expansionFilter.innerHTML += fragments.join("");
+  if (prevExpansion) expansionFilter.value = prevExpansion;
+
+  // ── Color / Rarity / Type filters (data-driven) ──
+  colorFilter.innerHTML = '<option value="">Todos los colores</option>';
+  rarityFilter.innerHTML = '<option value="">Todas las rarezas</option>';
+  typeFilter.innerHTML = '<option value="">Todos los tipos</option>';
+
+  if (cfg) {
+    (cfg.colors || []).forEach(function(color) {
+      var label = (cfg.colorNames && cfg.colorNames[color]) || color;
+      colorFilter.innerHTML += '<option value="' + color + '">' + label + '</option>';
+    });
+    (cfg.rarities || []).forEach(function(r) {
+      rarityFilter.innerHTML += '<option value="' + r + '">' + r + '</option>';
+    });
+    (cfg.cardTypes || []).forEach(function(t) {
+      typeFilter.innerHTML += '<option value="' + t + '">' + t + '</option>';
+    });
+  }
+
+  // ── Stats ──────────────────────────────────────
+  var statCards = document.getElementById("statCards");
   if (statCards) statCards.textContent = cartas.length.toLocaleString();
-  const expansions = new Set(cartas.map(c => c.set_id).filter(Boolean));
-  const statExp = document.getElementById("statExpansions");
+  var expansions = new Set(cartas.map(function(c) { return c.set_id; }).filter(Boolean));
+  var statExp = document.getElementById("statExpansions");
   if (statExp) statExp.textContent = expansions.size;
   rebuildingFilters = false;
   if (prevExpansion) actualizarFiltrosPorExpansion();
@@ -350,51 +333,44 @@ function cargarFiltros() {
 
 function actualizarFiltrosPorExpansion() {
   if (rebuildingFilters) return;
-  const val = expansionFilter.value;
-  const prevRarity = rarityFilter.value;
-  const esDon = val === "DON!!";
-  const esPromo = val === "PROMO";
+  var val = expansionFilter.value;
+  var prevRarity = rarityFilter.value;
+  var esDon = val === "DON!!";
+  var esPromo = val === "PROMO";
+  var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) || null;
+
   colorFilter.disabled = esDon;
   colorFilter.style.display = esDon ? "none" : "";
   rarityFilter.disabled = esPromo;
   rarityFilter.style.display = esPromo ? "none" : "";
   typeFilter.style.display = esDon ? "none" : "";
+
   if (esDon) {
-    rarityFilter.innerHTML = `
-      <option value="">Todas las variantes</option>
-      <option value="Gold">Gold</option>
-      <option value="DP">DP</option>`;
+    var donVars = (cfg && cfg.donVariants) || ["Gold", "DP"];
+    var html = '<option value="">Todas las variantes</option>';
+    donVars.forEach(function(v) { html += '<option value="' + v + '">' + v + '</option>'; });
+    rarityFilter.innerHTML = html;
   } else if (esPromo) {
-    rarityFilter.innerHTML = `<option value="">Todas las rarezas</option>`;
+    rarityFilter.innerHTML = '<option value="">Todas las rarezas</option>';
   } else {
-    if (currentTcg === "riftbound") {
-      rarityFilter.innerHTML = `
-        <option value="">Todas las rarezas</option>
-        <option value="Common">Common</option><option value="Uncommon">Uncommon</option>
-        <option value="Rare">Rare</option><option value="Epic">Epic</option>
-        <option value="Promo">Promo</option><option value="Showcase">Showcase</option>
-        <option value="AA">AA</option>`;
-      typeFilter.innerHTML = `
-        <option value="">Todos los tipos</option>
-        <option value="Unit">Unit</option><option value="Spell">Spell</option>
-        <option value="Legend">Legend</option><option value="Gear">Gear</option>
-        <option value="Battlefield">Battlefield</option><option value="Rune">Rune</option>`;
-    } else {
-      rarityFilter.innerHTML = `
-        <option value="">Todas las rarezas</option>
-        <option value="L">L</option><option value="C">C</option><option value="UC">UC</option>
-        <option value="R">R</option><option value="SR">SR</option>
-        <option value="SEC">SEC</option><option value="SP">SP</option>
-        <option value="AA">AA</option>`;
-      typeFilter.innerHTML = `
-        <option value="">Todos los tipos</option>
-        <option value="LEADER">LEADER</option><option value="CHARACTER">CHARACTER</option>
-        <option value="EVENT">EVENT</option><option value="STAGE">STAGE</option>
-        <option value="DON!!">DON!!</option>`;
+    colorFilter.innerHTML = '<option value="">Todos los colores</option>';
+    rarityFilter.innerHTML = '<option value="">Todas las rarezas</option>';
+    typeFilter.innerHTML = '<option value="">Todos los tipos</option>';
+    if (cfg) {
+      (cfg.colors || []).forEach(function(color) {
+        var label = (cfg.colorNames && cfg.colorNames[color]) || color;
+        colorFilter.innerHTML += '<option value="' + color + '">' + label + '</option>';
+      });
+      (cfg.rarities || []).forEach(function(r) {
+        rarityFilter.innerHTML += '<option value="' + r + '">' + r + '</option>';
+      });
+      (cfg.cardTypes || []).forEach(function(t) {
+        typeFilter.innerHTML += '<option value="' + t + '">' + t + '</option>';
+      });
     }
   }
   if (prevRarity) {
-    const match = rarityFilter.querySelector(`option[value="${prevRarity}"]`);
+    var match = rarityFilter.querySelector('option[value="' + prevRarity + '"]');
     if (match) rarityFilter.value = prevRarity;
   }
 }

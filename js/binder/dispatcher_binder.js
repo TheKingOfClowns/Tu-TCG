@@ -1,17 +1,26 @@
 // ─── Binder Dispatcher ────────────────────────────────────────────────────
-// Routes binder functions to OP or RB implementation based on currentTcg.
+// Routes binder functions to the correct TCG implementation.
 
-function pedirCrearColeccion() {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return pedirCrearColeccion_RB();
-  return pedirCrearColeccion_OP();
-}
+(function() {
+  var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
 
-function renderCollectionList() {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return renderCollectionList_RB();
-  return renderCollectionList_OP();
-}
+  function _fn(name) {
+    var s = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+    return (s && window[name + "_" + s]) || window[name + "_OP"];
+  }
 
-function renderBinder() {
-  if (typeof currentTcg !== "undefined" && currentTcg === "riftbound") return renderBinder_RB();
-  return renderBinder_OP();
-}
+  window.pedirCrearColeccion = function pedirCrearColeccion() {
+    return _fn("pedirCrearColeccion")();
+  };
+
+  window.renderCollectionList = function renderCollectionList() {
+    return _fn("renderCollectionList")();
+  };
+
+  window.renderBinder = function renderBinder() {
+    return _fn("renderBinder")();
+  };
+})();
+
+// Event listener: registered here because pedirCrearColeccion is defined in this file
+document.getElementById("createCollectionBtn")?.addEventListener("click", pedirCrearColeccion);

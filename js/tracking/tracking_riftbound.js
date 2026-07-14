@@ -1,20 +1,6 @@
 // ─── Tracking Riftbound ──────────────────────────────────────────────────
-// Overrides tracking functions with RB-specific logic.
-// Dependencias: script.js (cartas, getCardKey, getUniqueCharacterNames, buildTrackingToggle,
-//                          generarId, _appendTo, collections, currentCollectionId)
-
-var _pedirCrearTracking_OP = pedirCrearTracking;
-var _renderTrackingExtra_OP = renderTrackingExtra;
-var _getAvailableSets_OP = getAvailableSets;
-var _buildTrackingCardList_OP = buildTrackingCardList;
-var _trackingCardPasses_OP = trackingCardPasses;
-var _confirmCreateTracking_OP = confirmCreateTracking;
-
-var _donOption = (function() {
-  var ts = document.getElementById("trackingTypeSelect");
-  return ts ? ts.querySelector('option[value="don"]') : null;
-})();
-var _langSelect = document.getElementById("trackingLangSelect");
+// RB-specific tracking functions. Called via dispatcher_tracking.js.
+// Dependencias: script.js (cartas, getCardKey, generarId, collections, currentCollectionId)
 
 function _esCartaAA(carta) {
   return /^\w+-\d+[asv]$/i.test(carta.card_set_id || "");
@@ -300,55 +286,3 @@ function confirmCreateTracking_RB() {
   renderCollectionList();
 }
 
-// ─── Dispatch overrides ─────────────────────────────────────────────────
-
-pedirCrearTracking = function(preFillName) {
-  var typeSelect = document.getElementById("trackingTypeSelect");
-  var charOption = typeSelect ? typeSelect.querySelector('option[value="character"]') : null;
-  var langLabel = _langSelect ? _langSelect.previousElementSibling : null;
-
-  if (typeSelect && _donOption && !typeSelect.querySelector('option[value="don"]')) {
-    typeSelect.appendChild(_donOption);
-  }
-  _donOption.style.display = "";
-  if (charOption) charOption.textContent = "Personaje/s";
-  if (_langSelect) _langSelect.style.display = "";
-  if (langLabel && langLabel.tagName === "LABEL" && langLabel.textContent.toLowerCase().includes("idioma")) {
-    langLabel.style.display = "";
-  }
-
-  if (currentTcg === "riftbound") return pedirCrearTracking_RB(preFillName);
-  return _pedirCrearTracking_OP(preFillName);
-};
-
-renderTrackingExtra = function(type, panel) {
-  if (currentTcg === "riftbound") return renderTrackingExtra_RB(type, panel);
-  return _renderTrackingExtra_OP(type, panel);
-};
-
-getAvailableSets = function() {
-  if (currentTcg === "riftbound") return getAvailableSets_RB();
-  return _getAvailableSets_OP();
-};
-
-buildTrackingCardList = function(type, config) {
-  if (currentTcg === "riftbound") return buildTrackingCardList_RB(type, config);
-  return _buildTrackingCardList_OP(type, config);
-};
-
-trackingCardPasses = function(c, config) {
-  if (currentTcg === "riftbound") return trackingCardPasses_RB(c, config);
-  return _trackingCardPasses_OP(c, config);
-};
-
-confirmCreateTracking = function() {
-  if (currentTcg === "riftbound") return confirmCreateTracking_RB();
-  return _confirmCreateTracking_OP();
-};
-
-// ─── Re-bind events that capture function objects directly ──────────────
-
-document.getElementById("createTrackingBtn").removeEventListener("click", _pedirCrearTracking_OP);
-document.getElementById("createTrackingBtn").addEventListener("click", pedirCrearTracking);
-document.getElementById("trackingModalConfirm").removeEventListener("click", _confirmCreateTracking_OP);
-document.getElementById("trackingModalConfirm").addEventListener("click", confirmCreateTracking);

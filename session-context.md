@@ -4,23 +4,23 @@
 2026-07-14
 
 ## Proyecto
-App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
+App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
 
 ## Arquitectura modular
-Cada módulo tiene archivo OP (`_OP`), archivo RB (`_RB`) y dispatcher (`dispatcher_*.js`) que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás. Funciones compartidas entre TCGs (ej. `openVenta`, `renderVentaView`) no llevan sufijo.
+Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatcher que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás.
 
 - `index.html` — Layout principal + orden de carga de scripts
 - `style.css` / `design-system.css` — Estilos y tokens
-- `script.js` — Lógica principal (1394 líneas), estado global, sync Supabase
+- `script.js` — Lógica principal (~1310 líneas), estado global, sync Supabase
 - `js/state.js` — Estado (solo `catalog.catalogLanguage`)
-- `js/modals/modals.js` — Modal de carta, modal "Agregar a", badges
-- `js/catalog/catalog.js` — Renderizado de catálogo, filtros, badges, stats
-- `js/binder/binder.js` + `js/binder/binder_riftbound.js` + `js/binder/dispatcher_binder.js` — Colecciones OP y RB
-- `js/venta/venta.js` + `js/venta/venta_riftbound.js` + `js/venta/dispatcher_venta.js` — Venta OP y RB (precios ✎/↺)
-- `js/deck/deck.js` + `js/deck/deck_riftbound.js` + `js/deck/dispatcher.js` — Deck builder OP y RB
-- `js/tracking/tracking.js` — Tracking OP (extraído de script.js)
-- `js/tracking/tracking_riftbound.js` — Tracking RB (sin DON, Champions, rarezas RB)
-- `js/explore/explore.js` — Vista explore (Double encoding CP1252 corregido)
+- `js/tcg/{tcg}/config.js` — Config por TCG (deckRules, rarities, cardTypes, colors, etc.)
+- `js/modals/modals.js` — Modal de carta, modal "Agregar a", badges, event listeners
+- `js/catalog/catalog.js` — Renderizado de catálogo, filtros data-driven, badges, stats
+- `js/binder/binder.js` + `_RB` + `_PK` + `dispatcher_binder.js` — Colecciones
+- `js/venta/venta.js` + `_RB` + `_PK` + `dispatcher_venta.js` — Venta
+- `js/deck/deck.js` + `_RB` + `_PK` + `dispatcher.js` — Deck builder
+- `js/tracking/tracking.js` + `_RB` + `_PK` + `dispatcher_tracking.js` — Tracking
+- `js/explore/explore.js` — Vista explore
 - `auth.js` / `profile.js` — Autenticación y perfil Supabase
 
 ## Supabase
@@ -31,53 +31,83 @@ Cada módulo tiene archivo OP (`_OP`), archivo RB (`_RB`) y dispatcher (`dispatc
 ## Datos maestros
 - `data/games/onepiece/cards_master.json` — 9,813 cartas (EN + JA)
 - `data/games/riftbound/cards_master.json` — 1,224 cartas
-  - 8 sets: OGN, OGS, SFD, UNL, VEN, OPP, PR, JDG
-  - Variantes por sufijo `card_set_id`: `a` = AA, `s` = Signature, `v` = Overnumbered
-- Imágenes: `assets/images/onepiece/`, `assets/images/riftbound/{set}/`
+- `config/games.json` — Habilita/deshabilita TCGs y apunta a `data_dir`
 
 ## Diseño (Nexus Design System)
 - Fondo: #050511, acento: #00f0ff (cyan), glass-panel (backdrop-blur)
 - Tipografía: Outfit (UI), JetBrains Mono (datos)
 - Cards: aspect-ratio 63/88, hover scale(1.06)
 
+## Sistema de configs TCG (refactor 2026-07-14)
+
+Cada TCG define su metadata en `js/tcg/{id}/config.js` como propiedad de `window.tcgConfigs`:
+
+```
+window.tcgConfigs["one-piece"] = {
+  short: "OP", playsetMax: 4, hasLanguageFilter: true,
+  deckZones: [{ key:"leader", max:1 }, { key:"cards", max:50, maxCopies:4, maxCopiesBy:"card_set_id" }, { key:"dons", max:10, optional:true }],
+  rarities: ["L","C","UC","R","SR","SEC","SP","AA"],
+  cardTypes: ["LEADER","CHARACTER","EVENT","STAGE","DON!!"],
+  colors: ["Red","Blue","Green","Purple","Black","Yellow"],
+  colorNames: { "Red":"Rojo", ... },
+  expansionNames: { ... }, expansionOrder: { ... },
+  donVariants: ["Gold","DP"],
+  unlimitedCards: Set(["OP16-042"]),
+  mangaSet: Set(["EB01-006", ...])
+};
+```
+
+Los módulos leen de `tcgConfigs[currentTcg]` y se adaptan. Para agregar un TCG nuevo solo se necesita: `config.js` + `cards_master.json` + stubs `_XX`.js por módulo + entry en `config/games.json`.
+
+### Dispatchers genéricos
+Todos los dispatchers usan lookup por `tcgConfigs[currentTcg].short`:
+```js
+var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
+function _fn(name) {
+  var s = (tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+  return (s && window[name + "_" + s]) || window[name + "_OP"];
+}
+```
+
+### Catálogo data-driven
+`cargarFiltros()` y `actualizarFiltrosPorExpansion()` leen `rarities`, `cardTypes`, `colors`, `colorNames` de `tcgConfigs[currentTcg]`. El filtro de expansiones se adapta automáticamente (usa `expansionNames` si existe, sino `set_name` de las cartas). AA detection usa `detectAA` de la config.
+
+### Modals data-driven
+- `playsetMax` lee de `_getPlaysetMax(tcgId)` que consulta `tcgConfigs[tcgId].playsetMax`
+- `confirmarAdd` despacha a `_confirmAddDeck_OP/RB/PK` según `col.tcg`
+- `renderModalInfo` usa `cfg.colorNames` y `cfg.expansionNames`
+
+### Bug fixes
+- `removeFromCurrentCollection` y `setupBinderDragDrop` → usan `renderBinder()` (dispatcher) en vez de `renderBinder_OP()` directo
+- `renderVentaView` → usa `renderVentaIndividual(col, grid)` (dispatcher)
+- Event listeners problemáticos movidos de `script.js` a los archivos que definen las funciones:
+  - `confirmarAdd`/`confirmCreateModal`/`hideCreateModal` → `modals.js`
+  - `pedirCrearVenta` → `dispatcher_venta.js`
+  - `pedirCrearColeccion` → `dispatcher_binder.js`
+
 ## Reglas por TCG
-| | One Piece | Riftbound |
-|---|---|---|
-| **playsetMax** | 4 | 3 |
-| **Deck** | Leader + 50 cartas + 10 DON | Legend + 40 main + 12 runes + 3 BF + sideboard |
-| **Ciclo cantidad** | 0→1→4→10→0 | 0→1→3→10→0 |
-| **Champions** | — | Match por `feature` (split por `/`) |
+| | One Piece | Riftbound | Pokémon |
+|---|---|---|---|
+| **playsetMax** | 4 | 3 | 4 |
+| **Deck** | Leader + 50 + 10 DON | Legend + 3 Champions + 40 main + 12 Runes + 3 BF + SB | 60 cartas planas |
+| **Copias máx** | 4 por card_set_id | 3 por card_name | 4 por card_name |
+| **hasLanguageFilter** | true | false | true |
+| **Tracking** | expansion, character, rarity, don | expansion, character, rarity | expansion, character, rarity |
 
-## Funcionalidades clave (ambos TCGs)
-- **Aislamiento cross-TCG**: `guardarCollections`/`guardarVenta` usan `currentTcg`, sync filtra por TCG, no hay cross-deletion.
-- **Badges en modal "Agregar a"**: binders de venta muestran modo (`x1`, `x3`/`x4`, `SL`) + badge "Venta".
-- **Playset multi-stack**: `confirmarAdd()` rellena stacks existentes + crea nuevos respetando `playsetMax`.
-- **Slots vacíos `+`**: navegan al catálogo en binder/venta de ambos TCGs.
-- **Banner `#catalogAddBanner`**: "Agregando a: [nombre]" + botones "Volver" / "✕".
-- **Badge ✓ en catálogo**: cartas ya agregadas al binder destino.
-- **Stats**: `#statCards` y `#statExpansions` se actualizan en `catalog.js:cargarFiltros`.
-- **`_DEBUG` flag**: `var _DEBUG = false` al inicio de script.js; todos los `console.error` van guardados.
-
-## Funcionalidades RB (implementadas)
-- **Precios ✎/↺** en portadas de venta RB.
-- **Tracking base set**: excluye OV (`v`) y Sig (`s`), match por `feature` para champions.
-- **Autocomplete champions RB**: extrae raíz de `feature` (ej: `"Jinx/Zaun"` → `"Jinx"`).
-- **Champion modal + navList** en deck RB.
-- **Deck prices** en todas las zonas (Champions, Runes, BF, Sideboard).
-
-## Refactor completado (2026-07-14)
-- **script.js**: 4059→1394 líneas (-66%) eliminando ~1800 líneas de código muerto (catalog, modals, deck, binder, venta, explore overrides)
-- **Tracking OP** extraído a `js/tracking/tracking.js`
-- **Deck OP**: `renderDeckView_OP` 253→88 líneas con 4 helpers (`_opBuildLeaderHTML`, `_opBuildMainCardsHTML`, `_opBuildDonsHTML`, `_opAttachDeckEvents`)
-- **Deck RB**: `renderDeckView_RB` 506→70 líneas con 7 helpers (`_rbBuildLegendHTML`, `_rbBuildChampionHTML`, `_rbBuildMainDeckHTML`, `_rbBuildRuneHTML`, `_rbBuildBattlefieldHTML`, `_rbBuildSideboardHTML`, `_rbAttachDeckEvents`)
-- **Binder**: split `_OP`/`_RB` + `dispatcher_binder.js` (sin saves `_OP` en `_RB`, sin dispatchers inline)
-- **Venta**: split `_OP`/`_RB` + `dispatcher_venta.js` (`openVenta` y `renderVentaView` compartidos sin sufijo)
-- **Renames**: `_legend` → `_RB` en `deck_riftbound.js` (4 funciones)
-- **Cleanup**: `data-tcgid` y variable `tcgId` eliminados, `isEventStage` muerto eliminado
+## Pokémon (stubs creados, sin datos)
+- `js/tcg/pokemon/config.js` — Config con deckZones, rarities, cardTypes, colors
+- `js/deck/deck_pokemon.js` — Deck 60 cartas, 4 copias por nombre
+- `js/binder/binder_pokemon.js` — Binder y deck
+- `js/venta/venta_pokemon.js` — Venta (delega a OP para individual/grouped)
+- `js/tracking/tracking_pokemon.js` — Tracking (delega a RB)
+- `js/modals/modals.js` — `_confirmAddDeck_PK` para agregar cartas a deck PK
+- `config/games.json` — `"pokemon": { "enabled": false }`
 
 ## Pendiente
-- API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación.
-- Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`.
+- **Pokémon**: Crear `data/games/pokemon/cards_master.json` y poner `"enabled": true` en `config/games.json`
+- Probar funcionalidad PK con datos reales (deck builder, binder, venta, tracking, filtros)
+- API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
+- Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
 
 ## Deploy
 - URL: `https://main.tutcg.pages.dev`
@@ -85,6 +115,9 @@ Cada módulo tiene archivo OP (`_OP`), archivo RB (`_RB`) y dispatcher (`dispatc
 
 ## Convenciones
 - Leer este archivo al iniciar cada sesión.
-- Cada TCG tiene sus propios archivos JS: `_OP`, `_RB` y `dispatcher`, sin saves del suffix opuesto ni dispatchers inline.
+- Cada TCG tiene sus propios archivos JS: `_OP`, `_RB`, `_PK` y `dispatcher`, sin dispatchers inline.
+- Los dispatchers usan lookup genérico por `tcgConfigs[currentTcg].short`, no if/else.
+- Las configs TCG definen metadatos (deckZones, rarities, colors, etc.). Los módulos leen de la config.
+- Los event listeners que referencian funciones de otros scripts van en el archivo que define la función, no en script.js.
 - Nunca hacer deploy sin que el usuario lo pida.
 - `feature` es el campo para agrupar cartas de un mismo champion en RB.

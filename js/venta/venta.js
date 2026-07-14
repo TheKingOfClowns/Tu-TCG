@@ -203,9 +203,9 @@ function renderVentaView() {
     modeContainer.innerHTML = `<span class="venta-mode-badge">${labels[mode] || mode}</span>`;
   }
   grid.innerHTML = "";
-  if (mode === "individual") renderVentaIndividual_OP(col, grid);
-  else if (mode === "playset") renderVentaGrouped_OP(col, grid, "playset");
-  else if (mode === "editable") renderVentaGrouped_OP(col, grid, "editable");
+  if (mode === "individual") renderVentaIndividual(col, grid);
+  else if (mode === "playset") renderVentaGrouped(col, grid, "playset");
+  else if (mode === "editable") renderVentaGrouped(col, grid, "editable");
   if (!grid.hasAttribute("data-empty-click")) {
     grid.setAttribute("data-empty-click", "1");
     grid.addEventListener("click", function(e) {

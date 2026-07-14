@@ -307,7 +307,7 @@ function removeFromCurrentCollection(realIdx) {
   if (!col) return;
   col.cards.splice(realIdx, 1);
   guardarCollections();
-  renderBinder_OP();
+  renderBinder();
   actualizarBotonesBinder();
 }
 function actualizarBotonesBinder() {
@@ -337,7 +337,7 @@ function setupBinderDragDrop() {
       const adjustedTo = toGlobal > fromIdx ? toGlobal - 1 : toGlobal;
       col.cards.splice(adjustedTo, 0, card);
       guardarCollections();
-      renderBinder_OP();
+      renderBinder();
     });
   });
 }

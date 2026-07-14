@@ -10,5 +10,11 @@
     "data_dir": "data/games/riftbound",
     "language": "en",
     "name": "Riftbound"
+  },
+  "pokemon": {
+    "enabled": false,
+    "data_dir": "data/games/pokemon",
+    "language": "en",
+    "name": "Pokémon TCG"
   }
 }
