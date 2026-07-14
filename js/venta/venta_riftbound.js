@@ -1,14 +1,4 @@
 // ─── Venta Riftbound ─────────────────────────────────────────────────────
-// Overrides venta functions with RB-specific logic.
-// Dependencias: venta/venta.js (pedirCrearVenta, renderVentaGrouped, attachVentaEvents,
-//                            renderVentaView, renderVentaList, buildVentaCardHTML)
-
-var _pedirCrearVenta_OP = pedirCrearVenta;
-var _renderVentaGrouped_OP = renderVentaGrouped;
-var _attachVentaEvents_OP = attachVentaEvents;
-var _renderVentaList_OP = renderVentaList;
-var _buildVentaCardHTML_OP = buildVentaCardHTML;
-var _renderVentaIndividual_OP = renderVentaIndividual;
 
 function _getPlaysetMax() {
   return currentTcg === "riftbound" ? 3 : 4;
@@ -353,34 +343,3 @@ function renderVentaIndividual_RB(col, grid) {
   attachVentaEvents_RB(col, "individual", grid, totalPages);
 }
 
-// ─── Dispatch overrides ─────────────────────────────────────────────────
-
-pedirCrearVenta = function() {
-  if (currentTcg === "riftbound") return pedirCrearVenta_RB();
-  return _pedirCrearVenta_OP();
-};
-
-renderVentaList = function() {
-  if (currentTcg === "riftbound") return renderVentaList_RB();
-  return _renderVentaList_OP();
-};
-
-renderVentaGrouped = function(col, grid, mode) {
-  if (currentTcg === "riftbound") return renderVentaGrouped_RB(col, grid, mode);
-  return _renderVentaGrouped_OP(col, grid, mode);
-};
-
-attachVentaEvents = function(col, mode, grid, totalPages) {
-  if (currentTcg === "riftbound") return attachVentaEvents_RB(col, mode, grid, totalPages);
-  return _attachVentaEvents_OP(col, mode, grid, totalPages);
-};
-
-buildVentaCardHTML = function(c, globalIdx, mode) {
-  if (currentTcg === "riftbound") return buildVentaCardHTML_RB(c, globalIdx, mode);
-  return _buildVentaCardHTML_OP(c, globalIdx, mode);
-};
-
-renderVentaIndividual = function(col, grid) {
-  if (currentTcg === "riftbound") return renderVentaIndividual_RB(col, grid);
-  return _renderVentaIndividual_OP(col, grid);
-};

@@ -1,5 +1,5 @@
 // â”€â”€â”€ Venta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function renderVentaList() {
+function renderVentaList_OP() {
   const container = document.getElementById("ventaList");
   if (!container) return;
   container.innerHTML = "";
@@ -11,7 +11,7 @@ function renderVentaList() {
     const msg = currentTcg ? "No tienes colecciones de venta para este TCG" : "No tienes colecciones de venta";
     container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstVentaBtn">Crear primera colección de venta</button></div>`;
     const btn = document.getElementById("createFirstVentaBtn");
-    if (btn) btn.addEventListener("click", pedirCrearVenta);
+    if (btn) btn.addEventListener("click", pedirCrearVenta_OP);
     return;
   }
   container.className = "collection-binder-grid";
@@ -71,7 +71,7 @@ function renderVentaList() {
         confirmText: "Guardar",
         placeholder: "Nuevo nombre",
         initialValue: ventaCols[id].name,
-        onConfirm: (nombre) => { ventaCols[id].name = nombre.trim(); guardarVenta(); renderVentaList(); }
+        onConfirm: (nombre) => { ventaCols[id].name = nombre.trim(); guardarVenta(); renderVentaList_OP(); }
       });
     });
   });
@@ -79,7 +79,7 @@ function renderVentaList() {
     b.addEventListener("click", () => {
       const idVenta = b.getAttribute("data-id");
       showConfirmModal('¿Eliminar la colección de venta "' + ventaCols[idVenta].name + '"?', () => {
-        delete ventaCols[idVenta]; guardarVenta(); renderVentaList();
+        delete ventaCols[idVenta]; guardarVenta(); renderVentaList_OP();
       });
     });
   });
@@ -106,13 +106,13 @@ function renderVentaList() {
       input.select();
       const save = () => {
         const val = parseFloat(input.value);
-        if (isNaN(val) || val < 0) { renderVentaList(); return; }
+        if (isNaN(val) || val < 0) { renderVentaList_OP(); return; }
         const calc = getTotalPrice(col);
         if (val === calc) delete col.customTotalPrice;
         else col.customTotalPrice = val;
-        guardarVenta(); renderVentaList();
+        guardarVenta(); renderVentaList_OP();
       };
-      input.addEventListener("keydown", e => { if (e.key === "Enter") save(); if (e.key === "Escape") renderVentaList(); });
+      input.addEventListener("keydown", e => { if (e.key === "Enter") save(); if (e.key === "Escape") renderVentaList_OP(); });
       input.addEventListener("blur", save);
     });
   });
@@ -122,11 +122,11 @@ function renderVentaList() {
       const col = ventaCols[id];
       if (!col) return;
       delete col.customTotalPrice;
-      guardarVenta(); renderVentaList();
+      guardarVenta(); renderVentaList_OP();
     });
   });
 }
-function pedirCrearVenta() {
+function pedirCrearVenta_OP() {
   if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
     title: "Crear colección de venta",
@@ -152,7 +152,7 @@ function pedirCrearVenta() {
       const id = generarId();
       ventaCols[id] = { id, name: nombre.trim(), subtype, cards: [], leader: null, dons: [], is_public: false, display_mode: mode, tcg: currentTcg || "one-piece" };
       guardarVenta();
-      renderVentaList();
+      renderVentaList_OP();
     }
   });
 }
@@ -203,9 +203,9 @@ function renderVentaView() {
     modeContainer.innerHTML = `<span class="venta-mode-badge">${labels[mode] || mode}</span>`;
   }
   grid.innerHTML = "";
-  if (mode === "individual") renderVentaIndividual(col, grid);
-  else if (mode === "playset") renderVentaGrouped(col, grid, "playset");
-  else if (mode === "editable") renderVentaGrouped(col, grid, "editable");
+  if (mode === "individual") renderVentaIndividual_OP(col, grid);
+  else if (mode === "playset") renderVentaGrouped_OP(col, grid, "playset");
+  else if (mode === "editable") renderVentaGrouped_OP(col, grid, "editable");
   if (!grid.hasAttribute("data-empty-click")) {
     grid.setAttribute("data-empty-click", "1");
     grid.addEventListener("click", function(e) {
@@ -218,7 +218,7 @@ function renderVentaView() {
     });
   }
 }
-function buildVentaCardHTML(c, globalIdx, mode) {
+function buildVentaCardHTML_OP(c, globalIdx, mode) {
   const cp = c.customPrice != null ? c.customPrice : 0;
   const fullCard = c._key ? cartasMap[c._key] : null;
   const data = fullCard || c;
@@ -253,7 +253,7 @@ function buildVentaCardHTML(c, globalIdx, mode) {
     </div>
     <button class="binder-remove" data-ventaidx="${globalIdx}" data-mode="${mode}">&times;</button>`;
 }
-function renderVentaIndividual(col, grid) {
+function renderVentaIndividual_OP(col, grid) {
   const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
   const start = (ventaPage - 1) * ventaPerPage;
   const pageCards = col.cards.slice(start, start + ventaPerPage);
@@ -268,15 +268,15 @@ function renderVentaIndividual(col, grid) {
       slot.setAttribute("draggable", "true");
       slot.setAttribute("data-key", c._key || "");
       slot.setAttribute("data-cardkey", c._key || "");
-      slot.innerHTML = buildVentaCardHTML(c, globalIdx, "individual");
+      slot.innerHTML = buildVentaCardHTML_OP(c, globalIdx, "individual");
     } else {
       slot.innerHTML = '<div class="binder-empty">+</div>';
     }
     grid.appendChild(slot);
   }
-  attachVentaEvents(col, "individual", grid, totalPages);
+  attachVentaEvents_OP(col, "individual", grid, totalPages);
 }
-function renderVentaGrouped(col, grid, mode) {
+function renderVentaGrouped_OP(col, grid, mode) {
   const cards = col.cards || [];
   const totalPages = Math.max(1, Math.ceil(cards.length / ventaPerPage));
   const start = (ventaPage - 1) * ventaPerPage;
@@ -290,7 +290,7 @@ function renderVentaGrouped(col, grid, mode) {
       slot.setAttribute("data-key", c._key || "");
       slot.setAttribute("data-cardkey", c._key || "");
       slot.setAttribute("data-global", globalIdx);
-      slot.innerHTML = buildVentaCardHTML(c, globalIdx, mode);
+      slot.innerHTML = buildVentaCardHTML_OP(c, globalIdx, mode);
     } else {
       slot.className = "card venta-slot venta-grouped";
       slot.setAttribute("data-global", globalIdx);
@@ -298,9 +298,9 @@ function renderVentaGrouped(col, grid, mode) {
     }
     grid.appendChild(slot);
   }
-  attachVentaEvents(col, mode, grid, totalPages);
+  attachVentaEvents_OP(col, mode, grid, totalPages);
 }
-function attachVentaEvents(col, mode, grid, totalPages) {
+function attachVentaEvents_OP(col, mode, grid, totalPages) {
   // Remove buttons
   grid.querySelectorAll(".binder-remove").forEach(btn => {
     btn.addEventListener("click", e => {

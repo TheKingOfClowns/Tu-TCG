@@ -262,259 +262,236 @@ document.getElementById("deckPickerOverlay")?.addEventListener("click", (e) => {
     if (_deckPickerInterval) { clearInterval(_deckPickerInterval); _deckPickerInterval = null; }
   }
 });
-// ─── Deck View ─────────────────────────────────────────────────────────
-function renderDeckView_OP(type, col, grid, title, toggleContainer) {
-  const isSale = type === "sale";
-  title.textContent = col.name;
-  if (toggleContainer) {
-    toggleContainer.innerHTML = isAuthenticated() ? `
-      <label class="public-toggle">
-        <span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
-        <input type="checkbox" id="${isSale ? "venta" : "binder"}PublicCheck" ${col.is_public ? "checked" : ""}>
-        <span class="public-toggle-track">
-          <span class="public-toggle-thumb"></span>
-        </span>
-        <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
-      </label>
-    ` : "";
-    const chk = document.getElementById(isSale ? "ventaPublicCheck" : "binderPublicCheck");
-    if (chk) chk.onchange = () => toggleBinderPublic(isSale ? currentVentaId : currentCollectionId);
-  }
-  const leader = col.leader;
-  const mainCards = col.cards || [];
-  const dons = col.dons || [];
-  const totalCards = (leader ? 1 : 0) + mainCards.reduce((s, c) => s + (c.quantity || 1), 0) + dons.length;
-  title.textContent = `${col.name} (${totalCards} cartas)`;
-  let html = `<div class="deck-container">`;
-  // Leader section
-  html += `<div class="deck-section deck-leader-section"><h3 class="deck-section-title">Líder</h3><div class="deck-leader-slot">`;
+// ─── Deck View Helpers ─────────────────────────────────────────────────
+
+function _opBuildLeaderHTML(leader, isSale) {
+  var html = '<div class="deck-section deck-leader-section"><h3 class="deck-section-title">Lider</h3><div class="deck-leader-slot">';
   if (leader) {
     const full = leader._key ? cartasMap[leader._key] : null;
-    const img = leader.card_image || full?.card_image || "TUTCG.webp";
-    const name = leader.card_name || full?.card_name || "";
-    const color = leader.card_color || full?.card_color || "";
-    const cp = leader.customPrice != null ? leader.customPrice : 0;
-    html += `<div class="deck-leader-card" data-key="${leader._key || ""}">
-      <div class="card-img-wrap"><img src="${img}" onerror="this.src='TUTCG.webp'"></div>
-      <div class="card-body">
-        <h3>${name}</h3>
-        <span class="card-set-id">${color ? color : ""}</span>`;
+    const img = leader.card_image || (full ? full.card_image : null) || "TUTCG.webp";
+    const name = leader.card_name || (full ? full.card_name : "") || "";
+    const color = leader.card_color || (full ? full.card_color : "") || "";
+    html += '<div class="deck-leader-card" data-key="' + (leader._key || "") + '">';
+    html += '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>';
+    html += '<div class="card-body"><h3>' + name + '</h3><span class="card-set-id">' + (color || "") + '</span>';
     if (isSale) {
       const cp = leader.customPrice != null ? leader.customPrice : 0;
-      html += `<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="${cp}" data-leaderprice="1"></div>`;
+      html += '<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-leaderprice="1"></div>';
     }
-    html += `</div></div>
-      <button class="btn-ghost btn-xs" id="deckChangeLeaderBtn">Cambiar líder</button>
-      <button class="binder-remove" data-leaderremove="1" style="position:static;margin-top:var(--space-2)">&times; Quitar líder</button>`;
+    html += '</div></div><button class="btn-ghost btn-xs" id="deckChangeLeaderBtn">Cambiar lider</button>';
+    html += '<button class="binder-remove" data-leaderremove="1" style="position:static;margin-top:var(--space-2)">&times; Quitar lider</button>';
   } else {
-    html += `<div class="deck-empty-slot deck-leader-placeholder">Elige un líder</div>`;
+    html += '<div class="deck-empty-slot deck-leader-placeholder">Elige un lider</div>';
   }
-  html += `</div></div>`;
-  // Main deck section
-  const mainLimit = 50;
-  const mainTotal = mainCards.reduce((s, c) => s + (c.quantity || 1), 0);
-  html += `<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Cartas</h3><span class="deck-count">${mainTotal}/${mainLimit}</span></div><div class="deck-main-grid">`;
-  mainCards.forEach((c, i) => {
-    const qty = c.quantity || 1;
-    const full = c._key ? cartasMap[c._key] : null;
-    const img = c.card_image || full?.card_image || "TUTCG.webp";
-    let priceHTML = "";
+  html += '</div></div>';
+  return html;
+}
+
+function _opBuildMainCardsHTML(mainCards, isSale) {
+  var mainLimit = 50;
+  var mainTotal = mainCards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Cartas</h3><span class="deck-count">' + mainTotal + '/' + mainLimit + '</span></div><div class="deck-main-grid">';
+  mainCards.forEach(function(c, i) {
+    var qty = c.quantity || 1;
+    var full = c._key ? cartasMap[c._key] : null;
+    var img = c.card_image || (full ? full.card_image : null) || "TUTCG.webp";
+    var priceHTML = "";
     if (isSale) {
-      const cp = c.customPrice != null ? c.customPrice : 0;
-      priceHTML = `<div class="card-body" style="padding:var(--space-2)">
-        <div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="${cp}" data-mainprice="${i}"></div>
-      </div>`;
+      var cp = c.customPrice != null ? c.customPrice : 0;
+      priceHTML = '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-mainprice="' + i + '"></div></div>';
     }
-    html += `<div class="deck-card-slot" data-key="${c._key || ""}" data-mainidx="${i}">
-      <div class="card-img-wrap"><img src="${img}" onerror="this.src='TUTCG.webp'">
-        <span class="deck-card-qty">×${qty}</span>
-      </div>
-      ${priceHTML}
-      <button class="binder-remove" data-mainremove="${i}">&times;</button>
-    </div>`;
+    html += '<div class="deck-card-slot" data-key="' + (c._key || "") + '" data-mainidx="' + i + '">';
+    html += '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"><span class="deck-card-qty">&times;' + qty + '</span></div>';
+    html += priceHTML;
+    html += '<button class="binder-remove" data-mainremove="' + i + '">&times;</button></div>';
   });
   if (mainTotal < 50) {
-    html += `<div class="deck-add-more-btn deck-empty-slot">+ Agregar más (${50 - mainTotal} libres)</div>`;
+    html += '<div class="deck-add-more-btn deck-empty-slot">+ Agregar mas (' + (50 - mainTotal) + ' libres)</div>';
   }
-  html += `</div></div>`;
-  // DON!! section
-  const donLimit = 10;
-  html += `<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">DON!!</h3><span class="deck-count">${dons.length}/${donLimit} <span class="deck-optional">opcional</span></span></div><div class="deck-don-row">`;
+  html += '</div></div>';
+  return html;
+}
+
+function _opBuildDonsHTML(dons, isSale) {
+  var donLimit = 10;
+  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">DON!!</h3><span class="deck-count">' + dons.length + '/' + donLimit + ' <span class="deck-optional">opcional</span></span></div><div class="deck-don-row">';
   for (let i = 0; i < donLimit; i++) {
-    const c = dons[i];
+    var c = dons[i];
     if (c) {
-      const full = c._key ? cartasMap[c._key] : null;
-      const img = c.card_image || full?.card_image || "TUTCG.webp";
-      let priceHTML = "";
+      var full = c._key ? cartasMap[c._key] : null;
+      var img = c.card_image || (full ? full.card_image : null) || "TUTCG.webp";
+      var priceHTML = "";
       if (isSale) {
-        const cp = c.customPrice != null ? c.customPrice : 0;
-        priceHTML = `<div class="card-body" style="padding:var(--space-1)">
-          <div class="venta-price-row" style="margin-top:2px"><span class="venta-price-label">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="${cp}" data-donprice="${i}" style="width:60px"></div>
-        </div>`;
+        var cp = c.customPrice != null ? c.customPrice : 0;
+        priceHTML = '<div class="card-body" style="padding:var(--space-1)"><div class="venta-price-row" style="margin-top:2px"><span class="venta-price-label">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-donprice="' + i + '" style="width:60px"></div></div>';
       }
-      html += `<div class="deck-don-slot" data-key="${c._key || ""}" data-donidx="${i}">
-        <div class="card-img-wrap"><img src="${img}" onerror="this.src='TUTCG.webp'"></div>
-        ${priceHTML}
-        <button class="binder-remove" data-donremove="${i}">&times;</button>
-      </div>`;
+      html += '<div class="deck-don-slot" data-key="' + (c._key || "") + '" data-donidx="' + i + '">';
+      html += '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>';
+      html += priceHTML;
+      html += '<button class="binder-remove" data-donremove="' + i + '">&times;</button></div>';
     } else if (i === dons.length) {
-      html += `<div class="deck-don-slot deck-don-empty deck-don-add" title="Agregar DON!!">+</div>`;
+      html += '<div class="deck-don-slot deck-don-empty deck-don-add" title="Agregar DON!!">+</div>';
     } else {
-      html += `<div class="deck-don-slot deck-don-empty"></div>`;
+      html += '<div class="deck-don-slot deck-don-empty"></div>';
     }
   }
-  html += `</div></div>`;
-  html += `</div>`; // .deck-container
-  grid.innerHTML = html;
-  // Event handlers
-  grid.querySelectorAll("[data-leaderremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); col.leader = null; saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
+  html += '</div></div>';
+  return html;
+}
+
+function _opAttachDeckEvents(grid, col, isSale, reRender) {
+  grid.querySelectorAll("[data-leaderremove]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); col.leader = null; reRender(); });
   });
-  grid.querySelectorAll("[data-mainremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-mainremove")); const entry = col.cards[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
+  grid.querySelectorAll("[data-mainremove]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); var i = parseInt(btn.getAttribute("data-mainremove")); var entry = col.cards[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); reRender(); });
   });
-  grid.querySelectorAll("[data-donremove]").forEach(btn => {
-    btn.addEventListener("click", e => { e.stopPropagation(); const i = parseInt(btn.getAttribute("data-donremove")); col.dons.splice(i, 1); saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); });
+  grid.querySelectorAll("[data-donremove]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); var i = parseInt(btn.getAttribute("data-donremove")); col.dons.splice(i, 1); reRender(); });
   });
-  grid.querySelectorAll(".deck-card-slot .card-img-wrap img, .deck-leader-card .card-img-wrap img, .deck-don-slot .card-img-wrap img").forEach(img => {
+  grid.querySelectorAll(".deck-card-slot .card-img-wrap img, .deck-leader-card .card-img-wrap img, .deck-don-slot .card-img-wrap img").forEach(function(img) {
     img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
-      const slot = this.closest("[data-key]");
+      var slot = this.closest("[data-key]");
       if (!slot) return;
-      const key = slot.getAttribute("data-key");
-      const carta = key ? cartasMap[key] : null;
+      var key = slot.getAttribute("data-key");
+      var carta = key ? cartasMap[key] : null;
       if (!carta) return;
-      let navList = null, startIdx;
+      var navList = null, startIdx;
       if (slot.hasAttribute("data-mainidx")) {
-        const slotIdx = parseInt(slot.getAttribute("data-mainidx"));
+        var slotIdx = parseInt(slot.getAttribute("data-mainidx"));
         navList = []; startIdx = 0;
-        col.cards.forEach((entry, i) => {
-          const f = cartasMap[entry._key];
+        col.cards.forEach(function(entry, i) {
+          var f = cartasMap[entry._key];
           if (f) { navList.push(f); if (i < slotIdx) startIdx++; }
         });
       } else if (slot.hasAttribute("data-donidx")) {
-        const slotIdx = parseInt(slot.getAttribute("data-donidx"));
+        var slotIdx = parseInt(slot.getAttribute("data-donidx"));
         navList = []; startIdx = 0;
-        col.dons.forEach((entry, i) => {
-          const f = cartasMap[entry._key];
+        col.dons.forEach(function(entry, i) {
+          var f = cartasMap[entry._key];
           if (f) { navList.push(f); if (i < slotIdx) startIdx++; }
         });
       } else if (carta.card_type === "LEADER") {
-        navList = cartas.filter(c => c.card_set_id === carta.card_set_id && c.card_type === "LEADER");
+        navList = cartas.filter(function(c) { return c.card_set_id === carta.card_set_id && c.card_type === "LEADER"; });
       }
       openCardInModal(carta, navList, startIdx);
     });
   });
-  grid.querySelectorAll("[data-leaderprice]").forEach(inp => {
-    inp.addEventListener("change", () => { if (col.leader) col.leader.customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
+  grid.querySelectorAll("[data-leaderprice]").forEach(function(inp) {
+    inp.addEventListener("change", function() { if (col.leader) col.leader.customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
   });
-  grid.querySelectorAll("[data-mainprice]").forEach(inp => {
-    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-mainprice")); if (col.cards[i]) col.cards[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
+  grid.querySelectorAll("[data-mainprice]").forEach(function(inp) {
+    inp.addEventListener("change", function() { var i = parseInt(inp.getAttribute("data-mainprice")); if (col.cards[i]) col.cards[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
   });
-  grid.querySelectorAll("[data-donprice]").forEach(inp => {
-    inp.addEventListener("change", () => { const i = parseInt(inp.getAttribute("data-donprice")); if (col.dons[i]) col.dons[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
+  grid.querySelectorAll("[data-donprice]").forEach(function(inp) {
+    inp.addEventListener("change", function() { var i = parseInt(inp.getAttribute("data-donprice")); if (col.dons[i]) col.dons[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
   });
-  // Picker triggers
-  function pickLeader() {
-    showDeckPicker_OP("leader").then(picked => {
-      if (!picked) return;
-      col.leader = { _key: getCardKey(picked), card_set_id: picked.card_set_id, card_name: picked.card_name, card_image: picked.card_image, card_color: picked.card_color, card_type: picked.card_type, set_id: picked.set_id, customPrice: 0 };
-      saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
-    });
-  }
-  const leaderPlaceholder = grid.querySelector(".deck-leader-placeholder");
-  if (leaderPlaceholder) {
-    leaderPlaceholder.addEventListener("click", pickLeader);
-    leaderPlaceholder.style.cursor = "pointer";
-  }
-  const leaderCard = grid.querySelector(".deck-leader-card");
-  if (leaderCard) leaderCard.style.cursor = "pointer";
-  const leaderImg = grid.querySelector(".deck-leader-card .card-img-wrap");
-  if (leaderImg) leaderImg.addEventListener("click", e => { e.stopPropagation(); pickLeader(); });
-  const changeLeaderBtn = document.getElementById("deckChangeLeaderBtn");
-  if (changeLeaderBtn) changeLeaderBtn.addEventListener("click", pickLeader);
-  const mainEmpty = grid.querySelectorAll(".deck-add-more-btn, .deck-empty-slot:not(.deck-leader-placeholder)");
-  mainEmpty.forEach(el => {
-    el.addEventListener("click", async () => {
-      if (!col.leader) { alert("Primero debes elegir un líder."); return; }
-      const lColor = col.leader?.card_color || "";
-      const existingKeys = (col.cards || []).map(c => c._key).filter(Boolean);
-      const mainTotal = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-      const remaining = 50 - mainTotal;
-      if (remaining <= 0) { alert("El deck ya tiene 50 cartas."); return; }
-      const lSetId = col.leader?.set_id || "";
-      const existingCounts = {};
-      (col.cards || []).forEach(c => {
-        if (c.card_set_id) existingCounts[c.card_set_id] = (existingCounts[c.card_set_id] || 0) + (c.quantity || 1);
+  (function attachPickerTriggers() {
+    function pickLeader() {
+      showDeckPicker_OP("leader").then(function(picked) {
+        if (!picked) return;
+        col.leader = { _key: getCardKey(picked), card_set_id: picked.card_set_id, card_name: picked.card_name, card_image: picked.card_image, card_color: picked.card_color, card_type: picked.card_type, set_id: picked.set_id, customPrice: 0 };
+        reRender();
       });
-      const pickedArr = await showDeckPicker_OP("main", lColor, existingKeys, lSetId, existingCounts, remaining);
-      if (pickedArr && pickedArr.length) {
-        pickedArr.forEach(c => {
-          const mainTotal = col.cards.reduce((s, card) => s + (card.quantity || 1), 0);
-          if (mainTotal >= 50) return;
-          const key = getCardKey(c);
-          const setId = c.card_set_id;
-          const deckTotal = col.cards
-            .filter(card => card.card_set_id === setId)
-            .reduce((sum, card) => sum + (card.quantity || 1), 0);
-          if (!isUnlimited(c) && deckTotal >= 4) return;
-          const existing = col.cards.find(card => card._key === key);
-          if (existing) {
-            existing.quantity++;
-          } else {
-            col.cards.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, customPrice: 0 });
-  }
-});
-        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
-      }
-    });
-    el.style.cursor = "pointer";
-  });
-  grid.querySelectorAll(".deck-don-add").forEach(el => {
-    el.addEventListener("click", async () => {
-      if (!col.leader) { alert("Primero debes elegir un líder."); return; }
-      const totalDons = col.dons?.length || 0;
-      const remaining = 10 - totalDons;
-      if (remaining <= 0) { alert("Ya tienes 10 DON!!"); return; }
-      const existingKeys = (col.dons || []).map(c => c._key).filter(Boolean);
-      const pickedArr = await showDeckPicker_OP("don", "", existingKeys, "", null, remaining);
-      if (pickedArr && pickedArr.length) {
-        const toAdd = pickedArr;
-        if (!col.dons) col.dons = [];
-        toAdd.forEach(c => {
-          if (col.dons.length >= 10) return;
-          col.dons.push({ _key: getCardKey(c), card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, customPrice: 0 });
+    }
+    var leaderPlaceholder = grid.querySelector(".deck-leader-placeholder");
+    if (leaderPlaceholder) { leaderPlaceholder.addEventListener("click", pickLeader); leaderPlaceholder.style.cursor = "pointer"; }
+    var leaderCard = grid.querySelector(".deck-leader-card");
+    if (leaderCard) leaderCard.style.cursor = "pointer";
+    var leaderImg = grid.querySelector(".deck-leader-card .card-img-wrap");
+    if (leaderImg) leaderImg.addEventListener("click", function(e) { e.stopPropagation(); pickLeader(); });
+    var changeLeaderBtn = document.getElementById("deckChangeLeaderBtn");
+    if (changeLeaderBtn) changeLeaderBtn.addEventListener("click", pickLeader);
+    var mainEmpty = grid.querySelectorAll(".deck-add-more-btn, .deck-empty-slot:not(.deck-leader-placeholder)");
+    mainEmpty.forEach(function(el) {
+      el.addEventListener("click", async function() {
+        if (!col.leader) { alert("Primero debes elegir un lider."); return; }
+        var lColor = col.leader.card_color || "";
+        var existingKeys = (col.cards || []).map(function(c) { return c._key; }).filter(Boolean);
+        var mainTotal = col.cards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+        var remaining = 50 - mainTotal;
+        if (remaining <= 0) { alert("El deck ya tiene 50 cartas."); return; }
+        var lSetId = col.leader.set_id || "";
+        var existingCounts = {};
+        (col.cards || []).forEach(function(c) {
+          if (c.card_set_id) existingCounts[c.card_set_id] = (existingCounts[c.card_set_id] || 0) + (c.quantity || 1);
         });
-        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
-      }
+        var pickedArr = await showDeckPicker_OP("main", lColor, existingKeys, lSetId, existingCounts, remaining);
+        if (pickedArr && pickedArr.length) {
+          pickedArr.forEach(function(c) {
+            var mTotal = col.cards.reduce(function(s, card) { return s + (card.quantity || 1); }, 0);
+            if (mTotal >= 50) return;
+            var key = getCardKey(c);
+            var setId = c.card_set_id;
+            var deckTotal = col.cards.filter(function(card) { return card.card_set_id === setId; }).reduce(function(sum, card) { return sum + (card.quantity || 1); }, 0);
+            if (!isUnlimited(c) && deckTotal >= 4) return;
+            var existing = col.cards.find(function(card) { return card._key === key; });
+            if (existing) { existing.quantity++; }
+            else { col.cards.push({ _key: key, quantity: 1, card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, card_color: c.card_color, card_type: c.card_type, set_id: c.set_id, customPrice: 0 }); }
+          });
+          reRender();
+        }
+      });
+      el.style.cursor = "pointer";
     });
-    el.style.cursor = "pointer";
-  });
-  // Deck clear buttons
-  const clearPageBtn = document.getElementById(isSale ? "ventaClearPageBtn" : "binderClearPageBtn");
-  const clearAllBtn = document.getElementById(isSale ? "ventaClearAllBtn" : "binderClearAllBtn");
+    grid.querySelectorAll(".deck-don-add").forEach(function(el) {
+      el.addEventListener("click", async function() {
+        if (!col.leader) { alert("Primero debes elegir un lider."); return; }
+        var totalDons = col.dons ? col.dons.length : 0;
+        var remaining = 10 - totalDons;
+        if (remaining <= 0) { alert("Ya tienes 10 DON!!"); return; }
+        var existingKeys = (col.dons || []).map(function(c) { return c._key; }).filter(Boolean);
+        var pickedArr = await showDeckPicker_OP("don", "", existingKeys, "", null, remaining);
+        if (pickedArr && pickedArr.length) {
+          if (!col.dons) col.dons = [];
+          pickedArr.forEach(function(c) {
+            if (col.dons.length >= 10) return;
+            col.dons.push({ _key: getCardKey(c), card_set_id: c.card_set_id, card_name: c.card_name, card_image: c.card_image, customPrice: 0 });
+          });
+          reRender();
+        }
+      });
+      el.style.cursor = "pointer";
+    });
+  })();
+  var clearPageBtn = document.getElementById(isSale ? "ventaClearPageBtn" : "binderClearPageBtn");
+  var clearAllBtn = document.getElementById(isSale ? "ventaClearAllBtn" : "binderClearAllBtn");
   if (clearPageBtn) {
     clearPageBtn.textContent = "Vaciar deck";
-    clearPageBtn.onclick = () => {
+    clearPageBtn.onclick = function() {
       if (!col.cards.length) return;
-      const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-      if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
-        col.cards = [];
-        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
-      }
+      var total = col.cards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+      if (confirm("Vaciar las " + total + " cartas del deck?")) { col.cards = []; reRender(); }
     };
   }
   if (clearAllBtn) {
     clearAllBtn.textContent = "Vaciar dones";
-    clearAllBtn.onclick = () => {
-      if (!col.dons?.length) return;
-      if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
-        col.dons = [];
-        saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer);
-      }
+    clearAllBtn.onclick = function() {
+      if (!col.dons || !col.dons.length) return;
+      if (confirm("Vaciar los " + col.dons.length + " DON!! del deck?")) { col.dons = []; reRender(); }
     };
   }
+}
+
+// ─── Deck View ─────────────────────────────────────────────────────────
+
+function renderDeckView_OP(type, col, grid, title, toggleContainer) {
+  var isSale = type === "sale";
+  if (toggleContainer) {
+    toggleContainer.innerHTML = isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">Privado</span><input type="checkbox" id="' + (isSale ? "venta" : "binder") + 'PublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">Publico</span></label>' : "";
+    var chk = document.getElementById(isSale ? "ventaPublicCheck" : "binderPublicCheck");
+    if (chk) chk.onchange = function() { toggleBinderPublic(isSale ? currentVentaId : currentCollectionId); };
+  }
+  var leader = col.leader;
+  var mainCards = col.cards || [];
+  var dons = col.dons || [];
+  var totalCards = (leader ? 1 : 0) + mainCards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + dons.length;
+  title.textContent = col.name + " (" + totalCards + " cartas)";
+  grid.innerHTML = '<div class="deck-container">' + _opBuildLeaderHTML(leader, isSale) + _opBuildMainCardsHTML(mainCards, isSale) + _opBuildDonsHTML(dons, isSale) + '</div>';
+  var reRender = function() { saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); };
+  _opAttachDeckEvents(grid, col, isSale, reRender);
 }
 function saveDeck_OP(isSale) {
   if (isSale) guardarVenta(); else guardarCollections();

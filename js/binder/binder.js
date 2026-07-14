@@ -52,7 +52,7 @@ function getTotalPrice(col) {
   }
   return total;
 }
-function renderCollectionList() {
+function renderCollectionList_OP() {
   const container = document.getElementById("collectionList");
   if (!container) return;
   container.innerHTML = "";
@@ -64,7 +64,7 @@ function renderCollectionList() {
     const msg = currentTcg ? "No tienes colecciones para este TCG" : "No tienes colecciones";
     container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstColBtn">Crear primera colección</button></div>`;
     const btn = document.getElementById("createFirstColBtn");
-    if (btn) btn.addEventListener("click", pedirCrearColeccion);
+    if (btn) btn.addEventListener("click", pedirCrearColeccion_OP);
     return;
   }
   container.className = "collection-binder-grid";
@@ -137,7 +137,7 @@ function renderCollectionList() {
         confirmText: "Guardar",
         placeholder: "Nuevo nombre",
         initialValue: collections[id].name,
-        onConfirm: (nombre) => { collections[id].name = nombre.trim(); guardarCollections(); renderCollectionList(); }
+        onConfirm: (nombre) => { collections[id].name = nombre.trim(); guardarCollections(); renderCollectionList_OP(); }
       });
     });
   });
@@ -145,12 +145,12 @@ function renderCollectionList() {
     b.addEventListener("click", () => {
       const idCol = b.getAttribute("data-id");
       showConfirmModal('¿Eliminar la colección "' + collections[idCol].name + '"?', () => {
-        delete collections[idCol]; guardarCollections(); renderCollectionList();
+        delete collections[idCol]; guardarCollections(); renderCollectionList_OP();
       });
     });
   });
 }
-function pedirCrearColeccion() {
+function pedirCrearColeccion_OP() {
   if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
     title: "Crear colección",
@@ -167,13 +167,13 @@ function pedirCrearColeccion() {
       const id = generarId();
       collections[id] = { id, name: nombre.trim(), subtype, cards: [], leader: null, dons: [], is_public: false, tcg: currentTcg || "one-piece" };
       guardarCollections();
-      renderCollectionList();
+      renderCollectionList_OP();
     }
   });
 }
 
 // ─── Binder Rendering ─────────────────────────────────────────────────────
-function renderBinder() {
+function renderBinder_OP() {
   const grid = document.getElementById("binderGrid");
   const deckContainer = document.getElementById("binderDeckContainer");
   const trackingHeader = document.getElementById("trackingHeader");
@@ -307,7 +307,7 @@ function removeFromCurrentCollection(realIdx) {
   if (!col) return;
   col.cards.splice(realIdx, 1);
   guardarCollections();
-  renderBinder();
+  renderBinder_OP();
   actualizarBotonesBinder();
 }
 function actualizarBotonesBinder() {
@@ -337,7 +337,7 @@ function setupBinderDragDrop() {
       const adjustedTo = toGlobal > fromIdx ? toGlobal - 1 : toGlobal;
       col.cards.splice(adjustedTo, 0, card);
       guardarCollections();
-      renderBinder();
+      renderBinder_OP();
     });
   });
 }

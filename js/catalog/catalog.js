@@ -95,7 +95,7 @@ function renderCards() {
   cardsContainer.innerHTML = "";
   cartasPagina.forEach(carta => {
     const cardKey = getCardKey(carta);
-    const tcgId = getTcgId(carta) || "";
+
     const cardId = carta.card_set_id || "";
     const nombre = formatearNombre(carta);
     const setId = carta.category === "DON" ? (carta.variant || "") : (carta.card_set_id || "");
@@ -131,7 +131,6 @@ function renderCards() {
     const div = document.createElement("div");
     div.className = "card fade-in";
     div.setAttribute("data-cardid", cardId);
-    div.setAttribute("data-tcgid", tcgId);
     div.setAttribute("data-cardkey", cardKey);
     div.style.animationDelay = (Math.random() * 0.1) + "s";
     div.innerHTML = `
@@ -340,6 +339,11 @@ function cargarFiltros() {
     rarityFilter.innerHTML = `<option value="">Todas las rarezas</option>`;
     typeFilter.innerHTML = `<option value="">Todos los tipos</option>`;
   }
+  const statCards = document.getElementById("statCards");
+  if (statCards) statCards.textContent = cartas.length.toLocaleString();
+  const expansions = new Set(cartas.map(c => c.set_id).filter(Boolean));
+  const statExp = document.getElementById("statExpansions");
+  if (statExp) statExp.textContent = expansions.size;
   rebuildingFilters = false;
   if (prevExpansion) actualizarFiltrosPorExpansion();
 }
@@ -426,7 +430,6 @@ function buildPrbBadgeMap() {
     const rSorted = [...new Set(info.rNums)].sort((a, b) => a - b);
     const totalP = pSorted.length;
     const isCharacter = info.cardType === "CHARACTER";
-    const isEventStage = info.cardType === "EVENT" || info.cardType === "STAGE";
     const pKey = "p" + pSorted.join(",p");
     const rKey = "r" + rSorted.join(",r");
     const map = {};

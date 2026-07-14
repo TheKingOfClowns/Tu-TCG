@@ -7,17 +7,18 @@
 App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
 
 ## Arquitectura modular
-Cada TCG tiene sus propios archivos JS. Los módulos cargan después de `script.js` y sobreescriben funciones vía redeclaración. Si falla uno, no afecta a los demás.
+Cada módulo tiene archivo OP (`_OP`), archivo RB (`_RB`) y dispatcher (`dispatcher_*.js`) que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás. Funciones compartidas entre TCGs (ej. `openVenta`, `renderVentaView`) no llevan sufijo.
 
-- `index.html` — Layout principal
+- `index.html` — Layout principal + orden de carga de scripts
 - `style.css` / `design-system.css` — Estilos y tokens
-- `script.js` — Lógica principal, estado global, sync Supabase
+- `script.js` — Lógica principal (1394 líneas), estado global, sync Supabase
 - `js/state.js` — Estado (solo `catalog.catalogLanguage`)
 - `js/modals/modals.js` — Modal de carta, modal "Agregar a", badges
-- `js/catalog/catalog.js` — Renderizado de catálogo, filtros, badges
-- `js/binder/binder.js` + `js/binder/binder_riftbound.js` — Colecciones OP y RB
-- `js/venta/venta.js` + `js/venta/venta_riftbound.js` — Venta OP y RB (precios ✎/↺)
+- `js/catalog/catalog.js` — Renderizado de catálogo, filtros, badges, stats
+- `js/binder/binder.js` + `js/binder/binder_riftbound.js` + `js/binder/dispatcher_binder.js` — Colecciones OP y RB
+- `js/venta/venta.js` + `js/venta/venta_riftbound.js` + `js/venta/dispatcher_venta.js` — Venta OP y RB (precios ✎/↺)
 - `js/deck/deck.js` + `js/deck/deck_riftbound.js` + `js/deck/dispatcher.js` — Deck builder OP y RB
+- `js/tracking/tracking.js` — Tracking OP (extraído de script.js)
 - `js/tracking/tracking_riftbound.js` — Tracking RB (sin DON, Champions, rarezas RB)
 - `js/explore/explore.js` — Vista explore (Double encoding CP1252 corregido)
 - `auth.js` / `profile.js` — Autenticación y perfil Supabase
@@ -54,6 +55,8 @@ Cada TCG tiene sus propios archivos JS. Los módulos cargan después de `script.
 - **Slots vacíos `+`**: navegan al catálogo en binder/venta de ambos TCGs.
 - **Banner `#catalogAddBanner`**: "Agregando a: [nombre]" + botones "Volver" / "✕".
 - **Badge ✓ en catálogo**: cartas ya agregadas al binder destino.
+- **Stats**: `#statCards` y `#statExpansions` se actualizan en `catalog.js:cargarFiltros`.
+- **`_DEBUG` flag**: `var _DEBUG = false` al inicio de script.js; todos los `console.error` van guardados.
 
 ## Funcionalidades RB (implementadas)
 - **Precios ✎/↺** en portadas de venta RB.
@@ -61,6 +64,16 @@ Cada TCG tiene sus propios archivos JS. Los módulos cargan después de `script.
 - **Autocomplete champions RB**: extrae raíz de `feature` (ej: `"Jinx/Zaun"` → `"Jinx"`).
 - **Champion modal + navList** en deck RB.
 - **Deck prices** en todas las zonas (Champions, Runes, BF, Sideboard).
+
+## Refactor completado (2026-07-14)
+- **script.js**: 4059→1394 líneas (-66%) eliminando ~1800 líneas de código muerto (catalog, modals, deck, binder, venta, explore overrides)
+- **Tracking OP** extraído a `js/tracking/tracking.js`
+- **Deck OP**: `renderDeckView_OP` 253→88 líneas con 4 helpers (`_opBuildLeaderHTML`, `_opBuildMainCardsHTML`, `_opBuildDonsHTML`, `_opAttachDeckEvents`)
+- **Deck RB**: `renderDeckView_RB` 506→70 líneas con 7 helpers (`_rbBuildLegendHTML`, `_rbBuildChampionHTML`, `_rbBuildMainDeckHTML`, `_rbBuildRuneHTML`, `_rbBuildBattlefieldHTML`, `_rbBuildSideboardHTML`, `_rbAttachDeckEvents`)
+- **Binder**: split `_OP`/`_RB` + `dispatcher_binder.js` (sin saves `_OP` en `_RB`, sin dispatchers inline)
+- **Venta**: split `_OP`/`_RB` + `dispatcher_venta.js` (`openVenta` y `renderVentaView` compartidos sin sufijo)
+- **Renames**: `_legend` → `_RB` en `deck_riftbound.js` (4 funciones)
+- **Cleanup**: `data-tcgid` y variable `tcgId` eliminados, `isEventStage` muerto eliminado
 
 ## Pendiente
 - API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación.
@@ -72,6 +85,6 @@ Cada TCG tiene sus propios archivos JS. Los módulos cargan después de `script.
 
 ## Convenciones
 - Leer este archivo al iniciar cada sesión.
-- Cada TCG tiene sus propios archivos JS independientes.
+- Cada TCG tiene sus propios archivos JS: `_OP`, `_RB` y `dispatcher`, sin saves del suffix opuesto ni dispatchers inline.
 - Nunca hacer deploy sin que el usuario lo pida.
 - `feature` es el campo para agrupar cartas de un mismo champion en RB.

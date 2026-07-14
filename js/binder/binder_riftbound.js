@@ -1,10 +1,4 @@
 // ─── Binder Riftbound ────────────────────────────────────────────────────
-// Overrides binder functions with RB-specific logic.
-// Dependencias: binder/binder.js (pedirCrearColeccion, renderCollectionList)
-
-var _pedirCrearColeccion_OP = pedirCrearColeccion;
-var _renderCollectionList_OP = renderCollectionList;
-var _renderBinder_OP = renderBinder;
 
 function pedirCrearColeccion_RB() {
   if (!isAuthenticated()) { showAuthModal(); return; }
@@ -247,19 +241,3 @@ function renderBinder_RB() {
   }
 }
 
-// ─── Dispatch overrides ─────────────────────────────────────────────────
-
-pedirCrearColeccion = function() {
-  if (currentTcg === "riftbound") return pedirCrearColeccion_RB();
-  return _pedirCrearColeccion_OP();
-};
-
-renderCollectionList = function() {
-  if (currentTcg === "riftbound") return renderCollectionList_RB();
-  return _renderCollectionList_OP();
-};
-
-renderBinder = function() {
-  if (currentTcg === "riftbound") return renderBinder_RB();
-  return _renderBinder_OP();
-};
