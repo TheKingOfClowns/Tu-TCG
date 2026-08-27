@@ -92,30 +92,124 @@ function renderExploreDetail() {
   title.textContent = b.name;
   const cards = b.binder_cards || [];
   const typeLabel = b.type === "sale" ? "Venta" : "Colección";
-  container.innerHTML = `
-    <div class="explore-detail-header">
-      <span class="explore-badge ${b.type}">${typeLabel}</span>
-      <span>${cards.reduce((s, c) => s + c.quantity, 0)} cartas</span>
-    </div>
-    <div class="explore-detail-grid"></div>
-  `;
-  const grid = container.querySelector(".explore-detail-grid");
-  cards.forEach(row => {
-    const carta = cartasMap[row.card_id];
-    if (!carta) return;
-    for (let i = 0; i < row.quantity; i++) {
+  const subtype = (b.config && b.config.subtype) || "binder";
+  const totalCards = cards.reduce((s, c) => s + c.quantity, 0);
+
+  if (subtype === "deck") {
+    const deck = expandDbDeck(cards);
+    const leader = deck.leader;
+    const mainCards = deck.cards || [];
+    const dons = deck.dons || [];
+    const mainTotal = mainCards.reduce((s, c) => s + (c.quantity || 1), 0);
+
+    container.innerHTML = `
+      <div class="explore-detail-header">
+        <span class="explore-badge ${b.type}">${typeLabel}</span>
+        <span>Deck · ${totalCards} cartas</span>
+      </div>
+      <div class="deck-container">
+        <div class="deck-section deck-leader-section">
+          <h3 class="deck-section-title">Líder</h3>
+          <div class="deck-leader-slot" id="exploreDeckLeaderSlot">
+            ${leader ? '<div class="deck-leader-card" id="exploreLeaderCard"></div>' : '<div class="deck-empty-slot deck-leader-placeholder">Sin líder</div>'}
+          </div>
+        </div>
+        <div class="deck-section">
+          <div class="deck-section-title-row">
+            <h3 class="deck-section-title">Cartas</h3>
+            <span class="deck-count">${mainTotal}/50</span>
+          </div>
+          <div class="deck-main-grid" id="exploreDeckMainGrid"></div>
+        </div>
+        <div class="deck-section">
+          <div class="deck-section-title-row">
+            <h3 class="deck-section-title">DON!!</h3>
+            <span class="deck-count">${dons.length}/10 <span class="deck-optional">opcional</span></span>
+          </div>
+          <div class="deck-don-row" id="exploreDeckDonRow"></div>
+        </div>
+      </div>
+    `;
+
+    if (leader) {
+      const leaderCard = container.querySelector("#exploreLeaderCard");
+      if (leaderCard) {
+        const carta = cartasMap[leader._key];
+        if (carta) {
+          leaderCard.style.cursor = "pointer";
+          leaderCard.innerHTML = `
+            <div class="card-img-wrap"><img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'"></div>
+            <div class="card-body">
+              <h3>${carta.card_name || ""}</h3>
+              <span class="card-set-id">${carta.card_color || ""}</span>
+            </div>`;
+          leaderCard.addEventListener("click", () => openCardInModal(carta));
+        }
+      }
+    }
+
+    const mainGrid = container.querySelector("#exploreDeckMainGrid");
+    mainCards.forEach((c) => {
+      const carta = cartasMap[c._key];
+      if (!carta) return;
+      const qty = c.quantity || 1;
       const div = document.createElement("div");
-      div.className = "card fade-in";
+      div.className = "deck-card-slot";
+      div.style.cursor = "pointer";
       div.innerHTML = `
         <div class="card-img-wrap">
           <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
+          <span class="deck-card-qty">&times;${qty}</span>
         </div>
         <div class="card-body">
           <h3>${formatearNombre(carta)}</h3>
           <span class="card-set-id">${carta.card_set_id || ""}</span>
-          ${b.type === "sale" && row.price != null ? `<div class="card-price">Precio: $${parseFloat(row.price).toFixed(2)}</div>` : ""}
         </div>`;
-      grid.appendChild(div);
-    }
-  });
+      div.addEventListener("click", () => openCardInModal(carta));
+      mainGrid.appendChild(div);
+    });
+
+    const donRow = container.querySelector("#exploreDeckDonRow");
+    dons.forEach((c) => {
+      const carta = cartasMap[c._key];
+      if (!carta) return;
+      const div = document.createElement("div");
+      div.className = "deck-don-slot";
+      div.style.cursor = "pointer";
+      div.innerHTML = `
+        <div class="card-img-wrap">
+          <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
+        </div>`;
+      div.addEventListener("click", () => openCardInModal(carta));
+      donRow.appendChild(div);
+    });
+  } else {
+    container.innerHTML = `
+      <div class="explore-detail-header">
+        <span class="explore-badge ${b.type}">${typeLabel}</span>
+        <span>${totalCards} cartas</span>
+      </div>
+      <div class="explore-detail-grid"></div>
+    `;
+    const grid = container.querySelector(".explore-detail-grid");
+    cards.forEach(row => {
+      const carta = cartasMap[row.card_id];
+      if (!carta) return;
+      for (let i = 0; i < row.quantity; i++) {
+        const div = document.createElement("div");
+        div.className = "card fade-in";
+        div.innerHTML = `
+          <div class="card-img-wrap">
+            <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
+          </div>
+          <div class="card-body">
+            <h3>${formatearNombre(carta)}</h3>
+            <span class="card-set-id">${carta.card_set_id || ""}</span>
+            ${b.type === "sale" && row.price != null ? `<div class="card-price">Precio: $${parseFloat(row.price).toFixed(2)}</div>` : ""}
+          </div>`;
+        div.addEventListener("click", () => openCardInModal(carta));
+        grid.appendChild(div);
+      }
+    });
+  }
 }

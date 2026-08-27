@@ -317,16 +317,17 @@ function cargarFiltros() {
       rarityFilter.innerHTML += '<option value="' + r + '">' + r + '</option>';
     });
     (cfg.cardTypes || []).forEach(function(t) {
+      if (t === "DON!!" && hasDon) return;
       typeFilter.innerHTML += '<option value="' + t + '">' + t + '</option>';
     });
   }
 
   // ── Stats ──────────────────────────────────────
   var statCards = document.getElementById("statCards");
-  if (statCards) statCards.textContent = cartas.length.toLocaleString();
+  if (statCards && currentTcg) statCards.textContent = cartas.length.toLocaleString();
   var expansions = new Set(cartas.map(function(c) { return c.set_id; }).filter(Boolean));
   var statExp = document.getElementById("statExpansions");
-  if (statExp) statExp.textContent = expansions.size;
+  if (statExp && currentTcg) statExp.textContent = expansions.size;
   rebuildingFilters = false;
   if (prevExpansion) actualizarFiltrosPorExpansion();
 }

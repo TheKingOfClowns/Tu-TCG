@@ -13,7 +13,7 @@ window.tcgConfigs["one-piece"] = {
     { key: "dons",     label: "DON!!",       cardType: "DON!!",    min: 0, max: 10, optional: true }
   ],
 
-  rarities:      ["L","C","UC","R","SR","SEC","SP","AA"],
+  rarities:      ["C","UC","R","SR","SEC","SP","AA"],
   cardTypes:     ["LEADER","CHARACTER","EVENT","STAGE","DON!!"],
   colors:        ["Red","Blue","Green","Purple","Black","Yellow"],
   colorNames:    { "Red":"Rojo", "Blue":"Azul", "Green":"Verde", "Purple":"Morado", "Black":"Negro", "Yellow":"Amarillo" },
@@ -48,6 +48,7 @@ window.tcgConfigs["one-piece"] = {
     "OP15-EB04":"OP15 - Sky Island + EB04",
     "PRB-02":"PRB02 - The Best Vol.2",        "PRB02":"PRB02 - The Best Vol.2",
     "OP-16":"OP16 - The Time of Battle",      "OP16":"OP16 - The Time of Battle",
+    "OP-17":"OP17 - The World's Strongest Warriors", "OP17":"OP17 - The World's Strongest Warriors",
     "OP-14":"OP14 - The Azure Sea's Seven",
     "OP-15":"OP15 - Adventure on KAMI's Island",
     "EB-04":"EB04 - EGGHEAD CRISIS",
@@ -62,8 +63,8 @@ window.tcgConfigs["one-piece"] = {
     "OP-11":14, "OP-12":15, "PRB-02":16,
     "OP-13":17, "OP-14":18, "OP14-EB04":18,
     "EB-04":19, "EB-03":20,
-    "OP-15":21, "OP15-EB04":21, "OP-16":22,
-    "DON!!":23, "PROMO":24
+    "OP-15":21, "OP15-EB04":21, "OP-16":22, "OP-17":23,
+    "DON!!":24, "PROMO":25
   }
 };
 

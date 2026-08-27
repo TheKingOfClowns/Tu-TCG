@@ -1,0 +1,277 @@
+{
+  "en": {
+    "no_son_promo": [
+      "P-072",
+      "P-073",
+      "P-074",
+      "P-075",
+      "P-093"
+    ],
+    "nos_faltan": [],
+    "variantes_diferentes": [
+      {
+        "card_id": "P-001",
+        "db": 10,
+        "oficial": 4,
+        "diff": 6
+      },
+      {
+        "card_id": "P-003",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-016",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-017",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-019",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-022",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-028",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-030",
+        "db": 3,
+        "oficial": 1,
+        "diff": 2
+      },
+      {
+        "card_id": "P-041",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-045",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-047",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-048",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-049",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-050",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-051",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-052",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-053",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-055",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-056",
+        "db": 2,
+        "oficial": 1,
+        "diff": 1
+      },
+      {
+        "card_id": "P-065",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-069",
+        "db": 11,
+        "oficial": 6,
+        "diff": 5
+      },
+      {
+        "card_id": "P-070",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-077",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-078",
+        "db": 11,
+        "oficial": 6,
+        "diff": 5
+      },
+      {
+        "card_id": "P-079",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-081",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-082",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-083",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-085",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-089",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-092",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-096",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-101",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-102",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-103",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-104",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-105",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-106",
+        "db": 5,
+        "oficial": 3,
+        "diff": 2
+      },
+      {
+        "card_id": "P-111",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-112",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-113",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-115",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      },
+      {
+        "card_id": "P-135",
+        "db": 3,
+        "oficial": 2,
+        "diff": 1
+      }
+    ]
+  },
+  "ja": {
+    "no_son_promo": [],
+    "nos_faltan": [],
+    "variantes_diferentes": []
+  }
+}

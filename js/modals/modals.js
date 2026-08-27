@@ -523,6 +523,15 @@ function openCardInModal(carta, navList, startIdx) {
 }
 function abrirModal(imgEl) {
   if (selectionMode) { toggleCardSelection(imgEl); return; }
+  if (typeof addingToBinderId !== "undefined" && addingToBinderId) {
+    let cardEl = imgEl && imgEl.closest ? imgEl.closest(".card") : null;
+    let cardKey = cardEl && cardEl.getAttribute("data-cardkey");
+    if (cardKey) {
+      var carta = cartasMap[cardKey];
+      if (carta) addCardToPending(carta, cardKey);
+    }
+    return;
+  }
   const cardEl = imgEl?.closest ? imgEl.closest(".card") : null;
   const cardKey = cardEl?.getAttribute("data-cardkey");
   if (cardKey) {
@@ -531,9 +540,20 @@ function abrirModal(imgEl) {
   }
 }
 
+function addCardToPending(carta, key) {
+  if (pendingCards[key]) { pendingCards[key].count++; }
+  else {
+    pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
+  }
+  if (typeof actualizarBadge === "function") actualizarBadge();
+  if (typeof actualizarBadgesEnPagina === "function") actualizarBadgesEnPagina();
+}
+
 // ─── Event listeners (registered here so functions exist at load time) ────
 document.getElementById("addModalConfirm")?.addEventListener("click", confirmarAdd);
 document.getElementById("createModalConfirm")?.addEventListener("click", confirmCreateModal);
 document.getElementById("createModalCancel")?.addEventListener("click", hideCreateModal);
 document.getElementById("createModalOverlay")?.addEventListener("click", function(e) { if (e.target === e.currentTarget) hideCreateModal(); });
 document.getElementById("createModalInput")?.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); confirmCreateModal(); } });
+document.getElementById("seleccionarBtn")?.addEventListener("click", toggleSelectionMode);
+document.getElementById("cancelarPendBtn")?.addEventListener("click", limpiarPendientes);

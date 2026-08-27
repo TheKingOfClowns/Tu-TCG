@@ -54,8 +54,8 @@ function pedirCrearTracking(preFillName) {
 function renderTrackingExtra(type, panel) {
   if (type === "expansion") {
     const sets = getAvailableSets();
-    const allSets = [...sets.booster, ...sets.starter, ...sets.promo, ...sets.don];
-    const groupLabels = { booster: "Booster", starter: "Starter", promo: "Promo", don: "DON!!" };
+    const allSets = [...sets.booster, ...sets.starter, ...sets.promo];
+    const groupLabels = { booster: "Booster", starter: "Starter", promo: "Promo" };
     const checkboxesHTML = Object.entries(sets).map(([key, items]) => {
       if (!items.length) return "";
       return `<div style="margin-bottom:6px"><span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:2px">${groupLabels[key]}</span>` +
@@ -157,7 +157,7 @@ function trackingCardPasses(c, config) {
 }
 
 function getAvailableSets() {
-  const groups = { booster: [], starter: [], promo: [], don: [] };
+  const groups = { booster: [], starter: [], promo: [] };
   const seen = new Set();
   const subsumedBy = new Set(["OP-14","OP14","OP-15","OP15","EB-04","EB04"]);
   cartas.forEach(c => {
@@ -170,11 +170,8 @@ function getAvailableSets() {
     } else if (cat === "STARTER" && !groups.starter.some(s => s.id === sid)) {
       groups.starter.push({ id: sid, label: nombresExpansiones[sid] || sid });
       seen.add(sid);
-    } else if ((cat === "PROMO" || cat === "OTHER") && !groups.promo.some(s => s.id === sid)) {
+    } else if ((cat === "PROMO" || cat === "OTHER") && !groups.promo.some(s => s.id === "PROMO")) {
       groups.promo.push({ id: "PROMO", label: "Promo Cards" });
-      seen.add(sid);
-    } else if (cat === "DON" && !groups.don.some(s => s.id === sid)) {
-      groups.don.push({ id: "DON!!", label: "DON!! Cards" });
       seen.add(sid);
     }
   });
@@ -200,6 +197,7 @@ function buildTrackingCardList(type, config) {
     const rareExclude = ["Manga", "SP", "AA", "Full Art", "Jolly Roger", "Textured Foil", "Reprint"];
     cartas.forEach(c => {
       if (lang !== "all" && c.language !== lang) return;
+      if (c.category === "DON") return;
       const sid = c.set_id;
       if (!sets.includes(sid)) return;
       if (mode === "base") {

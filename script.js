@@ -28,7 +28,7 @@ let cartasMap = {};
 let pendingCards = {};
 let binderPage = 1;
 const binderPerPage = 20;
-let currentTcg = null;
+let currentTcg = "one-piece";
 let pendingView = null;
 let prbBadgeMap = {};
 let tcgplayerMap;
@@ -44,6 +44,19 @@ let addingToBinderType = null;
 let rebuildingFilters = false;
 let exploreDetailBinder = null;
 let prb02CardlistLabels = null;
+let _singleTcgMode = null;
+async function isSingleTcgMode() {
+  if (_singleTcgMode !== null) return _singleTcgMode;
+  try {
+    const res = await fetch("config/games.json");
+    const config = await res.json();
+    const enabledCount = Object.values(config).filter(g => g.enabled).length;
+    _singleTcgMode = enabledCount === 1;
+    return _singleTcgMode;
+  } catch (e) {
+    return false;
+  }
+}
 async function loadPrb02Cardlist() {
   if (prb02CardlistLabels) return prb02CardlistLabels;
   try {
@@ -132,6 +145,28 @@ function getTcgPrefix() {
 }
 function collectionsKey() { return "tutcg_" + getTcgPrefix() + "_collections"; }
 function ventaKey() { return "tutcg_" + getTcgPrefix() + "_venta"; }
+async function cargarStatsLanding() {
+  try {
+    const configRes = await fetch("config/games.json");
+    const gamesConfig = await configRes.json();
+    var totalCards = 0;
+    var allSetIds = new Set();
+    var enabledGames = Object.entries(gamesConfig).filter(function(e) { return e[1].enabled; });
+    for (var i = 0; i < enabledGames.length; i++) {
+      try {
+        var res = await fetch(enabledGames[i][1].data_dir + "/cards_master.json");
+        if (!res.ok) continue;
+        var data = await res.json();
+        totalCards += data.total_cards || (data.cards ? data.cards.length : 0);
+        (data.cards || []).forEach(function(c) { if (c.set_id) allSetIds.add(c.set_id); });
+      } catch (e) { /* skip failed loads */ }
+    }
+    var statCards = document.getElementById("statCards");
+    if (statCards) statCards.textContent = totalCards.toLocaleString();
+    var statExp = document.getElementById("statExpansions");
+    if (statExp) statExp.textContent = allSetIds.size;
+  } catch (e) { /* skip if games.json fails */ }
+}
 // ─── Card Data Loading ───────────────────────────────────────────────────
 async function cargarCartas() {
   cardsContainer.innerHTML = `<div class="catalog-skeleton">${Array(12).fill(`
@@ -145,7 +180,12 @@ async function cargarCartas() {
   try {
     const configRes = await fetch("config/games.json");
     const gamesConfig = await configRes.json();
-    const activeGame = Object.entries(gamesConfig).find(([id,g]) => id === currentTcg && g.enabled) || Object.entries(gamesConfig).find(([,g]) => g.enabled);
+    var activeGame = Object.entries(gamesConfig).find(function(e) { return e[0] === currentTcg && e[1].enabled; });
+    if (!activeGame && currentTcg) {
+      cardsContainer.innerHTML = '<div class="no-data-msg" style="padding:80px 20px;text-align:center"><h2 style="color:var(--text-muted);margin-bottom:12px">Próximamente</h2><p style="color:var(--text-secondary)">El catálogo de ' + ((gamesConfig[currentTcg] && gamesConfig[currentTcg].name) || currentTcg) + ' aún no está disponible.</p></div>';
+      return;
+    }
+    if (!activeGame) activeGame = Object.entries(gamesConfig).find(function(e) { return e[1].enabled; });
     if (!activeGame) throw new Error("No enabled game in config/games.json");
     const dataUrl = activeGame[1].data_dir + "/cards_master.json";
     const res = await fetch(dataUrl);
@@ -176,10 +216,10 @@ async function cargarCartas() {
     cartasMap = {};
     cartas.forEach(c => { cartasMap[getCardKey(c)] = c; });
     const statCards = document.getElementById("statCards");
-    if (statCards) statCards.textContent = cartas.length.toLocaleString();
+    if (statCards && !currentTcg) statCards.textContent = cartas.length.toLocaleString();
     const expansions = new Set(cartas.map(c => c.set_id).filter(Boolean));
     const statExp = document.getElementById("statExpansions");
-    if (statExp) statExp.textContent = expansions.size;
+    if (statExp && !currentTcg) statExp.textContent = expansions.size;
     cargarFiltros();
     actualizarFiltrosPorExpansion();
     renderCards();
@@ -744,9 +784,21 @@ let _createCallback = null;
 
 
 // ─── TCG Selector ─────────────────────────────────────────────────────────
-function renderTcgSelector() {
+async function renderTcgSelector() {
   const grid = document.getElementById("tcgGrid");
-  grid.innerHTML = tcgList.map(t => `
+  let enabledTcgs = new Set();
+  try {
+    const res = await fetch("config/games.json");
+    const gamesConfig = await res.json();
+    Object.entries(gamesConfig).forEach(([id, cfg]) => {
+      if (cfg.enabled) enabledTcgs.add(id);
+    });
+  } catch (e) {
+    // If games.json fails, show all TCGs
+    tcgList.forEach(t => enabledTcgs.add(t.id));
+  }
+  const visibleTcgs = tcgList.filter(t => enabledTcgs.has(t.id));
+  grid.innerHTML = visibleTcgs.map(t => `
     <div class="tcg-card" data-tcg="${t.id}">
       ${t.logo ? `<img src="${t.logo}" alt="${t.name}" class="tcg-card-logo" onerror="this.style.display='none'">` : ""}
       ${!t.logo ? `<div class="tcg-card-icon" style="background:${t.color}">${t.short}</div>` : ""}
@@ -789,7 +841,7 @@ async function selectTcg(tcgId) {
   await initCollections();
   initVenta();
   if (isAuthenticated()) await reloadVentaFromDb();
-  const targetView = pendingView || "catalog";
+  const targetView = pendingView || "tcgHome";
   if (pendingView) pendingView = null;
   mostrarVista(targetView);
 }
@@ -909,8 +961,20 @@ function mostrarVista(vista) {
     document.getElementById("bottomVenta")?.classList.add("active");
     renderVentaView();
   } else if (vista === "tcgHome") {
+    if (!currentTcg) {
+      document.getElementById("tcgSelector").classList.add("active");
+      document.getElementById("tcgSelector").style.display = "";
+      document.getElementById("tcgSelectorHero").style.display = "none";
+      document.getElementById("tcgGrid").style.display = "none";
+      document.getElementById("tcgHomePlaceholder").style.display = "block";
+      document.getElementById("sidebarHome")?.classList.add("active");
+      document.getElementById("bottomHome")?.classList.add("active");
+      return;
+    }
     document.getElementById("welcomeView").classList.add("active");
     document.getElementById("welcomeView").style.display = "";
+    document.getElementById("sidebarHome")?.classList.add("active");
+    document.getElementById("bottomHome")?.classList.add("active");
   } else if (vista === "explore") {
     if (!currentTcg) {
 
@@ -940,21 +1004,22 @@ function mostrarVista(vista) {
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
     document.getElementById("sidebarProfile")?.classList.add("active");
-   } else if (vista === "home") {
+    } else if (vista === "home") {
     document.getElementById("tcgSelector").classList.add("active");
     document.getElementById("tcgSelector").style.display = "";
     document.getElementById("tcgSelectorHero").style.display = "none";
     document.getElementById("tcgGrid").style.display = "none";
-    document.getElementById("tcgHomePlaceholder").style.display = "";
+    document.getElementById("tcgHomePlaceholder").style.display = "block";
     document.getElementById("sidebarHome")?.classList.add("active");
     document.getElementById("bottomHome")?.classList.add("active");
   } else {
     document.getElementById("tcgSelector").classList.add("active");
     document.getElementById("tcgSelector").style.display = "";
-    renderTcgSelector();
-    document.getElementById("tcgSelectorHero").style.display = "";
-    document.getElementById("tcgGrid").style.display = "";
-    document.getElementById("tcgHomePlaceholder").style.display = "none";
+    document.getElementById("tcgSelectorHero").style.display = "none";
+    document.getElementById("tcgGrid").style.display = "none";
+    document.getElementById("tcgHomePlaceholder").style.display = "block";
+    document.getElementById("sidebarHome")?.classList.add("active");
+    document.getElementById("bottomHome")?.classList.add("active");
     document.getElementById("sidebarHome")?.classList.add("active");
     document.getElementById("bottomHome")?.classList.add("active");
   }
@@ -1026,13 +1091,47 @@ document.querySelectorAll(".welcome-card").forEach(card => {
   });
 });
 // Header / Sidebar nav
-document.getElementById("sidebarLogo")?.addEventListener("click", () => { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); });
-document.getElementById("welcomeBackBtn").addEventListener("click", () => { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); });
+document.getElementById("sidebarLogo")?.addEventListener("click", async () => {
+  const singleMode = await isSingleTcgMode();
+  if (!singleMode && currentTcg) { 
+    guardarCollections(); 
+    guardarVenta(); 
+    currentTcg = null;
+  }
+  pendingView = null;
+  mostrarVista("home");
+});
+document.getElementById("welcomeBackBtn").addEventListener("click", async () => {
+  const singleMode = await isSingleTcgMode();
+  if (!singleMode && currentTcg) { 
+    guardarCollections(); 
+    guardarVenta(); 
+    currentTcg = null;
+  }
+  pendingView = null;
+  mostrarVista("home");
+});
 document.querySelectorAll(".sidebar-nav-item").forEach(item => {
-  item.addEventListener("click", () => {
+  item.addEventListener("click", async () => {
     const view = item.getAttribute("data-view");
-    if (view === "home") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); }
-    else if (view === "catalog") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = "catalog"; mostrarVista("catalog"); }
+    const singleMode = await isSingleTcgMode();
+    if (view === "home") {
+      if (!singleMode && currentTcg) {
+        guardarCollections();
+        guardarVenta();
+        currentTcg = null;
+      }
+      pendingView = null;
+      mostrarVista("home");
+    }
+    else if (view === "catalog") {
+      if (!singleMode) {
+        if (currentTcg) { guardarCollections(); guardarVenta(); }
+        currentTcg = null;
+        pendingView = "catalog";
+      }
+      mostrarVista("catalog");
+    }
     else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; mostrarVista("collections"); }
     else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; mostrarVista("ventaCols"); }
     else if (view === "explore") { if (!currentTcg) pendingView = "explore"; mostrarVista("explore"); }
@@ -1041,14 +1140,38 @@ document.querySelectorAll(".sidebar-nav-item").forEach(item => {
 });
 // Bottom nav
 document.querySelectorAll(".bottom-nav-item").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const view = btn.getAttribute("data-view");
-    if (view === "home") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); }
-    else if (view === "catalog") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = "catalog"; mostrarVista("catalog"); }
+    const singleMode = await isSingleTcgMode();
+    if (view === "home") {
+      if (!singleMode && currentTcg) {
+        guardarCollections();
+        guardarVenta();
+        currentTcg = null;
+      }
+      pendingView = null;
+      mostrarVista("home");
+    }
+    else if (view === "catalog") {
+      if (!singleMode) {
+        if (currentTcg) { guardarCollections(); guardarVenta(); }
+        currentTcg = null;
+        pendingView = "catalog";
+      }
+      mostrarVista("catalog");
+    }
     else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; mostrarVista("collections"); }
     else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; mostrarVista("ventaCols"); }
     else if (view === "explore") { if (!currentTcg) pendingView = "explore"; mostrarVista("explore"); }
-    else if (view === "tcgHome") { if (currentTcg) { guardarCollections(); guardarVenta(); } currentTcg = null; pendingView = null; mostrarVista("home"); }
+    else if (view === "tcgHome") {
+      if (!singleMode && currentTcg) {
+        guardarCollections();
+        guardarVenta();
+        currentTcg = null;
+      }
+      pendingView = null;
+      mostrarVista("home");
+    }
   });
 });
 // Binder events
@@ -1172,8 +1295,6 @@ document.getElementById("agregarBtn").addEventListener("click", () => {
     if (Object.keys(pendingCards).length) mostrarAddModal();
   }
 });
-document.getElementById("seleccionarBtn").addEventListener("click", toggleSelectionMode);
-document.getElementById("cancelarPendBtn").addEventListener("click", limpiarPendientes);
 document.getElementById("catalogAddBack").addEventListener("click", function() {
   var id = addingToBinderId; var type = addingToBinderType;
   limpiarAddingState();
@@ -1181,6 +1302,35 @@ document.getElementById("catalogAddBack").addEventListener("click", function() {
   else { currentCollectionId = id; binderPage = 1; mostrarVista("binder"); }
 });
 document.getElementById("catalogAddCancel").addEventListener("click", limpiarAddingState);
+document.getElementById("catalogAddConfirm").addEventListener("click", function() {
+  if (!addingToBinderId || !Object.keys(pendingCards).length) return;
+  var type = addingToBinderType;
+  var target = (type === "venta") ? ventaCols : collections;
+  var col = target[addingToBinderId];
+  if (!col) return;
+  if (col.subtype === "deck") {
+    var _deckTcg = col.tcg || "one-piece";
+    var dispatchFn = window["_confirmAddDeck_" + ({ "one-piece":"OP","riftbound":"RB","pokemon":"PK" }[_deckTcg] || "OP")];
+    Object.values(pendingCards).forEach(function(pc) {
+      var key = getCardKey(pc);
+      if (typeof dispatchFn === "function") dispatchFn(col, pc, key, _deckTcg);
+    });
+    if (type === "venta") guardarVenta(); else guardarCollections();
+  } else {
+    Object.values(pendingCards).forEach(function(pc) {
+      var key = getCardKey(pc);
+      var existing = (col.cards || []).find(function(c) { return c._key === key; });
+      if (existing) existing.quantity = (existing.quantity || 1) + (pc.count || 1);
+      else col.cards.push({ _key: key, quantity: pc.count || 1, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset, customPrice: 0 });
+    });
+    if (type === "venta") guardarVenta(); else guardarCollections();
+  }
+  limpiarPendientes();
+  var id = addingToBinderId;
+  limpiarAddingState();
+  if (type === "venta") { currentVentaId = id; ventaPage = 1; mostrarVista("venta"); }
+  else { currentCollectionId = id; binderPage = 1; mostrarVista("binder"); }
+});
 // ─── Landing Page Buttons ────────────────────────────────────────────────
 document.querySelectorAll("[id^='landingLoginBtn']").forEach(btn => {
   btn.addEventListener("click", () => showAuthModal("login"));
@@ -1214,14 +1364,27 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
     localStorage.removeItem("tutcg_venta");
   }
 })();
-renderTcgSelector();
-mostrarVista("home");
+(async () => {
+  const singleMode = await isSingleTcgMode();
+  if (singleMode) {
+    await cargarCartas();
+  } else {
+    renderTcgSelector();
+  }
+  mostrarVista("home");
+})();
 (async () => {
   await initCollections();
   initVenta();
   if (isAuthenticated()) await reloadVentaFromDb();
 })();
-cargarCartas();
+(async () => {
+  const singleMode = await isSingleTcgMode();
+  if (!singleMode) {
+    cargarCartas();
+    cargarStatsLanding();
+  }
+})();
 // ─── Auth Integration ────────────────────────────────────────────────────
 document.getElementById("authBtn").addEventListener("click", () => {
   showAuthModal("login");

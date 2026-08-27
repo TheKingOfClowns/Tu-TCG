@@ -1,7 +1,7 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-07-14
+2026-07-15
 
 ## Proyecto
 App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
@@ -29,9 +29,14 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 - Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles`
 
 ## Datos maestros
-- `data/games/onepiece/cards_master.json` — 9,813 cartas (EN + JA)
+- `data/games/onepiece/cards_master.json` — ~10,000 cartas (EN + JA)
 - `data/games/riftbound/cards_master.json` — 1,224 cartas
+- `data/games/pokemon/cards_master.json` — Estructura vacía (pendiente scrapear)
 - `config/games.json` — Habilita/deshabilita TCGs y apunta a `data_dir`
+
+### Stats del landing (globales)
+`cargarStatsLanding()` (`script.js:135`) carga todos los `cards_master.json` de juegos habilitados y suma totals para `#statCards` y `#statExpansions`. Los updates por TCG en `cargarCartas()` y `cargarFiltros()` solo corren si `currentTcg` está seteado para no pisar los globales.
+- `catalog.js:325` — `statCards`/`statExpansions` solo se actualizan si `currentTcg`
 
 ## Diseño (Nexus Design System)
 - Fondo: #050511, acento: #00f0ff (cyan), glass-panel (backdrop-blur)
@@ -85,6 +90,30 @@ function _fn(name) {
   - `pedirCrearVenta` → `dispatcher_venta.js`
   - `pedirCrearColeccion` → `dispatcher_binder.js`
 
+### Sistema de vistas (`mostrarVista`)
+- `"home"` → Landing page (`#tcgHomePlaceholder`), tcgGrid oculto, display:block
+- `"tcgHome"` → Si `currentTcg` es null: landing. Si hay TCG: dashboard (`#welcomeView`) con 3 cards (Cartas/Binder/Venta)
+- `"catalog"` → Si `currentTcg` es null: TCG selector grid. Si hay TCG: catálogo con filtros
+- `selectTcg()` → ahora va a `"tcgHome"` en vez de `"catalog"` directo
+- `else` default → landing (no más TCG selector por defecto)
+- `cargarCartas()` en startup con `currentTcg=null` → fallback al primer juego habilitado para el catálogo
+
+### Single-TCG Mode (2026-08-27)
+Cuando solo hay un TCG habilitado en `config/games.json`:
+- `currentTcg` se inicializa con el TCG habilitado (ej: "one-piece") en vez de `null`
+- **Al cargar la página**: SIEMPRE muestra la landing page (home), pero precarga las cartas del TCG habilitado
+- **Al presionar "Catálogo"**: va directo al catálogo del TCG habilitado (sin mostrar selector)
+- **Al presionar "Home"**: vuelve a la landing page (sin resetear `currentTcg`)
+- `isSingleTcgMode()` (async) verifica cuántos TCGs están habilitados en games.json
+- `_singleTcgMode` cachea el resultado para no hacer fetch repetido
+- Para reactivar múltiples TCGs: cambiar `enabled: true` en games.json y recargar
+
+### Flujo "agregar al binder" (2026-07-15)
+- `modals.js:524` — `abrirModal()` checkea `addingToBinderId`: si está seteado, agrega la carta a `pendingCards` en vez de abrir el modal
+- `modals.js:543` — `addCardToPending(carta, key)` extraída como helper
+- `index.html:358` — Botón `#catalogAddConfirm` ("Agregar") en el banner del catálogo
+- `script.js:1224` — Handler de `#catalogAddConfirm`: agrega `pendingCards` directo al binder/venta actual y vuelve al binder, sin pasar por el modal "Agregar a"
+
 ## Reglas por TCG
 | | One Piece | Riftbound | Pokémon |
 |---|---|---|---|
@@ -92,20 +121,69 @@ function _fn(name) {
 | **Deck** | Leader + 50 + 10 DON | Legend + 3 Champions + 40 main + 12 Runes + 3 BF + SB | 60 cartas planas |
 | **Copias máx** | 4 por card_set_id | 3 por card_name | 4 por card_name |
 | **hasLanguageFilter** | true | false | true |
+| **Restricciones** | — | — | ACE SPEC: 1, Radiant: 1, Basic Energy: ilimitado |
 | **Tracking** | expansion, character, rarity, don | expansion, character, rarity | expansion, character, rarity |
 
-## Pokémon (stubs creados, sin datos)
-- `js/tcg/pokemon/config.js` — Config con deckZones, rarities, cardTypes, colors
-- `js/deck/deck_pokemon.js` — Deck 60 cartas, 4 copias por nombre
-- `js/binder/binder_pokemon.js` — Binder y deck
-- `js/venta/venta_pokemon.js` — Venta (delega a OP para individual/grouped)
-- `js/tracking/tracking_pokemon.js` — Tracking (delega a RB)
-- `js/modals/modals.js` — `_confirmAddDeck_PK` para agregar cartas a deck PK
-- `config/games.json` — `"pokemon": { "enabled": false }`
+## Pokémon TCG (2026-07-14)
+- `js/tcg/pokemon/config.js` — Config completa con deckZones, rarezas SV, tipos, flags, filtros
+- `data/games/pokemon/cards_master.json` — Estructura lista, vacía (pendiente scrapear cartas)
+- `config/games.json` — `"enabled": true`
+- Módulos: `deck_pokemon.js`, `binder_pokemon.js`, `venta_pokemon.js`, `tracking_pokemon.js`
+- `js/modals/modals.js` — `_confirmAddDeck_PK` valida 60 máx, 4 copias por nombre
 
-## Pendiente
-- **Pokémon**: Crear `data/games/pokemon/cards_master.json` y poner `"enabled": true` en `config/games.json`
-- Probar funcionalidad PK con datos reales (deck builder, binder, venta, tracking, filtros)
+### Estructura de carta Pokémon (`cards_master.json`)
+```
+{
+  "card_set_id": "SVI-004",
+  "card_name": "Charizard ex",
+  "set_id": "SVI",
+  "set_name": "Scarlet & Violet Base Set",
+  "rarity": "Double Rare",
+  "card_type": "Pokémon",
+  "subtype": "Stage 2",
+  "card_color": "Fire",
+  "hp": "330",
+  "weakness": { "type": "Water", "modifier": "×2" },
+  "resistance": null,
+  "retreat_cost": "2",
+  "regulation_mark": "G",
+  "illustrator": "5ban Graphics",
+  "evolves_from": "Charmeleon",
+  "attacks": [
+    { "name": "Brave Wing", "cost": ["Fire"], "damage": "60", "effect": "" }
+  ],
+  "effect": "Ability: Infernal Reign — ...",
+  "is_ace_spec": false,
+  "is_radiant": false,
+  "is_ancient": false,
+  "is_future": false,
+  "is_terastal": true,
+  "has_rule_box": true,
+  "is_shiny": false,
+  "producto": "BOOSTER",
+  "category": "BOOSTER",
+  "card_image": "assets/images/pokemon/en/SVI/SVI-004.webp",
+  "language": "en",
+  "is_parallel": false
+}
+```
+
+### Filtros planificados
+Tipo carta (Pokémon/Trainer/Energy), Subtipo (Item/Supporter/Stadium/Tool o Basic Energy/Special Energy),
+Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (rango), Weakness, Resistance, Retreat Cost.
+
+### Flags (checkboxes en UI): ACE SPEC, Radiant, Ancient, Future, Terastal, Rule Box, Shiny.
+
+### Validaciones de deck pendientes en `_confirmAddDeck_PK`:
+- ACE SPEC: máx 1 por deck (no implementado aún)
+- Radiant: máx 1 por deck (no implementado aún)
+- Basic Energy: sin límite de 4 copias (no implementado aún)
+
+### Pendiente
+- **Scrapear cartas Pokémon** y poblar `cards_master.json`
+- Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
+- Agregar filtros de flags (checkboxes) en el catálogo para Pokémon
+- Agregar filtros de subtipo (`trainerSubtypes`/`energySubtypes`), HP, weakness, resistance, retreat cost al catálogo
 - API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
 - Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
 
