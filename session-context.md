@@ -1,10 +1,10 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-07-15
+2026-08-28
 
 ## Proyecto
-App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler`.
+App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler pages deploy`.
 
 ## Arquitectura modular
 Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatcher que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás.
@@ -24,12 +24,12 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 - `auth.js` / `profile.js` — Autenticación y perfil Supabase
 
 ## Supabase
-- URL: `https://YOUR_PROJECT.supabase.co` (configurar en .env)
-- Anon key: `YOUR_ANON_KEY` (configurar en .env)
+- URL: configurada en `.env` (NO hardcodear)
+- Anon key: configurada en `.env` (NO hardcodear)
 - Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles`
 
 ### Configuración de credenciales
-Crear archivo `.env` en la raíz del proyecto:
+Crear archivo `.env` en la raíz del proyecto (ver `.env.example`):
 ```
 SUPABASE_URL=https://scykfvomdwpiypmblnvv.supabase.co
 SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
@@ -38,9 +38,15 @@ SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
 
 ## Datos maestros
 - `data/games/onepiece/cards_master.json` — ~10,000 cartas (EN + JA)
+  - **550 PROMO/OTHER cards** matching official OPCG site (fix 2026-08-28)
 - `data/games/riftbound/cards_master.json` — 1,224 cartas
 - `data/games/pokemon/cards_master.json` — Estructura vacía (pendiente scrapear)
 - `config/games.json` — Habilita/deshabilita TCGs y apunta a `data_dir`
+
+### Imágenes de Promos One Piece (fix 2026-08-28)
+- 550 imágenes de promo en `assets/images/onepiece/en/PROMO/`
+- Formato: WebP,命名: `{set_id}_{parallel}.webp` (ej: `op01-014_p1.webp`)
+- Descargadas del sitio oficial OPCG y convertidas con sharp
 
 ### Stats del landing (globales)
 `cargarStatsLanding()` (`script.js:135`) carga todos los `cards_master.json` de juegos habilitados y suma totals para `#statCards` y `#statExpansions`. Los updates por TCG en `cargarCartas()` y `cargarFiltros()` solo corren si `currentTcg` está seteado para no pisar los globales.
@@ -132,6 +138,13 @@ Cuando solo hay un TCG habilitado en `config/games.json`:
 | **Restricciones** | — | — | ACE SPEC: 1, Radiant: 1, Basic Energy: ilimitado |
 | **Tracking** | expansion, character, rarity, don | expansion, character, rarity | expansion, character, rarity |
 
+## One Piece TCG
+
+### Filtro Promo Cards (fix 2026-08-28)
+El filtro "Promo Cards" en el catálogo muestra **PROMO + OTHER** combinados (category === "PROMO" || category === "OTHER").
+- 550 promos oficiales matching el sitio OPCG
+- 176 imágenes faltantes descargadas y convertidas a WebP
+
 ## Pokémon TCG (2026-07-14)
 - `js/tcg/pokemon/config.js` — Config completa con deckZones, rarezas SV, tipos, flags, filtros
 - `data/games/pokemon/cards_master.json` — Estructura lista, vacía (pendiente scrapear cartas)
@@ -196,8 +209,18 @@ Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (r
 - Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
 
 ## Deploy
-- URL: `https://main.tutcg.pages.dev`
+- URL: `https://a7041e31.tutcg.pages.dev` (deploy 2026-08-28)
+- Cloudflare login autenticado via `wrangler login`
+- Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
+
+## Cloudflare MCP Setup (2026-08-28)
+Configurados en `~/.config/opencode/opencode.jsonc`:
+- `cloudflare` — connected (MCP principal)
+- `cloudflare-docs` — connected (documentación)
+- `cloudflare-bindings` — needs auth (opcional)
+- `cloudflare-builds` — needs auth (opcional)
+- `cloudflare-observability` — needs auth (opcional)
 
 ## Convenciones
 - Leer este archivo al iniciar cada sesión.
@@ -207,3 +230,4 @@ Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (r
 - Los event listeners que referencian funciones de otros scripts van en el archivo que define la función, no en script.js.
 - Nunca hacer deploy sin que el usuario lo pida.
 - `feature` es el campo para agrupar cartas de un mismo champion en RB.
+- NO commitear `.env`, credenciales, o archivos de backup.
