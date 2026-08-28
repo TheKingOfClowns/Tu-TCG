@@ -9,3 +9,15 @@ node_modules/
 Thumbs.db
 .aidesigner/*
 !.aidesigner/.gitkeep
+
+# Environment variables (NO commitear nunca)
+.env
+.env.*
+!.env.example
+
+# Backups de datos
+*_backup*.json
+*_backup*.js
+
+# Cloudflare
+.vars

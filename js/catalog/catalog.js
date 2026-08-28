@@ -23,7 +23,6 @@ function renderCards() {
       switch (expansionFilter.value) {
         case "DON!!": return carta.category === "DON";
         case "PROMO": return carta.category === "PROMO" || carta.category === "OTHER";
-        case "OTHER": return carta.category === "PROMO" || carta.category === "OTHER";
         default: return carta.set_id === expansionFilter.value && carta.category === setCategoryMap[expansionFilter.value];
       }
     });
@@ -340,8 +339,8 @@ function actualizarFiltrosPorExpansion() {
   var esPromo = val === "PROMO";
   var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) || null;
 
-  colorFilter.disabled = esDon;
-  colorFilter.style.display = esDon ? "none" : "";
+  colorFilter.disabled = esDon || esPromo;
+  colorFilter.style.display = (esDon || esPromo) ? "none" : "";
   rarityFilter.disabled = esPromo;
   rarityFilter.style.display = esPromo ? "none" : "";
   typeFilter.style.display = esDon ? "none" : "";

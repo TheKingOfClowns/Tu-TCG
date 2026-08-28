@@ -24,9 +24,17 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 - `auth.js` / `profile.js` — Autenticación y perfil Supabase
 
 ## Supabase
-- URL: `https://scykfvomdwpiypmblnvv.supabase.co`
-- Anon key: `sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT`
+- URL: `https://YOUR_PROJECT.supabase.co` (configurar en .env)
+- Anon key: `YOUR_ANON_KEY` (configurar en .env)
 - Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles`
+
+### Configuración de credenciales
+Crear archivo `.env` en la raíz del proyecto:
+```
+SUPABASE_URL=https://scykfvomdwpiypmblnvv.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
+```
+⚠️ NO commitear `.env` al repositorio. Usar `.env.example` como template.
 
 ## Datos maestros
 - `data/games/onepiece/cards_master.json` — ~10,000 cartas (EN + JA)
