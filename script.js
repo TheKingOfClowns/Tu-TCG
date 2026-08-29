@@ -387,6 +387,7 @@ async function syncObjectToSupabase(obj, type) {
       if (binder.tracking_type) config.tracking_type = binder.tracking_type;
       if (binder.tracking_config) config.tracking_config = binder.tracking_config;
       if (binder.checklist_mode) config.checklist_mode = true;
+      if (binder.totalCurrency) config.totalCurrency = binder.totalCurrency;
       const { error: upsertErr } = await supabaseClient.from("binders").upsert({
         id,
         user_id: authUser.id,
@@ -397,22 +398,35 @@ async function syncObjectToSupabase(obj, type) {
         updated_at: new Date().toISOString()
       }, { onConflict: "id" });
       if (upsertErr) { _DEBUG && console.error("Binder upsert error:", upsertErr); showToast("Error guardando colección en el servidor", "error"); continue; }
-      await supabaseClient.from("binder_cards").delete().eq("binder_id", id);
       const allCardRows = [];
       if (binder.subtype === "deck") {
         const deckTcg = config.tcg || "one-piece";
         if (deckTcg === "riftbound") {
           if (binder.legend) {
-            allCardRows.push({ binder_id: id, card_id: binder.legend._key || "", quantity: 1, price: binder.legend.customPrice ?? null, card_tag: "legend", sort_order: 0 });
+            allCardRows.push({ binder_id: id, card_id: binder.legend._key || "", quantity: 1, price: binder.legend.customPrice ?? null, price_currency: binder.legend.priceCurrency || "ARS", card_tag: "legend", sort_order: 0 });
           }
           const collapseTagged = (arr, tag, baseSort) => {
-            const collapsed = {};
-            (arr || []).forEach((card, idx) => {
-              const key = card._key || "";
-              if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, card_tag: tag, sort_order: baseSort + idx };
-              collapsed[key].quantity += (card.quantity || 1);
-            });
-            Object.values(collapsed).forEach(c => allCardRows.push({ ...c, binder_id: id }));
+            if (binder.display_mode === "individual") {
+              (arr || []).forEach((card, idx) => {
+                allCardRows.push({
+                  binder_id: id,
+                  card_id: card._key || "",
+                  quantity: card.quantity || 1,
+                  price: card.customPrice != null ? card.customPrice : null,
+                  price_currency: card.priceCurrency || "ARS",
+                  card_tag: tag,
+                  sort_order: baseSort + idx
+                });
+              });
+            } else {
+              const collapsed = {};
+              (arr || []).forEach((card, idx) => {
+                const key = card._key || "";
+                if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, price_currency: card.priceCurrency || "ARS", card_tag: tag, sort_order: baseSort + idx };
+                collapsed[key].quantity += (card.quantity || 1);
+              });
+              Object.values(collapsed).forEach(c => allCardRows.push({ ...c, binder_id: id }));
+            }
           };
           collapseTagged(binder.champions, "champion", 100);
           collapseTagged(binder.cards, "main", 200);
@@ -421,21 +435,35 @@ async function syncObjectToSupabase(obj, type) {
           collapseTagged(binder.sideboard, "sideboard", 500);
         } else {
           if (binder.leader) {
-            allCardRows.push({ binder_id: id, card_id: binder.leader._key || "", quantity: 1, price: binder.leader.customPrice ?? null, card_tag: "leader", sort_order: 0 });
+            allCardRows.push({ binder_id: id, card_id: binder.leader._key || "", quantity: 1, price: binder.leader.customPrice ?? null, price_currency: binder.leader.priceCurrency || "ARS", card_tag: "leader", sort_order: 0 });
           }
           if (binder.cards && binder.cards.length) {
-            const collapsed = {};
-            binder.cards.forEach((card, idx) => {
-              const key = card._key || "";
-              const qty = card.quantity || 1;
-              if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, sort_order: idx + 1, card_tag: "main" };
-              collapsed[key].quantity += qty;
-            });
-            allCardRows.push(...Object.values(collapsed).map(c => ({ ...c, binder_id: id })));
+            if (binder.display_mode === "individual") {
+              binder.cards.forEach((card, idx) => {
+                allCardRows.push({
+                  binder_id: id,
+                  card_id: card._key || "",
+                  quantity: card.quantity || 1,
+                  price: card.customPrice != null ? card.customPrice : null,
+                  price_currency: card.priceCurrency || "ARS",
+                  card_tag: "main",
+                  sort_order: idx + 1
+                });
+              });
+            } else {
+              const collapsed = {};
+              binder.cards.forEach((card, idx) => {
+                const key = card._key || "";
+                const qty = card.quantity || 1;
+                if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, price_currency: card.priceCurrency || "ARS", sort_order: idx + 1, card_tag: "main" };
+                collapsed[key].quantity += qty;
+              });
+              allCardRows.push(...Object.values(collapsed).map(c => ({ ...c, binder_id: id })));
+            }
           }
           if (binder.dons && binder.dons.length) {
             binder.dons.forEach((card, idx) => {
-              allCardRows.push({ binder_id: id, card_id: card._key || "", quantity: 1, price: card.customPrice ?? null, card_tag: "don", sort_order: idx + 10000 });
+              allCardRows.push({ binder_id: id, card_id: card._key || "", quantity: 1, price: card.customPrice ?? null, price_currency: card.priceCurrency || "ARS", card_tag: "don", sort_order: idx + 10000 });
             });
           }
         }
@@ -450,19 +478,45 @@ async function syncObjectToSupabase(obj, type) {
       } else {
         // Regular binder cards
         if (binder.cards && binder.cards.length) {
-          const collapsed = {};
-          binder.cards.forEach((card, idx) => {
-            const key = card._key || "";
-            const qty = card.quantity || 1;
-            if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, sort_order: idx };
-            collapsed[key].quantity += qty;
-          });
-          allCardRows.push(...Object.values(collapsed).map(c => ({ ...c, binder_id: id })));
+          if (binder.display_mode === "individual") {
+            binder.cards.forEach((card, idx) => {
+              allCardRows.push({
+                binder_id: id,
+                card_id: card._key || "",
+                quantity: card.quantity || 1,
+                price: card.customPrice != null ? card.customPrice : null,
+                price_currency: card.priceCurrency || "ARS",
+                sort_order: idx
+              });
+            });
+          } else {
+            const collapsed = {};
+            binder.cards.forEach((card, idx) => {
+              const key = card._key || "";
+              const qty = card.quantity || 1;
+              if (!collapsed[key]) collapsed[key] = { card_id: key, quantity: 0, price: card.customPrice != null ? card.customPrice : null, price_currency: card.priceCurrency || "ARS", sort_order: idx };
+              collapsed[key].quantity += qty;
+            });
+            allCardRows.push(...Object.values(collapsed).map(c => ({ ...c, binder_id: id })));
+          }
         }
       }
       if (allCardRows.length) {
-        const { error: insertErr } = await supabaseClient.from("binder_cards").insert(allCardRows);
-        if (insertErr) { _DEBUG && console.error("Cards insert error:", insertErr); showToast("Error guardando cartas en el servidor", "error"); continue; }
+        const session = (await supabaseClient.auth.getSession()).data.session;
+        const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v2', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({ binder_id: id, cards: allCardRows, user_id: authUser.id })
+        });
+        const result = await response.json();
+        if (!response.ok || result.error) {
+          _DEBUG && console.error("Sync cards error:", result.error || response.statusText);
+          showToast("Error guardando cartas en el servidor", "error");
+          continue;
+        }
       }
       binder._synced = true;
     }
@@ -493,6 +547,7 @@ function expandDbCards(rows) {
     for (let i = 0; i < row.quantity; i++) {
       const c = { _key: row.card_id };
       if (row.price != null) c.customPrice = parseFloat(row.price);
+      if (row.price_currency) c.priceCurrency = row.price_currency;
       cards.push(c);
     }
   });
@@ -505,7 +560,8 @@ function expandDbCardsGrouped(rows) {
     cards.push({
       _key: row.card_id,
       quantity: row.quantity,
-      customPrice: row.price != null ? parseFloat(row.price) : 0
+      customPrice: row.price != null ? parseFloat(row.price) : 0,
+      priceCurrency: row.price_currency || "ARS"
     });
   });
   return cards;
@@ -516,6 +572,7 @@ function expandDbDeck(rows) {
   const cards = [], dons = [], champions = [], runes = [], battlefields = [], sideboard = [];
   sorted.forEach((row) => {
     const entry = { _key: row.card_id, customPrice: row.price != null ? parseFloat(row.price) : 0 };
+    if (row.price_currency) entry.priceCurrency = row.price_currency;
     if (row.card_tag === "leader") { leader = entry; }
     else if (row.card_tag === "legend") { legend = entry; }
     else if (row.card_tag === "champion") { entry.quantity = row.quantity; champions.push(entry); }
@@ -629,7 +686,7 @@ async function reloadVentaFromDb() {
         const deckObj = {
           id: b.id, name: b.name, subtype: "deck",
           cards: deck.cards, is_public: b.is_public || false,
-          display_mode: mode, tcg: tcgVal, _synced: true
+          display_mode: mode, tcg: tcgVal, totalCurrency: cfg.totalCurrency || "ARS", _synced: true
         };
         if (tcgVal === "riftbound") {
           deckObj.legend = deck.legend;
@@ -647,7 +704,8 @@ async function reloadVentaFromDb() {
         ventaCols[b.id] = {
           id: b.id, name: b.name, subtype: "binder",
           cards: expandFn(b.binder_cards),
-          is_public: b.is_public || false, display_mode: mode, tcg: cfg.tcg || "one-piece", _synced: true
+          is_public: b.is_public || false, display_mode: mode, tcg: cfg.tcg || "one-piece",
+          totalCurrency: cfg.totalCurrency || "ARS", _synced: true
         };
       }
     });
@@ -736,6 +794,31 @@ function getTotalPrice(col) {
     col.dons.forEach(d => { if (d.customPrice != null) total += Number(d.customPrice); });
   }
   return total;
+}
+function getTotalsByCurrency(col) {
+  let ars = 0, usd = 0;
+  const cards = col.cards || [];
+  const isDeck = col.subtype === "deck";
+  function addPrice(price, currency, qty) {
+    if (price == null) return;
+    if (currency === "USD") usd += Number(price) * (qty || 1);
+    else ars += Number(price) * (qty || 1);
+  }
+  if (isDeck && col.leader) addPrice(col.leader.customPrice, col.leader.priceCurrency, 1);
+  if (isDeck && col.legend) addPrice(col.legend.customPrice, col.legend.priceCurrency, 1);
+  if (isDeck && col.champions) {
+    col.champions.forEach(function(ch) { addPrice(ch.customPrice, ch.priceCurrency, ch.quantity || 1); });
+  }
+  if (isDeck) {
+    (col.runes || []).forEach(function(r) { addPrice(r.customPrice, r.priceCurrency, r.quantity || 1); });
+    (col.battlefields || []).forEach(function(b) { addPrice(b.customPrice, b.priceCurrency, 1); });
+    (col.sideboard || []).forEach(function(s) { addPrice(s.customPrice, s.priceCurrency, 1); });
+  }
+  cards.forEach(function(c) { addPrice(c.customPrice, c.priceCurrency, c.quantity || 1); });
+  if (isDeck && col.dons) {
+    col.dons.forEach(function(d) { addPrice(d.customPrice, d.priceCurrency, 1); });
+  }
+  return { ARS: ars, USD: usd };
 }
 
 // ─── Binder ──────────────────────────────────────────────────────────────

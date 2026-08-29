@@ -212,7 +212,7 @@ function renderVentaGrouped_RB(col, grid, mode) {
           '<h3>' + nombre + '</h3>' +
           (rarityLabel ? '<span class="card-print-type">' + rarityLabel + '</span>' : '') +
           '<span class="card-set-id">' + setId + '</span>' +
-          '<div class="venta-price-row"><span>$</span><input type="number" class="venta-price-input" value="' + cp.toFixed(2) + '" step="0.01" min="0" data-ventaidx="' + globalIdx + '"></div>' +
+      '<div class="venta-price-row"><span>$</span><input type="number" class="venta-price-input" value="' + cp.toFixed(2) + '" step="0.01" min="0" data-ventaidx="' + globalIdx + '"><span class="venta-currency-label' + (c.priceCurrency === "USD" ? " usd" : "") + '">' + (c.priceCurrency || "ARS") + '</span></div>' +
           qtyHTML +
         '</div>' +
         '<button class="binder-remove venta-remove" data-idx="' + globalIdx + '">&times;</button>';
@@ -251,6 +251,19 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
     inp.addEventListener("change", function() {
       var idx = parseInt(inp.getAttribute("data-ventaidx"));
       if (idx >= 0 && idx < col.cards.length) { col.cards[idx].customPrice = parseFloat(inp.value) || 0; guardarVenta(); renderVentaView(); }
+    });
+  });
+  grid.querySelectorAll(".currency-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var slot = btn.closest(".venta-slot");
+      if (!slot) return;
+      var idx = parseInt(slot.getAttribute("data-global"));
+      if (idx >= 0 && idx < col.cards.length) {
+        col.cards[idx].priceCurrency = btn.getAttribute("data-currency");
+        guardarVenta();
+        btn.parentElement.querySelectorAll(".currency-btn").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+      }
     });
   });
   grid.querySelectorAll(".venta-qty-btn").forEach(function(btn) {
@@ -313,6 +326,7 @@ function buildVentaCardHTML_RB(c, globalIdx, mode) {
       (data.print_type && data.print_type !== rareza ? '<span class="card-print-type">' + data.print_type + '</span>' : '') +
       '<span class="card-set-id">' + setId + '</span>' +
       '<div class="venta-price-row"><span>$</span><input type="number" class="venta-price-input" value="' + cp.toFixed(2) + '" step="0.01" min="0" data-ventaidx="' + globalIdx + '"></div>' +
+      '<div class="venta-currency-toggle"><button class="currency-btn ' + (c.priceCurrency !== "USD" ? "active" : "") + '" data-currency="ARS">ARS</button><button class="currency-btn ' + (c.priceCurrency === "USD" ? "active" : "") + '" data-currency="USD">USD</button></div>' +
       qtyHTML +
     '</div>' +
     '<button class="binder-remove venta-remove" data-idx="' + globalIdx + '">&times;</button>';

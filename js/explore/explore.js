@@ -52,9 +52,18 @@ async function renderExploreView() {
           if (found?.card_image) coverImg = found.card_image;
         }
       }
-      const totalPrice = b.type === "sale" && b.binder_cards?.length
-        ? b.binder_cards.reduce((s, c) => s + ((c.price != null ? Number(c.price) : 0) * (c.quantity || 1)), 0)
-        : 0;
+      let arsTotal = 0, usdTotal = 0;
+      if (b.type === "sale" && b.binder_cards?.length) {
+        b.binder_cards.forEach(c => {
+          const qty = c.quantity || 1;
+          if (c.price != null) {
+            if (c.price_currency === "USD") usdTotal += Number(c.price) * qty;
+            else arsTotal += Number(c.price) * qty;
+          }
+        });
+      }
+      const hasArs = arsTotal > 0;
+      const hasUsd = usdTotal > 0;
       const div = document.createElement("div");
       div.className = "explore-card";
       div.innerHTML = `
@@ -69,7 +78,7 @@ async function renderExploreView() {
             <span style="font-size:10px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${username}${isOwner ? "" : ""}</span>
             <span style="font-size:9px;color:var(--text-muted);margin-left:auto;white-space:nowrap">${cardCount} c</span>
           </div>
-          ${b.type === "sale" && totalPrice > 0 ? `<div style="margin-top:6px"><span style="font-size:11px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$${totalPrice.toFixed(2)}</span></div>` : ""}
+          ${b.type === "sale" && (hasArs || hasUsd) ? `<div style="margin-top:6px;display:flex;flex-direction:column;gap:2px">${hasArs ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${hasUsd ? `<span style="font-size:11px;font-family:var(--font-mono);color:#ffd700;font-weight:var(--weight-bold)">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
       `;
       div.addEventListener("click", () => openExploreDetail(b));
@@ -95,6 +104,18 @@ function renderExploreDetail() {
   const subtype = (b.config && b.config.subtype) || "binder";
   const totalCards = cards.reduce((s, c) => s + c.quantity, 0);
 
+  // Calculate totals by currency for sale views
+  let arsTotal = 0, usdTotal = 0;
+  if (b.type === "sale") {
+    cards.forEach(c => {
+      const qty = c.quantity || 1;
+      if (c.price != null) {
+        if (c.price_currency === "USD") usdTotal += Number(c.price) * qty;
+        else arsTotal += Number(c.price) * qty;
+      }
+    });
+  }
+
   if (subtype === "deck") {
     const deck = expandDbDeck(cards);
     const leader = deck.leader;
@@ -106,6 +127,7 @@ function renderExploreDetail() {
       <div class="explore-detail-header">
         <span class="explore-badge ${b.type}">${typeLabel}</span>
         <span>Deck · ${totalCards} cartas</span>
+        ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
       </div>
       <div class="deck-container">
         <div class="deck-section deck-leader-section">
@@ -142,6 +164,7 @@ function renderExploreDetail() {
             <div class="card-body">
               <h3>${carta.card_name || ""}</h3>
               <span class="card-set-id">${carta.card_color || ""}</span>
+              ${b.type === "sale" && leader.customPrice != null ? `<div class="card-price">$${parseFloat(leader.customPrice).toFixed(2)} <span class="${leader.priceCurrency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${leader.priceCurrency === "USD" ? "#ffd700" : "var(--accent)"}">${leader.priceCurrency || "ARS"}</span></div>` : ""}
             </div>`;
           leaderCard.addEventListener("click", () => openCardInModal(carta));
         }
@@ -164,6 +187,7 @@ function renderExploreDetail() {
         <div class="card-body">
           <h3>${formatearNombre(carta)}</h3>
           <span class="card-set-id">${carta.card_set_id || ""}</span>
+          ${b.type === "sale" && c.customPrice != null ? `<div class="card-price">$${parseFloat(c.customPrice).toFixed(2)} <span class="${c.priceCurrency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${c.priceCurrency === "USD" ? "#ffd700" : "var(--accent)"}">${c.priceCurrency || "ARS"}</span></div>` : ""}
         </div>`;
       div.addEventListener("click", () => openCardInModal(carta));
       mainGrid.appendChild(div);
@@ -179,7 +203,8 @@ function renderExploreDetail() {
       div.innerHTML = `
         <div class="card-img-wrap">
           <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
-        </div>`;
+        </div>
+        ${b.type === "sale" && c.customPrice != null ? `<div style="font-size:10px;font-family:var(--font-mono);font-weight:bold;color:${c.priceCurrency === "USD" ? "#ffd700" : "var(--accent)"}">$${parseFloat(c.customPrice).toFixed(2)} ${c.priceCurrency || "ARS"}</div>` : ""}`;
       div.addEventListener("click", () => openCardInModal(carta));
       donRow.appendChild(div);
     });
@@ -188,6 +213,7 @@ function renderExploreDetail() {
       <div class="explore-detail-header">
         <span class="explore-badge ${b.type}">${typeLabel}</span>
         <span>${totalCards} cartas</span>
+        ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
       </div>
       <div class="explore-detail-grid"></div>
     `;
@@ -195,21 +221,21 @@ function renderExploreDetail() {
     cards.forEach(row => {
       const carta = cartasMap[row.card_id];
       if (!carta) return;
-      for (let i = 0; i < row.quantity; i++) {
-        const div = document.createElement("div");
-        div.className = "card fade-in";
-        div.innerHTML = `
-          <div class="card-img-wrap">
-            <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
-          </div>
-          <div class="card-body">
-            <h3>${formatearNombre(carta)}</h3>
-            <span class="card-set-id">${carta.card_set_id || ""}</span>
-            ${b.type === "sale" && row.price != null ? `<div class="card-price">Precio: $${parseFloat(row.price).toFixed(2)}</div>` : ""}
-          </div>`;
-        div.addEventListener("click", () => openCardInModal(carta));
-        grid.appendChild(div);
-      }
+      const qty = row.quantity || 1;
+      const div = document.createElement("div");
+      div.className = "card fade-in";
+      div.innerHTML = `
+        <div class="card-img-wrap">
+          <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
+          ${qty > 1 ? `<span class="deck-card-qty">&times;${qty}</span>` : ""}
+        </div>
+        <div class="card-body">
+          <h3>${formatearNombre(carta)}</h3>
+          <span class="card-set-id">${carta.card_set_id || ""}</span>
+          ${b.type === "sale" && row.price != null ? `<div class="card-price">$${parseFloat(row.price).toFixed(2)} <span class="${row.price_currency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${row.price_currency === "USD" ? "#ffd700" : "var(--accent)"}">${row.price_currency || "ARS"}</span></div>` : ""}
+        </div>`;
+      div.addEventListener("click", () => openCardInModal(carta));
+      grid.appendChild(div);
     });
   }
 }

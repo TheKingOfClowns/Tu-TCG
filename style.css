@@ -1498,6 +1498,65 @@ body {
 }
 .venta-price-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
 
+.venta-currency-toggle {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.currency-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.currency-btn:hover { border-color: var(--accent); color: var(--accent); }
+.currency-btn.active {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
+}
+.venta-currency-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  margin-left: 4px;
+}
+.venta-currency-label.usd {
+  color: #ffd700;
+}
+
+.venta-total-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.venta-total-currency-toggle {
+  display: flex;
+  gap: 2px;
+}
+
+.deck-sale-totals {
+  display: flex;
+  gap: 20px;
+  padding: 10px 14px;
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+.deck-total-ars { color: var(--accent); font-weight: var(--weight-bold); }
+.deck-total-usd { color: #ffd700; font-weight: var(--weight-bold); }
+
 .venta-mode-badge {
   display: inline-block;
   font-size: 10px;

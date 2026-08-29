@@ -59,7 +59,7 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
         }
         return base;
       }
-      if (mode === "don") return deckCards.filter(c => (c.card_type === "DON!!" || c.category === "DON") && !existing.has(getCardKey(c)));
+      if (mode === "don") return deckCards.filter(c => c.card_type === "DON!!" || c.category === "DON");
       return [];
     }
     if (mode === "leader") title.textContent = "Elegir líder";
@@ -489,7 +489,12 @@ function renderDeckView_OP(type, col, grid, title, toggleContainer) {
   var dons = col.dons || [];
   var totalCards = (leader ? 1 : 0) + mainCards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + dons.length;
   title.textContent = col.name + " (" + totalCards + " cartas)";
-  grid.innerHTML = '<div class="deck-container">' + _opBuildLeaderHTML(leader, isSale) + _opBuildMainCardsHTML(mainCards, isSale) + _opBuildDonsHTML(dons, isSale) + '</div>';
+  var totalsHTML = '';
+  if (isSale) {
+    var totals = getTotalsByCurrency(col);
+    totalsHTML = '<div class="deck-sale-totals"><span class="deck-total-ars">ARS: $' + totals.ARS.toFixed(2) + '</span><span class="deck-total-usd">USD: $' + totals.USD.toFixed(2) + '</span></div>';
+  }
+  grid.innerHTML = totalsHTML + '<div class="deck-container">' + _opBuildLeaderHTML(leader, isSale) + _opBuildMainCardsHTML(mainCards, isSale) + _opBuildDonsHTML(dons, isSale) + '</div>';
   var reRender = function() { saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); };
   _opAttachDeckEvents(grid, col, isSale, reRender);
 }

@@ -214,6 +214,80 @@ Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (r
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
 
+## Venta — Moneda ARS/USD (2026-08-28)
+
+### Implementado
+- Cada carta en venta tiene selector ARS/USD visible públicamente
+- Precio total en portada editable + selector de moneda
+- Totales separados ARS/USD visibles dentro de decks/binders en venta
+- Datos persistidos en Supabase (`price_currency` en `binder_cards`, `totalCurrency` en `config`)
+
+### Campos agregados a la base de datos
+```sql
+ALTER TABLE binder_cards ADD COLUMN IF NOT EXISTS price_currency TEXT DEFAULT 'ARS';
+```
+
+### Estructura de datos
+- `cards[].priceCurrency` — "ARS" (default) o "USD" por carta individual
+- `cards[].priceCurrency` se propaga en expandDbCards/expandDbDeck
+- `col.totalCurrency` — moneda del precio total en portada
+
+### Funciones modificadas
+- `getTotalsByCurrency(col)` — nueva, calcula ARS y USD separados
+- `expandDbCards`, `expandDbCardsGrouped`, `expandDbDeck` — preservan priceCurrency
+- `buildVentaCardHTML_OP/RB` — muestran label de moneda (cyan ARS, dorado USD)
+- `attachVentaEvents_OP/RB` — handler para cambiar moneda por carta
+- `renderVentaList_OP` — selector de moneda en portada
+- `renderDeckView_OP` — totales ARS/USD arriba a la izquierda
+- `renderExploreDetail` — precios con moneda en explore público
+- `renderExploreView` — totales ARS/USD separados en lista pública
+
+### CSS agregado
+- `.currency-btn` / `.currency-btn.active` — estilo del toggle
+- `.venta-currency-label` — label después del precio (cyan ARS, dorado USD con clase `.usd`)
+- `.deck-sale-totals` — contenedor de totales en deck venta
+
+## Edge Function — sync-binder-cards (PENDIENTE)
+
+### Estado: NO FUNCIONAL — necesita debug
+- Función Postgres `sync_binder_cards_atomic` creada y verificada funcionando via MCP
+- Edge Function `sync-binder-cards-v2` desplegada con CORS para desarrollo local
+- El frontend hace fetch directo a la Edge Function
+- Error 500 interno al ejecutar — la función recibe el request pero falla
+
+### Archivos creados
+- `supabase/functions/sync-binder-cards-v2/index.ts` — Edge Function con CORS
+- `supabase/functions/sync-binder-cards-v2/deno.json`
+
+### Problema已知
+- La Edge Function retorna 500 Internal Server Error
+- La función Postgres funciona correctamente cuando se prueba manualmente con UUIDs reales
+- Posibles causas: JWT verification, formato de datos del frontend, o error en el RPC call
+
+### Código actual del frontend (`syncObjectToSupabase` en script.js)
+Usa fetch directo a la Edge Function en vez de RPC:
+```javascript
+const session = (await supabaseClient.auth.getSession()).data.session;
+const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v2', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+  body: JSON.stringify({ binder_id: id, cards: allCardRows, user_id: authUser.id })
+});
+```
+
+### Alternativa temporal
+Si la Edge Function no funciona, volver al `delete + insert` separado en `syncObjectToSupabase` (líneas ~401 y ~506 de script.js). El delete/insert funcionaba antes, solo tenía race condition.
+
+## Pendiente de sesión anterior
+- **Scrapear cartas Pokémon** y poblar `cards_master.json`
+- Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
+- Agregar filtros de flags (checkboxes) en el catálogo para Pokémon
+- Agregar filtros de subtipo, HP, weakness, resistance, retreat cost al catálogo Pokémon
+- API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
+- Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
+- **Fixear Edge Function sync-binder-cards-v2** (500 error interno)
+- **Fixear duplicación de datos en Supabase** — los datos existentes pueden tener duplicates, necesita limpieza o re-sync
+
 ## Cloudflare MCP Setup (2026-08-28)
 Configurados en `~/.config/opencode/opencode.jsonc`:
 - `cloudflare` — connected (MCP principal)

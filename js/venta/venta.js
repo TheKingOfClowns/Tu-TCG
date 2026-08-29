@@ -35,13 +35,15 @@ function renderVentaList_OP() {
         <span class="binder-cover-name-badge">${col.name}</span>
         <span class="binder-cover-badge sale">${badgeText}</span>
         ${(() => {
-          const tp = getTotalPrice(col);
-          const dp = col.customTotalPrice != null ? Number(col.customTotalPrice) : tp;
-          const isCustom = col.customTotalPrice != null;
-          return `<div style="display:flex;align-items:center;gap:6px;margin-top:var(--space-1)">
+          const dp = col.customTotalPrice != null ? Number(col.customTotalPrice) : 0;
+          const tc = col.totalCurrency || "ARS";
+          return `<div class="venta-total-price-row">
+            <div class="venta-total-currency-toggle">
+              <button class="currency-btn ${tc !== "USD" ? "active" : ""}" data-total-currency="ARS" data-id="${id}">ARS</button>
+              <button class="currency-btn ${tc === "USD" ? "active" : ""}" data-total-currency="USD" data-id="${id}">USD</button>
+            </div>
             <span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$${dp.toFixed(2)}</span>
             <button class="btn-ghost btn-xs" data-action="editprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">✎</button>
-            ${isCustom ? `<button class="btn-ghost btn-xs" data-action="resetprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="Restaurar precio calculado">↺</button>` : ""}
           </div>`;
         })()}
       </div>
@@ -93,7 +95,7 @@ function renderVentaList_OP() {
       const priceSpan = container.querySelector("[data-totalprice]");
       if (!priceSpan) return;
       if (priceSpan.querySelector("input")) return;
-      const current = col.customTotalPrice != null ? col.customTotalPrice : getTotalPrice(col);
+      const current = col.customTotalPrice != null ? col.customTotalPrice : 0;
       const input = document.createElement("input");
       input.type = "number";
       input.step = "0.5";
@@ -107,9 +109,7 @@ function renderVentaList_OP() {
       const save = () => {
         const val = parseFloat(input.value);
         if (isNaN(val) || val < 0) { renderVentaList_OP(); return; }
-        const calc = getTotalPrice(col);
-        if (val === calc) delete col.customTotalPrice;
-        else col.customTotalPrice = val;
+        col.customTotalPrice = val;
         guardarVenta(); renderVentaList_OP();
       };
       input.addEventListener("keydown", e => { if (e.key === "Enter") save(); if (e.key === "Escape") renderVentaList_OP(); });
@@ -122,6 +122,15 @@ function renderVentaList_OP() {
       const col = ventaCols[id];
       if (!col) return;
       delete col.customTotalPrice;
+      guardarVenta(); renderVentaList_OP();
+    });
+  });
+  container.querySelectorAll("[data-total-currency]").forEach(b => {
+    b.addEventListener("click", () => {
+      const id = b.getAttribute("data-id");
+      const col = ventaCols[id];
+      if (!col) return;
+      col.totalCurrency = b.getAttribute("data-total-currency");
       guardarVenta(); renderVentaList_OP();
     });
   });
@@ -249,6 +258,11 @@ function buildVentaCardHTML_OP(c, globalIdx, mode) {
         <span class="venta-price-label">Precio:</span>
         <span class="venta-price-prefix">$</span>
         <input type="number" class="venta-price-input" step="0.5" min="0" value="${cp}" data-ventaidx="${globalIdx}">
+        <span class="venta-currency-label ${c.priceCurrency === "USD" ? "usd" : ""}">${c.priceCurrency || "ARS"}</span>
+      </div>
+      <div class="venta-currency-toggle">
+        <button class="currency-btn ${c.priceCurrency !== "USD" ? "active" : ""}" data-currency="ARS">ARS</button>
+        <button class="currency-btn ${c.priceCurrency === "USD" ? "active" : ""}" data-currency="USD">USD</button>
       </div>
     </div>
     <button class="binder-remove" data-ventaidx="${globalIdx}" data-mode="${mode}">&times;</button>`;
@@ -327,6 +341,21 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       if (!col || !col.cards[idx]) return;
       col.cards[idx].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value);
       guardarVenta();
+    });
+  });
+  // Currency toggles
+  grid.querySelectorAll(".currency-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const slot = btn.closest(".venta-slot");
+      if (!slot) return;
+      const idx = parseInt(slot.getAttribute("data-global"));
+      const col = ventaCols[currentVentaId];
+      if (!col || !col.cards[idx]) return;
+      const newCurrency = btn.getAttribute("data-currency");
+      col.cards[idx].priceCurrency = newCurrency;
+      guardarVenta();
+      btn.parentElement.querySelectorAll(".currency-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
     });
   });
   // Quantity buttons
