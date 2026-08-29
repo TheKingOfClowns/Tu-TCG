@@ -1,7 +1,7 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-08-28
+2026-08-29
 
 ## Proyecto
 App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler pages deploy`.
@@ -103,6 +103,7 @@ function _fn(name) {
   - `confirmarAdd`/`confirmCreateModal`/`hideCreateModal` → `modals.js`
   - `pedirCrearVenta` → `dispatcher_venta.js`
   - `pedirCrearColeccion` → `dispatcher_binder.js`
+- **tcgplayerMap undefined (2026-08-29):** `getTcgId()` Called before catalog load in `buildTrackingCardList` → Fix: initialize `tcgplayerMap = {}` at declaration (script.js:34)
 
 ### Sistema de vistas (`mostrarVista`)
 - `"home"` → Landing page (`#tcgHomePlaceholder`), tcgGrid oculto, display:block
@@ -209,10 +210,11 @@ Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (r
 - Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
 
 ## Deploy
-- URL: `https://a7041e31.tutcg.pages.dev` (deploy 2026-08-28)
+- URL: `https://da1994fa.tutcg.pages.dev` (deploy 2026-08-29)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
+- Warning: El directorio tiene cambios sin commitear que generan warning. Pasar `--commit-dirty=true` o commitear antes.
 
 ## Venta — Moneda ARS/USD (2026-08-28)
 
@@ -247,36 +249,43 @@ ALTER TABLE binder_cards ADD COLUMN IF NOT EXISTS price_currency TEXT DEFAULT 'A
 - `.venta-currency-label` — label después del precio (cyan ARS, dorado USD con clase `.usd`)
 - `.deck-sale-totals` — contenedor de totales en deck venta
 
-## Edge Function — sync-binder-cards (PENDIENTE)
+## Edge Function — sync-binder-cards-v3 (FUNCIONAL)
 
-### Estado: NO FUNCIONAL — necesita debug
-- Función Postgres `sync_binder_cards_atomic` creada y verificada funcionando via MCP
-- Edge Function `sync-binder-cards-v2` desplegada con CORS para desarrollo local
-- El frontend hace fetch directo a la Edge Function
-- Error 500 interno al ejecutar — la función recibe el request pero falla
+### Estado: ✅ FUNCIONANDO
+- Función Postgres `sync_binder_cards_atomic` corregida y funcionando
+- Edge Function `sync-binder-cards-v3` desplegada con CORS para producción
+- Frontend apunta a `sync-binder-cards-v3`
 
-### Archivos creados
-- `supabase/functions/sync-binder-cards-v2/index.ts` — Edge Function con CORS
-- `supabase/functions/sync-binder-cards-v2/deno.json`
+### Fixes aplicados (2026-08-29)
+1. **Postgres function:** `card_id` era casteado a `::UUID` pero la tabla usa `TEXT` y el frontend envía strings como `tcg_one-piece|OP01-001|...`
+   - Solución: cambiar a `::TEXT` y usar LATERAL para iterar el JSONB
+2. **CORS:** la función solo permitía localhost, no producción
+   - Solución: agregar `https://tutcg.pages.dev` a corsOrigins y permitir cualquier origen `.pages.dev`
 
-### Problema已知
-- La Edge Function retorna 500 Internal Server Error
-- La función Postgres funciona correctamente cuando se prueba manualmente con UUIDs reales
-- Posibles causas: JWT verification, formato de datos del frontend, o error en el RPC call
+### Función Postgres `sync_binder_cards_atomic`
+```sql
+-- Usa LATERAL para iterar el JSONB array
+INSERT INTO binder_cards (binder_id, card_id, quantity, price, price_currency, card_tag, sort_order)
+SELECT p_binder_id, card->>'card_id', COALESCE((card->>'quantity')::int, 1),
+  NULLIF(card->>'price', '')::numeric, COALESCE(NULLIF(card->>'price_currency', ''), 'ARS'),
+  NULLIF(card->>'card_tag', '')::text, COALESCE((card->>'sort_order')::int, 0)
+FROM jsonb_array_elements(p_cards) AS card;
+```
 
-### Código actual del frontend (`syncObjectToSupabase` en script.js)
-Usa fetch directo a la Edge Function en vez de RPC:
+### Archivos
+- `supabase/functions/sync-binder-cards-v2/index.ts` — CORS fix (no usar, v3 es la activa)
+- `supabase/functions/sync-binder-cards-v3/index.ts` — Edge Function activa
+- `supabase/functions/sync-binder-cards-v3/deno.json`
+
+### Frontend (script.js)
+Usa fetch directo a la Edge Function:
 ```javascript
-const session = (await supabaseClient.auth.getSession()).data.session;
-const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v2', {
+const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v3', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
   body: JSON.stringify({ binder_id: id, cards: allCardRows, user_id: authUser.id })
 });
 ```
-
-### Alternativa temporal
-Si la Edge Function no funciona, volver al `delete + insert` separado en `syncObjectToSupabase` (líneas ~401 y ~506 de script.js). El delete/insert funcionaba antes, solo tenía race condition.
 
 ## Pendiente de sesión anterior
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`
@@ -285,7 +294,6 @@ Si la Edge Function no funciona, volver al `delete + insert` separado en `syncOb
 - Agregar filtros de subtipo, HP, weakness, resistance, retreat cost al catálogo Pokémon
 - API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
 - Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
-- **Fixear Edge Function sync-binder-cards-v2** (500 error interno)
 - **Fixear duplicación de datos en Supabase** — los datos existentes pueden tener duplicates, necesita limpieza o re-sync
 
 ## Cloudflare MCP Setup (2026-08-28)
