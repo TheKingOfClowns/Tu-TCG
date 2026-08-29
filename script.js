@@ -31,7 +31,7 @@ const binderPerPage = 20;
 let currentTcg = "one-piece";
 let pendingView = null;
 let prbBadgeMap = {};
-let tcgplayerMap;
+let tcgplayerMap = {};
 let collections = {};
 let currentCollectionId = null;
 let ventaCols = {};
