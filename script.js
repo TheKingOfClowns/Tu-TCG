@@ -503,7 +503,7 @@ async function syncObjectToSupabase(obj, type) {
       }
       if (allCardRows.length) {
         const session = (await supabaseClient.auth.getSession()).data.session;
-        const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v2', {
+        const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v3', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

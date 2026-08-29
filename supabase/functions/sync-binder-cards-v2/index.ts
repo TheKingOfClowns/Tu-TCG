@@ -8,11 +8,14 @@ Deno.serve(async (req: Request) => {
     'http://127.0.0.1:5500',
     'http://127.0.0.1:5501',
     'http://localhost:5500',
-    'http://localhost:5501'
+    'http://localhost:5501',
+    'https://tutcg.pages.dev'
   ];
 
   const origin = req.headers.get('Origin') || '';
-  const allowedOrigin = corsOrigins.includes(origin) ? origin : corsOrigins[0];
+  const allowedOrigin = corsOrigins.includes(origin)
+    ? origin
+    : (origin.includes('.pages.dev') ? origin : corsOrigins[0]);
 
   const corsHeaders = {
     'Access-Control-Allow-Origin': allowedOrigin,
