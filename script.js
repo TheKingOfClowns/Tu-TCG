@@ -240,6 +240,13 @@ async function cargarCartas() {
   }
 }
 
+function ensureCartasLoaded() {
+  if (currentTcg && Object.keys(cartasMap).length === 0) {
+    return cargarCartas();
+  }
+  return Promise.resolve();
+}
+
 function obtenerRareza(carta) {
   const rarezaApi = carta.rareza || carta.rarity || "";
   const nombre = (carta.card_name || "").toLowerCase();
@@ -1029,7 +1036,7 @@ function mostrarVista(vista, navState) {
     document.getElementById("binderView").style.display = "";
     document.getElementById("sidebarBinder")?.classList.add("active");
     document.getElementById("bottomCollections")?.classList.add("active");
-    renderBinder();
+    ensureCartasLoaded().then(() => renderBinder());
   } else if (vista === "collections") {
     if (!currentTcg) {
 
@@ -1048,7 +1055,7 @@ function mostrarVista(vista, navState) {
     document.getElementById("collectionManager").style.display = "";
     document.getElementById("sidebarColecciones")?.classList.add("active");
     document.getElementById("bottomColecciones")?.classList.add("active");
-    renderCollectionList();
+    ensureCartasLoaded().then(() => renderCollectionList());
   } else if (vista === "ventaCols") {
     if (!currentTcg) {
 
@@ -1067,13 +1074,13 @@ function mostrarVista(vista, navState) {
     document.getElementById("ventaManager").style.display = "";
     document.getElementById("sidebarVenta")?.classList.add("active");
     document.getElementById("bottomVenta")?.classList.add("active");
-    renderVentaList();
+    ensureCartasLoaded().then(() => renderVentaList());
   } else if (vista === "venta") {
     document.getElementById("ventaView").classList.add("active");
     document.getElementById("ventaView").style.display = "";
     document.getElementById("sidebarVenta")?.classList.add("active");
     document.getElementById("bottomVenta")?.classList.add("active");
-    renderVentaView();
+    ensureCartasLoaded().then(() => renderVentaView());
   } else if (vista === "tcgHome") {
     if (!currentTcg) {
       document.getElementById("tcgSelector").classList.add("active");
