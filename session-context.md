@@ -1,7 +1,7 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-08-29
+2026-08-31
 
 ## Proyecto
 App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler pages deploy`.
@@ -11,7 +11,7 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 
 - `index.html` — Layout principal + orden de carga de scripts
 - `style.css` / `design-system.css` — Estilos y tokens
-- `script.js` — Lógica principal (~1310 líneas), estado global, sync Supabase
+- `script.js` — Lógica principal (~1700 líneas), estado global, sync Supabase
 - `js/state.js` — Estado (solo `catalog.catalogLanguage`)
 - `js/tcg/{tcg}/config.js` — Config por TCG (deckRules, rarities, cardTypes, colors, etc.)
 - `js/modals/modals.js` — Modal de carta, modal "Agregar a", badges, event listeners
@@ -227,15 +227,39 @@ Path-based routing con History API para soporte de browser back button y deep li
 
 ### Archivos
 - `js/router.js` — parseUrl, buildPath, navigateTo, handlePopState
-- `_redirects` — Cloudflare Pages SPA redirect (`/* /index.html 200`)
 
 ### Funciones
 - `navigateToView(route, params, filters)` — navigation + pushState
 - `applyFiltersFromUrl(filters, quiet)` — restaura filtros desde URL
 - Botones "volver" internos usan `history.back()`
 
+### Deep Links — Fix de Imágenes (2026-08-31)
+El problema: al hacer deep link a `/collections/:id` o `/explore/:id`, las imágenes no cargaban porque `cartasMap` estaba vacío.
+
+**Solución:** El routing startup IIFE ahora hace `await cargarCartas()` antes de cargar binders para deep links:
+
+```javascript
+if (parsed.route === 'binder' && parsed.params.id) {
+  await cargarCartas(); // ← AGREGADO
+  const binder = await loadPublicBinderById(parsed.params.id);
+  // ...
+}
+```
+
+### Race Conditions — AbortController (2026-08-31)
+`renderExploreView()` usa AbortController para cancelar requests anteriores si se llama de nuevo:
+
+```javascript
+let _exploreController = null;
+async function renderExploreView() {
+  if (_exploreController) _exploreController.abort();
+  _exploreController = new AbortController();
+  // query con .abortSignal(_exploreController.signal)
+}
+```
+
 ## Deploy
-- URL: `https://72d447ff.tutcg.pages.dev` (deploy 2026-08-31)
+- URL: `https://87fa00c7.tutcg.pages.dev` (deploy 2026-08-31)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
@@ -273,6 +297,44 @@ ALTER TABLE binder_cards ADD COLUMN IF NOT EXISTS price_currency TEXT DEFAULT 'A
 - `.currency-btn` / `.currency-btn.active` — estilo del toggle
 - `.venta-currency-label` — label después del precio (cyan ARS, dorado USD con clase `.usd`)
 - `.deck-sale-totals` — contenedor de totales en deck venta
+
+## Explorer — UI Refactor (2026-08-31)
+
+### Cambios
+- Sidebar y bottom nav: "Binder" renombrado a "Colecciones" (refleja que incluye binders y decks)
+- Explorer ahora tiene **tabs de filtro**: Colecciones | Ventas | Todas (por defecto "Todas")
+- **Búsqueda fuzzy**: input para buscar por nombre del binder o nombres de cartas
+- **Debounce de 300ms** en la búsqueda para no buscar en cada keystroke
+- Layout corregido: tabs y búsqueda en la parte superior, cards en grid debajo
+
+### Estructura HTML
+```
+┌─────────────────────────────────────┐
+│ [Colecciones][Ventas][Todas] 🔍   │ ← explore-filters (arriba)
+├─────────────────────────────────────┤
+│ ┌────┐ ┌────┐ ┌────┐ ┌────┐       │
+│ │    │ │    │ │    │ │    │       │ ← explore-grid (binders)
+│ └────┘ └────┘ └────┘ └────┘       │
+└─────────────────────────────────────┘
+```
+
+### CSS Classes usadas
+- `.explore-filters` — contenedor flex para tabs + búsqueda
+- `.explore-tabs` / `.explore-tab` — botones de tabs
+- `.explore-search` — input de búsqueda
+- Cards usan `.binder-cover-card`, `.binder-cover-img`, `.binder-cover-meta` (mismo estilo que Colecciones)
+
+### Deduplicación
+El query de Supabase (`select("*, binder_cards(*)")`) devuelve 1 fila por cada binder_card. Se deduplica por `binder.id` con Set:
+
+```javascript
+const seen = new Set();
+const uniqueBinders = publicBinders.filter(b => {
+  if (seen.has(b.id)) return false;
+  seen.add(b.id);
+  return true;
+});
+```
 
 ## Edge Function — sync-binder-cards-v3 (FUNCIONAL)
 
@@ -320,6 +382,7 @@ const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions
 - API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
 - Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
 - **Fixear duplicación de datos en Supabase** — los datos existentes pueden tener duplicates, necesita limpieza o re-sync
+- Implementar deep links para `/explore/colecciones` y `/explore/ventas` como rutas separadas (actualmente es un solo tab)
 
 ## Cloudflare MCP Setup (2026-08-28)
 Configurados en `~/.config/opencode/opencode.jsonc`:
