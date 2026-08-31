@@ -36,7 +36,7 @@ function isAuthenticated() { return !!authUser; }
 
 // ─── Auth Actions ────────────────────────────────────────────────────────
 
-async function signUp(email, password, username) {
+async function signUp(email, password, username, firstName, lastName) {
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password,
@@ -45,6 +45,17 @@ async function signUp(email, password, username) {
     }
   });
   if (error) throw error;
+
+  if (data?.user) {
+    await supabaseClient.from("profiles").upsert({
+      id: data.user.id,
+      username,
+      display_name: username,
+      first_name: firstName,
+      last_name: lastName
+    });
+  }
+
   return data;
 }
 
@@ -190,6 +201,10 @@ function showAuthModal(mode) {
   } else if (mode === "register") {
     title.textContent = "Crear cuenta";
     fields.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input type="text" id="authFirstName" placeholder="Nombre" required autocomplete="given-name">
+        <input type="text" id="authLastName" placeholder="Apellido" required autocomplete="family-name">
+      </div>
       <input type="text" id="authUsername" placeholder="Nombre de usuario" required autocomplete="username">
       <input type="email" id="authEmail" placeholder="Email" required autocomplete="email">
       <input type="password" id="authPassword" placeholder="Contraseña" required autocomplete="new-password" minlength="6">
@@ -225,6 +240,8 @@ async function handleAuthSubmit(e) {
   const email = document.getElementById("authEmail")?.value?.trim();
   const password = document.getElementById("authPassword")?.value;
   const username = document.getElementById("authUsername")?.value?.trim();
+  const firstName = document.getElementById("authFirstName")?.value?.trim();
+  const lastName = document.getElementById("authLastName")?.value?.trim();
 
   errorEl.style.display = "none";
   successEl.style.display = "none";
@@ -234,9 +251,9 @@ async function handleAuthSubmit(e) {
       if (!email || !password) throw new Error("Completá todos los campos");
       await signIn(email, password);
     } else if (mode === "register") {
-      if (!email || !password || !username) throw new Error("Completá todos los campos");
+      if (!email || !password || !username || !firstName || !lastName) throw new Error("Completá todos los campos");
       if (password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
-      await signUp(email, password, username);
+      await signUp(email, password, username, firstName, lastName);
       successEl.textContent = "Cuenta creada. Revisá tu email para verificarla.";
       successEl.style.display = "block";
       return;

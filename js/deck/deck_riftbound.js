@@ -594,15 +594,6 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
     g.querySelectorAll(".deck-champion-card .card-img-wrap").forEach(function(imgWrap) {
       imgWrap.addEventListener("click", function(e) { e.stopPropagation(); pickChampion(); });
     });
-    g.querySelectorAll(".deck-champion-card").forEach(function(champCard) {
-      champCard.style.cursor = "pointer";
-      champCard.addEventListener("click", function(e) {
-        if (e.target.closest(".binder-remove") || e.target.closest(".card-img-wrap")) return;
-        var key = champCard.getAttribute("data-key");
-        var carta = key ? cartasMap[key] : null;
-        if (carta) openCardInModal(carta);
-      });
-    });
     var changeChampionBtn = document.getElementById("deckChangeChampionBtn");
     if (changeChampionBtn) changeChampionBtn.addEventListener("click", function() { pickChampion(); });
 

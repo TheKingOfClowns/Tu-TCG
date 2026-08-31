@@ -275,11 +275,13 @@ function renderBinder_OP() {
     img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
-      const key = this.closest(".card")?.getAttribute("data-cardkey");
+      const card = this.closest(".card");
+      const key = card?.getAttribute("data-cardkey");
       const carta = key ? cartasMap[key] : null;
       if (carta) {
         const navList = (col.cards || []).map(entry => cartasMap[entry._key]).filter(Boolean);
-        openCardInModal(carta, navList);
+        const startIdx = parseInt(card?.getAttribute("data-global")) || 0;
+        openCardInModal(carta, navList, startIdx);
       }
     });
   });

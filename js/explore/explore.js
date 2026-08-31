@@ -38,13 +38,13 @@ function cerrarModalPerfilPublico() {
   const modal = document.getElementById("publicProfileModal");
   if (modal) modal.remove();
 }
-function renderExploreDetailCards(cards, grid, b) {
+function renderExploreDetailCards(cards, grid, b, navList) {
   grid.innerHTML = "";
   if (!cards || !cards.length) {
     grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary)">No hay cartas para mostrar</div>';
     return;
   }
-  cards.forEach(row => {
+  cards.forEach((row, idx) => {
     const carta = cartasMap[row._key] || row;
     if (!carta || !carta.card_image) return;
     const qty = row.quantity || 1;
@@ -60,7 +60,8 @@ function renderExploreDetailCards(cards, grid, b) {
         <span class="card-set-id">${carta.card_set_id || ""}</span>
         ${b.type === "sale" && row.price != null ? `<div class="card-price">$${parseFloat(row.price).toFixed(2)} <span class="${row.price_currency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${row.price_currency === "USD" ? "#ffd700" : "var(--accent)"}">${row.price_currency || "ARS"}</span></div>` : ""}
       </div>`;
-    div.addEventListener("click", () => openCardInModal(carta));
+    const startIdx = navList ? idx : undefined;
+    div.addEventListener("click", () => openCardInModal(carta, navList, startIdx));
     grid.appendChild(div);
   });
 }
@@ -111,7 +112,7 @@ function filterExploreCards() {
     cards = fuzzySearch(cards, exploreSearchQuery, ['card_name', 'card_set_id', 'set_name']);
   }
   const grid = container.querySelector(".explore-detail-grid");
-  if (grid) renderExploreDetailCards(cards, grid, b);
+  if (grid) renderExploreDetailCards(cards, grid, b, cards);
 }
 function setupExploreFilters() {
   const container = document.getElementById("exploreDetailContainer");
@@ -145,7 +146,6 @@ function setupExploreFilters() {
   }
 }
 let _exploreController = null;
-let _exploreSearchDebounce = null;
 function buildExploreFiltersHTML() {
   return `
     <div class="explore-filters">
@@ -172,12 +172,11 @@ function attachExploreListeners() {
   });
   const searchInput = document.getElementById('exploreSearchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      clearTimeout(_exploreSearchDebounce);
-      _exploreSearchDebounce = setTimeout(() => {
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
         exploreExploreSearchQuery = searchInput.value.trim();
         renderExploreView();
-      }, 300);
+      }
     });
   }
 }
@@ -280,6 +279,15 @@ async function renderExploreView() {
       }
       const hasArs = arsTotal > 0;
       const hasUsd = usdTotal > 0;
+      const isTracking = (b.config && b.config.subtype) === "tracking";
+      let trackingHas = 0, trackingTotal = 0, trackingPct = 0;
+      if (isTracking) {
+        const ownerHas = new Set((b.binder_cards || []).map(bc => bc.card_id));
+        const targetCards = b.target_cards || [];
+        trackingHas = targetCards.filter(c => ownerHas.has(c._key)).length;
+        trackingTotal = targetCards.length;
+        trackingPct = trackingTotal > 0 ? Math.round((trackingHas / trackingTotal) * 100) : 0;
+      }
       const div = document.createElement("div");
       div.className = "binder-cover-card";
       div.innerHTML = `
@@ -289,8 +297,18 @@ async function renderExploreView() {
           </div>
         </div>
         <div class="binder-cover-meta">
-          <span class="binder-cover-name-badge">${b.name}</span>
-          <span class="binder-cover-badge ${b.type}">${typeLabel}</span>
+          <div class="binder-cover-user-row">
+            <img src="${avatarUrl || 'TUTCG.webp'}" class="binder-cover-avatar" onerror="this.src='TUTCG.webp'">
+            <span class="binder-cover-username">${username}</span>
+          </div>
+          <div class="binder-cover-name-row">
+            <span class="binder-cover-name-badge">${b.name}</span>
+            <span class="binder-cover-badge ${b.type}">${typeLabel}</span>
+          </div>
+          ${isTracking ? `<div class="binder-cover-tracking">
+            <span class="tracking-pct">${trackingPct}%</span>
+            <span class="tracking-count">(${trackingHas} / ${trackingTotal} cartas)</span>
+          </div>` : ""}
           ${b.type === "sale" && (hasArs || hasUsd) ? `<div style="margin-top:4px;display:flex;flex-direction:column;gap:1px">${hasArs ? `<span style="font-size:10px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${hasUsd ? `<span style="font-size:10px;font-family:var(--font-mono);color:#ffd700;font-weight:var(--weight-bold)">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
       `;
@@ -376,6 +394,11 @@ function renderExploreDetail() {
     const dons = deck.dons || [];
     const mainTotal = mainCards.reduce((s, c) => s + (c.quantity || 1), 0);
 
+    const deckNavList = [];
+    if (leader) deckNavList.push({ ...leader, _key: leader._key });
+    mainCards.forEach(c => deckNavList.push({ ...c, _key: c._key }));
+    dons.forEach(c => deckNavList.push({ ...c, _key: c._key }));
+
     container.innerHTML = `
       <div class="explore-detail-header">
         <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
@@ -426,13 +449,13 @@ function renderExploreDetail() {
               <span class="card-set-id">${carta.card_color || ""}</span>
               ${b.type === "sale" && leader.customPrice != null ? `<div class="card-price">$${parseFloat(leader.customPrice).toFixed(2)} <span class="${leader.priceCurrency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${leader.priceCurrency === "USD" ? "#ffd700" : "var(--accent)"}">${leader.priceCurrency || "ARS"}</span></div>` : ""}
             </div>`;
-          leaderCard.addEventListener("click", () => openCardInModal(carta));
+          leaderCard.addEventListener("click", () => openCardInModal(carta, deckNavList, 0));
         }
       }
     }
 
     const mainGrid = container.querySelector("#exploreDeckMainGrid");
-    mainCards.forEach((c) => {
+    mainCards.forEach((c, i) => {
       const carta = cartasMap[c._key];
       if (!carta) return;
       const qty = c.quantity || 1;
@@ -449,12 +472,13 @@ function renderExploreDetail() {
           <span class="card-set-id">${carta.card_set_id || ""}</span>
           ${b.type === "sale" && c.customPrice != null ? `<div class="card-price">$${parseFloat(c.customPrice).toFixed(2)} <span class="${c.priceCurrency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${c.priceCurrency === "USD" ? "#ffd700" : "var(--accent)"}">${c.priceCurrency || "ARS"}</span></div>` : ""}
         </div>`;
-      div.addEventListener("click", () => openCardInModal(carta));
+      const cardIdx = 1 + i;
+      div.addEventListener("click", () => openCardInModal(carta, deckNavList, cardIdx));
       mainGrid.appendChild(div);
     });
 
     const donRow = container.querySelector("#exploreDeckDonRow");
-    dons.forEach((c) => {
+    dons.forEach((c, i) => {
       const carta = cartasMap[c._key];
       if (!carta) return;
       const div = document.createElement("div");
@@ -465,7 +489,8 @@ function renderExploreDetail() {
           <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
         </div>
         ${b.type === "sale" && c.customPrice != null ? `<div style="font-size:10px;font-family:var(--font-mono);font-weight:bold;color:${c.priceCurrency === "USD" ? "#ffd700" : "var(--accent)"}">$${parseFloat(c.customPrice).toFixed(2)} ${c.priceCurrency || "ARS"}</div>` : ""}`;
-      div.addEventListener("click", () => openCardInModal(carta));
+      const cardIdx = 1 + mainCards.length + i;
+      div.addEventListener("click", () => openCardInModal(carta, deckNavList, cardIdx));
       donRow.appendChild(div);
     });
   } else {

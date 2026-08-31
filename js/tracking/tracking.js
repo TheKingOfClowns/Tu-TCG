@@ -566,7 +566,7 @@ document.getElementById("binderGrid").addEventListener("click", e => {
     const carta = cartasMap[cardKey];
     if (carta) {
       const navList = col.cards.map(c => cartasMap[c._key]).filter(Boolean);
-      openCardInModal(carta, navList);
+      openCardInModal(carta, navList, idx);
     }
   }
 });

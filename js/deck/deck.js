@@ -370,7 +370,19 @@ function _opAttachDeckEvents(grid, col, isSale, reRender) {
           if (f) { navList.push(f); if (i < slotIdx) startIdx++; }
         });
       } else if (carta.card_type === "LEADER") {
-        navList = cartas.filter(function(c) { return c.card_set_id === carta.card_set_id && c.card_type === "LEADER"; });
+        navList = []; startIdx = 0;
+        if (col.leader) {
+          var leaderCard = cartasMap[col.leader._key];
+          if (leaderCard) navList.push(leaderCard);
+        }
+        col.cards.forEach(function(entry) {
+          var f = cartasMap[entry._key];
+          if (f) navList.push(f);
+        });
+        col.dons.forEach(function(entry) {
+          var f = cartasMap[entry._key];
+          if (f) navList.push(f);
+        });
       }
       openCardInModal(carta, navList, startIdx);
     });

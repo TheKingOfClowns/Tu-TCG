@@ -88,6 +88,7 @@ function renderCards() {
   const start = (currentPage - 1) * cardsPerPage;
   const end = start + cardsPerPage;
   const cartasPagina = resultado.slice(start, end);
+  window.currentPageCards = cartasPagina;
   cardsContainer.innerHTML = "";
   cartasPagina.forEach(carta => {
     const cardKey = getCardKey(carta);

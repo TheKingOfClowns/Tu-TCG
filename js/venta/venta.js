@@ -135,8 +135,28 @@ function renderVentaList_OP() {
     });
   });
 }
-function pedirCrearVenta_OP() {
+async function pedirCrearVenta_OP() {
   if (!isAuthenticated()) { showAuthModal(); return; }
+
+  const profile = await getProfile();
+  const hasContact = profile?.contact_phone || profile?.contact_wsp;
+  if (!hasContact) {
+    showCreateModal({
+      title: "Contacto requerido",
+      confirmText: "Ir a mi perfil",
+      placeholder: "",
+      extraHTML: `
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">
+          Para crear una colección de venta necesitas agregar tu número de teléfono o WhatsApp en tu perfil.
+        </p>
+      `,
+      onConfirm: () => {
+        if (typeof openProfile === "function") openProfile();
+      }
+    });
+    return;
+  }
+
   showCreateModal({
     title: "Crear colección de venta",
     confirmText: "Crear",
@@ -402,11 +422,13 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
     img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
-      const key = this.closest(".venta-slot")?.getAttribute("data-cardkey");
+      const slot = this.closest(".venta-slot");
+      const key = slot?.getAttribute("data-cardkey");
       const carta = key ? cartasMap[key] : null;
       if (carta) {
         const navList = (col.cards || []).map(entry => cartasMap[entry._key]).filter(Boolean);
-        openCardInModal(carta, navList);
+        const startIdx = parseInt(slot?.getAttribute("data-global")) || 0;
+        openCardInModal(carta, navList, startIdx);
       }
     });
   });

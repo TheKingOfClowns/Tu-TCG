@@ -4,8 +4,24 @@ function _getPlaysetMax() {
   return currentTcg === "riftbound" ? 3 : 4;
 }
 
-function pedirCrearVenta_RB() {
+async function pedirCrearVenta_RB() {
   if (!isAuthenticated()) { showAuthModal(); return; }
+
+  const profile = await getProfile();
+  const hasContact = profile?.contact_phone || profile?.contact_wsp;
+  if (!hasContact) {
+    showCreateModal({
+      title: "Contacto requerido",
+      confirmText: "Ir a mi perfil",
+      placeholder: "",
+      extraHTML: '<p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">Para crear una colección de venta necesitas agregar tu número de teléfono o WhatsApp en tu perfil.</p>',
+      onConfirm: function() {
+        if (typeof openProfile === "function") openProfile();
+      }
+    });
+    return;
+  }
+
   showCreateModal({
     title: "Crear colección de venta",
     confirmText: "Crear",
@@ -232,7 +248,7 @@ function renderVentaGrouped_RB(col, grid, mode) {
       var carta = selected && selected._key ? cartasMap[selected._key] : null;
       if (carta) {
         var navList = (col.cards || []).map(function(entry) { return cartasMap[entry._key]; }).filter(Boolean);
-        openCardInModal(carta, navList);
+        openCardInModal(carta, navList, idx);
       }
     });
   });
@@ -292,11 +308,13 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
     img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
-      var key = (this.closest(".card") || this.closest(".venta-card"))?.getAttribute("data-cardkey");
+      var slot = this.closest(".card") || this.closest(".venta-card");
+      var key = slot?.getAttribute("data-cardkey");
       var carta = key ? cartasMap[key] : null;
       if (carta) {
         var navList = (col.cards || []).map(function(entry) { return cartasMap[entry._key]; }).filter(Boolean);
-        openCardInModal(carta, navList);
+        var startIdx = parseInt(slot?.getAttribute("data-global")) || 0;
+        openCardInModal(carta, navList, startIdx);
       }
     });
   });

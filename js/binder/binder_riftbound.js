@@ -213,11 +213,13 @@ function renderBinder_RB() {
     img.style.cursor = "pointer";
     img.addEventListener("click", function(e) {
       e.stopPropagation();
-      var key = this.closest(".card") ? this.closest(".card").getAttribute("data-cardkey") : null;
+      var card = this.closest(".card");
+      var key = card ? card.getAttribute("data-cardkey") : null;
       var carta = key ? cartasMap[key] : null;
       if (carta) {
         var navList = (col.cards || []).map(function(entry) { return cartasMap[entry._key]; }).filter(Boolean);
-        openCardInModal(carta, navList);
+        var startIdx = parseInt(card?.getAttribute("data-global")) || 0;
+        openCardInModal(carta, navList, startIdx);
       }
     });
   });

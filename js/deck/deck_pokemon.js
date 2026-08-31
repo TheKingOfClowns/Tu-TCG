@@ -73,7 +73,9 @@ function _pkAttachDeckEvents(grid, col, isSale, reRender) {
       var carta = key ? cartasMap[key] : null;
       if (carta) {
         var navList = (col.cards || []).map(function(entry) { return cartasMap[entry._key]; }).filter(Boolean);
-        openCardInModal(carta, navList);
+        var startIdx = 0;
+        navList.forEach(function(c, i) { if (c && getCardKey(c) === getCardKey(carta)) { startIdx = i; } });
+        openCardInModal(carta, navList, startIdx);
       }
     });
   });

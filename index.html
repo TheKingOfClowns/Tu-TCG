@@ -492,92 +492,124 @@
       <section class="view-pane" id="profileView" style="display:none">
         <div class="profile-inner">
           <form class="profile-form" id="profileForm" onsubmit="handleProfileSave(event); return false">
-            <!-- Avatar Section -->
-            <div class="profile-avatar-section">
-              <div class="profile-avatar-wrap" id="profileAvatarWrap">
-                <img id="profileAvatarImg" src="" alt="Avatar" style="display:none">
-                <svg id="profileAvatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <div class="profile-avatar-overlay">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div class="profile-columns">
+              <!-- Left Column: Private Info -->
+              <div class="profile-column profile-column-private">
+                <h2 class="profile-column-title">Información Privada</h2>
+                <p class="profile-column-desc">Esta información no es visible para otros usuarios</p>
+
+                <!-- Avatar Section -->
+                <div class="profile-avatar-section">
+                  <div class="profile-avatar-wrap" id="profileAvatarWrap">
+                    <img id="profileAvatarImg" src="" alt="Avatar" style="display:none">
+                    <svg id="profileAvatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="profile-avatar-overlay">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                  </div>
+                  <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
+                  <button type="button" class="btn-ghost btn-sm" id="avatarUploadBtn">Cambiar foto</button>
+                </div>
+
+                <!-- Personal Info (Private) -->
+                <div class="profile-section">
+                  <h3 class="profile-section-title">Datos Personales</h3>
+                  <div class="profile-fields">
+                    <div class="profile-field">
+                      <label for="profileFirstName">Nombre</label>
+                      <input type="text" id="profileFirstName" placeholder="Tu nombre">
+                    </div>
+                    <div class="profile-field">
+                      <label for="profileLastName">Apellido</label>
+                      <input type="text" id="profileLastName" placeholder="Tu apellido">
+                    </div>
+                    <div class="profile-field">
+                      <label for="profileEmail">Email</label>
+                      <input type="email" id="profileEmail" disabled>
+                      <span class="profile-field-hint">Gestionado desde autenticación</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="profile-section">
+                  <h3 class="profile-section-title">Preferencias</h3>
+                  <div class="profile-fields">
+                    <div class="profile-field">
+                      <label for="profileLanguage">Idioma</label>
+                      <select id="profileLanguage">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                      </select>
+                    </div>
+                    <div class="profile-field">
+                      <label for="profileCurrency">Moneda</label>
+                      <select id="profileCurrency">
+                        <option value="USD">USD ($)</option>
+                        <option value="ARS">ARS ($)</option>
+                      </select>
+                    </div>
+                    <div class="profile-field profile-field-full">
+                      <label class="profile-toggle-label">
+                        <input type="checkbox" id="profileNotifications" checked>
+                        <span class="profile-toggle-track">
+                          <span class="profile-toggle-thumb"></span>
+                        </span>
+                        <span>Notificaciones</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
-              <button type="button" class="btn-ghost btn-sm" id="avatarUploadBtn">Cambiar foto</button>
-            </div>
 
-            <!-- Personal Info -->
-            <div class="profile-section">
-              <h3 class="profile-section-title">Información Personal</h3>
-              <div class="profile-fields">
-                <div class="profile-field">
-                  <label for="profileFirstName">Nombre</label>
-                  <input type="text" id="profileFirstName" placeholder="Tu nombre">
-                </div>
-                <div class="profile-field">
-                  <label for="profileLastName">Apellido</label>
-                  <input type="text" id="profileLastName" placeholder="Tu apellido">
-                </div>
-                <div class="profile-field">
-                  <label for="profileUsername">Nombre de usuario</label>
-                  <input type="text" id="profileUsername" placeholder="@usuario">
-                </div>
-                <div class="profile-field">
-                  <label for="profileEmail">Email</label>
-                  <input type="email" id="profileEmail" disabled>
-                  <span class="profile-field-hint">El email se gestiona desde tu cuenta de autenticación</span>
-                </div>
-                <div class="profile-field profile-field-full">
-                  <label for="profileBio">Bio</label>
-                  <textarea id="profileBio" rows="3" placeholder="Cuéntanos sobre ti y lo que coleccionas…"></textarea>
-                </div>
-              </div>
-            </div>
+              <!-- Right Column: Public Info -->
+              <div class="profile-column profile-column-public">
+                <h2 class="profile-column-title">Perfil Público</h2>
+                <p class="profile-column-desc">Información visible para todos los usuarios</p>
 
-            <!-- Address -->
-            <div class="profile-section">
-              <h3 class="profile-section-title">Dirección</h3>
-              <div class="profile-fields">
-                <div class="profile-field profile-field-full">
-                  <label for="profileAddress">Dirección</label>
-                  <input type="text" id="profileAddress" placeholder="Calle, número, piso…">
+                <!-- Public Profile Info -->
+                <div class="profile-section">
+                  <h3 class="profile-section-title">Perfil</h3>
+                  <div class="profile-fields">
+                    <div class="profile-field">
+                      <label for="profileUsername">Nombre de usuario</label>
+                      <input type="text" id="profileUsername" placeholder="@usuario">
+                    </div>
+                    <div class="profile-field profile-field-full">
+                      <label for="profileBio">Bio <span style="font-weight:normal;font-size:11px">(máx 200 caracteres)</span></label>
+                      <textarea id="profileBio" rows="3" maxlength="200" placeholder="Cuéntanos sobre ti y lo que coleccionas…"></textarea>
+                    </div>
+                    <div class="profile-field">
+                      <label for="profileCity">Ciudad</label>
+                      <input type="text" id="profileCity" placeholder="Ciudad">
+                    </div>
+                    <div class="profile-field">
+                      <label for="profileCountry">País</label>
+                      <input type="text" id="profileCountry" placeholder="País">
+                    </div>
+                  </div>
                 </div>
-                <div class="profile-field">
-                  <label for="profileCity">Ciudad</label>
-                  <input type="text" id="profileCity" placeholder="Ciudad">
-                </div>
-                <div class="profile-field">
-                  <label for="profileCountry">País</label>
-                  <input type="text" id="profileCountry" placeholder="País">
-                </div>
-              </div>
-            </div>
 
-            <!-- Preferences -->
-            <div class="profile-section">
-              <h3 class="profile-section-title">Preferencias</h3>
-              <div class="profile-fields">
-                <div class="profile-field">
-                  <label for="profileLanguage">Idioma</label>
-                  <select id="profileLanguage">
-                    <option value="es">Español</option>
-                    <option value="en">English</option>
-                  </select>
+                <!-- Contact Info -->
+                <div class="profile-section">
+                  <h3 class="profile-section-title">Contacto <span style="font-weight:normal;font-size:11px">(obligatorio para vender)</span></h3>
+                  <div class="profile-fields">
+                    <div class="profile-field">
+                      <label for="profileContactPhone">Teléfono</label>
+                      <input type="tel" id="profileContactPhone" placeholder="+54 11 1234-5678">
+                    </div>
+                    <div class="profile-field">
+                      <label for="profileContactWsp">WhatsApp</label>
+                      <input type="tel" id="profileContactWsp" placeholder="+54 9 11 1234-5678">
+                    </div>
+                  </div>
                 </div>
-                <div class="profile-field">
-                  <label for="profileCurrency">Moneda</label>
-                  <select id="profileCurrency">
-                    <option value="USD">USD ($)</option>
-                    <option value="ARS">ARS ($)</option>
-                  </select>
-                </div>
-                <div class="profile-field profile-field-full">
-                  <label class="profile-toggle-label">
-                    <input type="checkbox" id="profileNotifications" checked>
-                    <span class="profile-toggle-track">
-                      <span class="profile-toggle-thumb"></span>
-                    </span>
-                    <span>Notificaciones de precios y novedades</span>
-                  </label>
+
+                <!-- Social Links -->
+                <div class="profile-section">
+                  <h3 class="profile-section-title">Redes Sociales</h3>
+                  <div id="socialLinksContainer" class="social-links-container"></div>
+                  <button type="button" class="btn-ghost btn-sm" id="addSocialLinkBtn" onclick="addSocialLink()" style="margin-top:8px">+ Agregar link</button>
                 </div>
               </div>
             </div>

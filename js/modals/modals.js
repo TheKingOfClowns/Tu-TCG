@@ -1,4 +1,8 @@
-﻿// ─── Selection Mode ───────────────────────────────────────────────────────
+﻿// ─── Modal Navigation State (global) ─────────────────────────────────────
+window.currentNavList = [];
+window.currentNavIndex = -1;
+
+// ─── Selection Mode ───────────────────────────────────────────────────────
 function _getPlaysetMax(tcgId) {
   var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[tcgId || currentTcg]);
   return (cfg && cfg.playsetMax) ? cfg.playsetMax : 4;
@@ -451,19 +455,23 @@ function renderModalInfo(carta) {
 }
 function openCardInModal(carta, navList, startIdx) {
   if (!carta) return;
+  if (carta._key && !carta.card_image) {
+    carta = cartasMap[carta._key] || carta;
+  }
   const isLeader = carta.card_type === "LEADER";
   const leaderVariants = isLeader
     ? cartas.filter(c => c.card_set_id === carta.card_set_id && c.card_type === "LEADER")
     : [];
   const useVariantNav = isLeader && leaderVariants.length > 1;
-  const list = navList || (useVariantNav ? leaderVariants : cartasFiltradas);
+  const list = navList || (window.currentPageCards || cartasFiltradas);
   if (!list || !list.length) return;
   if (navList && startIdx != null) {
-    currentCardIndex = startIdx;
+    window.currentNavIndex = startIdx;
   } else {
-    currentCardIndex = list.findIndex(c => getCardKey(c) === getCardKey(carta));
+    window.currentNavIndex = list.findIndex(c => getCardKey(c) === getCardKey(carta));
   }
-  if (currentCardIndex === -1) currentCardIndex = 0;
+  if (window.currentNavIndex === -1) window.currentNavIndex = 0;
+  window.currentNavList = list;
   const variants = cartas.filter(c =>
     c.card_set_id === carta.card_set_id &&
     c.language === carta.language &&
@@ -513,11 +521,13 @@ function openCardInModal(carta, navList, startIdx) {
   body.querySelectorAll(".modal-nav-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const dir = btn.getAttribute("data-dir");
-      const len = list.length;
-      const newIdx = ((dir === 'prev' ? currentCardIndex - 1 : currentCardIndex + 1) + len) % len;
-      const nextCarta = list[newIdx];
+      const len = window.currentNavList.length;
+      const newIdx = ((dir === 'prev' ? window.currentNavIndex - 1 : window.currentNavIndex + 1) + len) % len;
+      const nextCarta = window.currentNavList[newIdx];
       if (!nextCarta) return;
-      openCardInModal(nextCarta, navList, navList ? newIdx : undefined);
+      const fullCarta = nextCarta._key ? (cartasMap[nextCarta._key] || nextCarta) : nextCarta;
+      window.currentNavIndex = newIdx;
+      openCardInModal(fullCarta, window.currentNavList, newIdx);
     });
   });
 }

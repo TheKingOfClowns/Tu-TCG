@@ -31,9 +31,10 @@ function populateProfileForm(profile) {
   setVal("profileUsername", profile?.username || "");
   setVal("profileEmail", authUser?.email || "");
   setVal("profileBio", profile?.bio || "");
-  setVal("profileAddress", profile?.address || "");
   setVal("profileCity", profile?.city || "");
   setVal("profileCountry", profile?.country || "");
+  setVal("profileContactPhone", profile?.contact_phone || "");
+  setVal("profileContactWsp", profile?.contact_wsp || "");
   setVal("profileLanguage", profile?.preferences?.language || "es");
   setVal("profileCurrency", profile?.preferences?.currency || "USD");
 
@@ -52,7 +53,102 @@ function populateProfileForm(profile) {
     if (avatarPlaceholder) avatarPlaceholder.style.display = "";
   }
 
+  // Social links
+  renderSocialLinks(profile?.social_links || []);
+
   updateSidebarProfile(profile);
+}
+
+function renderSocialLinks(links) {
+  const container = document.getElementById("socialLinksContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const platforms = ["instagram", "twitter", "tiktok", "youtube", "discord", "other"];
+  const platformLabels = {
+    instagram: "Instagram",
+    twitter: "X (Twitter)",
+    tiktok: "TikTok",
+    youtube: "YouTube",
+    discord: "Discord",
+    other: "Otro"
+  };
+
+  links.forEach((link, idx) => {
+    addSocialLinkRow(link.platform || "other", link.url || "", idx);
+  });
+
+  if (links.length === 0) {
+    addSocialLinkRow("other", "", 0);
+  }
+}
+
+function addSocialLinkRow(selectedPlatform = "other", urlValue = "", index) {
+  const container = document.getElementById("socialLinksContainer");
+  if (!container) return;
+
+  const platforms = ["instagram", "twitter", "tiktok", "youtube", "discord", "other"];
+  const platformLabels = {
+    instagram: "Instagram",
+    twitter: "X (Twitter)",
+    tiktok: "TikTok",
+    youtube: "YouTube",
+    discord: "Discord",
+    other: "Otro"
+  };
+
+  const div = document.createElement("div");
+  div.className = "social-link-row";
+  div.dataset.index = index;
+
+  let optionsHtml = platforms.map(p =>
+    `<option value="${p}" ${p === selectedPlatform ? "selected" : ""}>${platformLabels[p]}</option>`
+  ).join("");
+
+  div.innerHTML = `
+    <select class="social-platform-select" style="width:120px">${optionsHtml}</select>
+    <input type="url" class="social-url-input" placeholder="https://..." value="${urlValue}" style="flex:1">
+    <button type="button" class="btn-ghost btn-sm social-remove-btn">&times;</button>
+  `;
+
+  div.querySelector(".social-remove-btn").addEventListener("click", () => {
+    div.remove();
+  });
+
+  container.appendChild(div);
+}
+
+function addSocialLink() {
+  const container = document.getElementById("socialLinksContainer");
+  if (!container) return;
+  const idx = container.children.length;
+  addSocialLinkRow("other", "", idx);
+}
+
+function getSocialLinksFromForm() {
+  const container = document.getElementById("socialLinksContainer");
+  if (!container) return [];
+
+  const links = [];
+  container.querySelectorAll(".social-link-row").forEach(row => {
+    const platform = row.querySelector(".social-platform-select")?.value || "other";
+    let url = row.querySelector(".social-url-input")?.value?.trim() || "";
+
+    if (url) {
+      if (!url.match(/^https?:\/\//i)) {
+        url = "https://" + url;
+      }
+      if (url.match(/^https?:\/\//i)) {
+        links.push({ platform, url });
+      }
+    }
+  });
+  return links;
+}
+
+function sanitizeReviewComment(comment) {
+  if (!comment) return "";
+  return comment.replace(/https?:\/\/\S+/gi, "[link eliminado]").substring(0, 100);
 }
 
 function updateSidebarProfile(profile) {
@@ -97,9 +193,11 @@ async function handleProfileSave(e) {
     username: document.getElementById("profileUsername")?.value || null,
     display_name: document.getElementById("profileUsername")?.value || null,
     bio: document.getElementById("profileBio")?.value || null,
-    address: document.getElementById("profileAddress")?.value || null,
     city: document.getElementById("profileCity")?.value || null,
     country: document.getElementById("profileCountry")?.value || null,
+    contact_phone: document.getElementById("profileContactPhone")?.value || null,
+    contact_wsp: document.getElementById("profileContactWsp")?.value || null,
+    social_links: getSocialLinksFromForm(),
     preferences: preferences,
     updated_at: new Date().toISOString()
   };

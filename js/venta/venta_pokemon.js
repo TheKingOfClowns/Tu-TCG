@@ -1,8 +1,24 @@
 // ─── Venta Pokémon ─────────────────────────────────────────────────────────
 // PK venta: colección plana, 4 copias máx, modos individual/playset/editable.
 
-function pedirCrearVenta_PK() {
+async function pedirCrearVenta_PK() {
   if (!isAuthenticated()) { showAuthModal(); return; }
+
+  const profile = await getProfile();
+  const hasContact = profile?.contact_phone || profile?.contact_wsp;
+  if (!hasContact) {
+    showCreateModal({
+      title: "Contacto requerido",
+      confirmText: "Ir a mi perfil",
+      placeholder: "",
+      extraHTML: '<p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">Para crear una colección de venta necesitas agregar tu número de teléfono o WhatsApp en tu perfil.</p>',
+      onConfirm: function() {
+        if (typeof openProfile === "function") openProfile();
+      }
+    });
+    return;
+  }
+
   showCreateModal({
     title: "Crear colección de venta",
     confirmText: "Crear",
