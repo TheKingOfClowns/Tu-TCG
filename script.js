@@ -950,7 +950,7 @@ async function selectTcg(tcgId) {
   mostrarVista(targetView);
 }
 // ─── View System ──────────────────────────────────────────────────────────
-function mostrarVista(vista, navState) {
+async function mostrarVista(vista, navState) {
   if (vista !== "catalog") limpiarAddingState();
   if (navState && navState.currentTcg) {
     currentTcg = navState.currentTcg;
@@ -1124,7 +1124,7 @@ function mostrarVista(vista, navState) {
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
     document.getElementById("sidebarProfile")?.classList.add("active");
-    } else if (vista === "home") {
+  } else if (vista === "home") {
     document.getElementById("tcgSelector").classList.add("active");
     document.getElementById("tcgSelector").style.display = "";
     document.getElementById("tcgSelectorHero").style.display = "none";
