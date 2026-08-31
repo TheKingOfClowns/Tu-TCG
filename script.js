@@ -1574,6 +1574,7 @@ document.getElementById("confirmModal").addEventListener("click", e => {
 // ─── Router Integration ────────────────────────────────────────────────────
 async function navigateToView(route, params, filters) {
   var navState = {
+    view: route,
     currentTcg: currentTcg,
     currentCollectionId: params.id || null,
     currentVentaId: params.id || null,

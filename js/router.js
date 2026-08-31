@@ -115,15 +115,19 @@ var router = (function() {
     replaceState(path, state);
   }
 
+  var _isPopHandling = false;
   function handlePopState(event) {
+    if (_isPopHandling) return;
+    _isPopHandling = true;
     if (event.state) {
       restoreState(event.state);
       if (typeof mostrarVista === 'function') {
-        mostrarVista(event.state.view || event.state.lastView, event.state);
+        mostrarVista(event.state.view, event.state);
       }
     } else {
       navigateTo('/', {});
     }
+    _isPopHandling = false;
   }
 
   function restoreState(state) {
