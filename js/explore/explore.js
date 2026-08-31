@@ -1,4 +1,147 @@
 ﻿// ─── Explore / Public Binders ─────────────────────────────────────────────
+let exploreDetailOwner = { username: "Usuario", avatar_url: "" };
+let exploreFilterMode = "all";
+let exploreSearchQuery = "";
+function setExploreDetailOwner(username, avatarUrl) {
+  exploreDetailOwner = { username: username || "Usuario", avatar_url: avatarUrl || "" };
+}
+async function verPerfilPublico(userId) {
+  try {
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", userId)
+      .single();
+    const username = profile?.username || "Usuario";
+    const avatarUrl = profile?.avatar_url || "";
+    const modal = document.createElement("div");
+    modal.className = "modal-overlay";
+    modal.id = "publicProfileModal";
+    modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000";
+    modal.innerHTML = `
+      <div style="background:var(--bg-elevated);border-radius:var(--radius-lg);padding:var(--space-6);max-width:320px;width:90%;text-align:center;border:1px solid var(--border-accent)">
+        <img src="${avatarUrl || "TUTCG.webp"}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin-bottom:var(--space-3)">
+        <h2 style="margin:0 0 var(--space-2);font-size:var(--text-xl);color:var(--text-primary)">${username}</h2>
+        <p style="margin:0 0 var(--space-4);color:var(--text-secondary);font-size:var(--text-sm)">Miembro de TuTCG</p>
+        <button onclick="cerrarModalPerfilPublico()" style="padding:var(--space-2) var(--space-4);background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-md);cursor:pointer;font-weight:var(--weight-semibold)">Cerrar</button>
+      </div>
+    `;
+    modal.addEventListener("click", (e) => { if (e.target === modal) cerrarModalPerfilPublico(); });
+    document.body.appendChild(modal);
+  } catch (e) {
+    console.error("Error loading profile:", e);
+  }
+}
+function cerrarModalPerfilPublico() {
+  const modal = document.getElementById("publicProfileModal");
+  if (modal) modal.remove();
+}
+function renderExploreDetailCards(cards, grid, b) {
+  grid.innerHTML = "";
+  if (!cards || !cards.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary)">No hay cartas para mostrar</div>';
+    return;
+  }
+  cards.forEach(row => {
+    const carta = cartasMap[row._key] || row;
+    if (!carta || !carta.card_image) return;
+    const qty = row.quantity || 1;
+    const div = document.createElement("div");
+    div.className = "card fade-in";
+    div.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
+        ${qty > 1 ? `<span class="deck-card-qty">&times;${qty}</span>` : ""}
+      </div>
+      <div class="card-body">
+        <h3>${formatearNombre(carta)}</h3>
+        <span class="card-set-id">${carta.card_set_id || ""}</span>
+        ${b.type === "sale" && row.price != null ? `<div class="card-price">$${parseFloat(row.price).toFixed(2)} <span class="${row.price_currency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${row.price_currency === "USD" ? "#ffd700" : "var(--accent)"}">${row.price_currency || "ARS"}</span></div>` : ""}
+      </div>`;
+    div.addEventListener("click", () => openCardInModal(carta));
+    grid.appendChild(div);
+  });
+}
+function getExploreDisplayCards() {
+  const b = exploreDetailBinder;
+  if (!b) return [];
+  const isTracking = b.config && b.config.subtype === "tracking";
+  if (isTracking) {
+    const ownerHas = new Set((b.binder_cards || []).map(bc => bc.card_id));
+    const targetCards = (b.target_cards || []).map(c => ({ ...c, _key: c._key }));
+    if (exploreFilterMode === "faltantes") {
+      return targetCards.filter(c => !ownerHas.has(c._key));
+    }
+    return targetCards;
+  }
+  const isDeck = b.config && b.config.subtype === "deck";
+  if (isDeck) {
+    const deck = expandDbDeck(b.binder_cards || []);
+    const allCards = [];
+    if (deck.leader) allCards.push({ ...deck.leader, _key: deck.leader._key });
+    if (deck.cards) deck.cards.forEach(c => allCards.push({ ...c, _key: c._key }));
+    if (deck.dons) deck.dons.forEach(c => allCards.push({ ...c, _key: c._key }));
+    return allCards;
+  }
+  return (b.binder_cards || []).map(c => ({ ...c, _key: c.card_id }));
+}
+function updateExploreProgress() {
+  const b = exploreDetailBinder;
+  if (!b) return;
+  const isTracking = b.config && b.config.subtype === "tracking";
+  if (!isTracking) return;
+  const ownerHas = new Set((b.binder_cards || []).map(bc => bc.card_id));
+  const targetCards = b.target_cards || [];
+  const has = targetCards.filter(c => ownerHas.has(c._key)).length;
+  const total = targetCards.length;
+  const pct = total > 0 ? Math.round((has / total) * 100) : 0;
+  const progressText = document.getElementById("exploreProgressText");
+  const progressFill = document.getElementById("exploreProgressFill");
+  if (progressText) progressText.textContent = `${has} / ${total} cartas (${pct}%)`;
+  if (progressFill) progressFill.style.width = pct + "%";
+}
+function filterExploreCards() {
+  const b = exploreDetailBinder;
+  const container = document.getElementById("exploreDetailContainer");
+  if (!container || !b) return;
+  let cards = getExploreDisplayCards();
+  if (exploreSearchQuery.trim()) {
+    cards = fuzzySearch(cards, exploreSearchQuery, ['card_name', 'card_set_id', 'set_name']);
+  }
+  const grid = container.querySelector(".explore-detail-grid");
+  if (grid) renderExploreDetailCards(cards, grid, b);
+}
+function setupExploreFilters() {
+  const container = document.getElementById("exploreDetailContainer");
+  if (!container) return;
+  const searchInput = container.querySelector("#exploreSearchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      exploreSearchQuery = searchInput.value;
+      filterExploreCards();
+    });
+  }
+  const allBtn = container.querySelector("[data-filter='all']");
+  const faltantesBtn = container.querySelector("[data-filter='faltantes']");
+  if (allBtn) {
+    allBtn.addEventListener("click", () => {
+      exploreFilterMode = "all";
+      if (faltantesBtn) faltantesBtn.classList.remove("active");
+      allBtn.classList.add("active");
+      filterExploreCards();
+      updateExploreProgress();
+    });
+  }
+  if (faltantesBtn) {
+    faltantesBtn.addEventListener("click", () => {
+      exploreFilterMode = "faltantes";
+      if (allBtn) allBtn.classList.remove("active");
+      faltantesBtn.classList.add("active");
+      filterExploreCards();
+      updateExploreProgress();
+    });
+  }
+}
 async function renderExploreView() {
   const container = document.getElementById("exploreContainer");
   if (!container) return;
@@ -11,7 +154,7 @@ async function renderExploreView() {
   try {
     const { data: publicBinders, error } = await supabaseClient
       .from("binders")
-      .select("*, binder_cards(*)")
+      .select("*, binder_cards(*), target_cards")
       .eq("is_public", true)
       .order("updated_at", { ascending: false });
     if (error) throw error;
@@ -91,7 +234,25 @@ async function renderExploreView() {
 }
 function openExploreDetail(binder) {
   exploreDetailBinder = binder;
-  if (typeof navigateToView === 'function') navigateToView("exploreDetail", {id: binder.id}, {}); else mostrarVista("exploreDetail");
+  exploreFilterMode = "all";
+  exploreSearchQuery = "";
+  exploreDetailOwner = { username: "Usuario", avatar_url: "" };
+  (async () => {
+    try {
+      const { data: prof } = await supabaseClient
+        .from("profiles")
+        .select("username, avatar_url")
+        .eq("id", binder.user_id)
+        .single();
+      if (prof) {
+        exploreDetailOwner = {
+          username: prof.username || "Usuario",
+          avatar_url: prof.avatar_url || ""
+        };
+      }
+    } catch (e) { console.error("Explore owner fetch error:", e); }
+    if (typeof navigateToView === 'function') navigateToView("exploreDetail", {id: binder.id}, {}); else mostrarVista("exploreDetail");
+  })();
 }
 function renderExploreDetail() {
   const container = document.getElementById("exploreDetailContainer");
@@ -102,6 +263,7 @@ function renderExploreDetail() {
   const cards = b.binder_cards || [];
   const typeLabel = b.type === "sale" ? "Venta" : "Colección";
   const subtype = (b.config && b.config.subtype) || "binder";
+  const isTracking = subtype === "tracking";
   const totalCards = cards.reduce((s, c) => s + c.quantity, 0);
 
   // Calculate totals by currency for sale views
@@ -116,6 +278,27 @@ function renderExploreDetail() {
     });
   }
 
+  // Calculate progress for tracking
+  let progressHTML = "";
+  if (isTracking) {
+    const ownerHas = new Set((b.binder_cards || []).map(bc => bc.card_id));
+    const targetCards = b.cards || [];
+    const has = targetCards.filter(c => ownerHas.has(c._key)).length;
+    const total = targetCards.length;
+    const pct = total > 0 ? Math.round((has / total) * 100) : 0;
+    progressHTML = `
+      <div class="explore-progress" style="margin:var(--space-3) 0">
+        <span id="exploreProgressText" style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:6px;display:block">${has} / ${total} cartas (${pct}%)</span>
+        <div style="height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden">
+          <div id="exploreProgressFill" style="height:100%;width:${pct}%;background:var(--accent);transition:width 0.3s"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  const ownerAvatar = exploreDetailOwner.avatar_url || "";
+  const ownerName = exploreDetailOwner.username || "Usuario";
+
   if (subtype === "deck") {
     const deck = expandDbDeck(cards);
     const leader = deck.leader;
@@ -125,9 +308,16 @@ function renderExploreDetail() {
 
     container.innerHTML = `
       <div class="explore-detail-header">
-        <span class="explore-badge ${b.type}">${typeLabel}</span>
-        <span>Deck · ${totalCards} cartas</span>
-        ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+        <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
+          <img src="${ownerAvatar || "TUTCG.webp"}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
+          <span style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
+          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">Ver Perfil</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+          <span class="explore-badge ${b.type}">${typeLabel}</span>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary)">Deck · ${totalCards} cartas</span>
+          ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+        </div>
       </div>
       <div class="deck-container">
         <div class="deck-section deck-leader-section">
@@ -211,31 +401,30 @@ function renderExploreDetail() {
   } else {
     container.innerHTML = `
       <div class="explore-detail-header">
-        <span class="explore-badge ${b.type}">${typeLabel}</span>
-        <span>${totalCards} cartas</span>
-        ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+        <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
+          <img src="${ownerAvatar || "TUTCG.webp"}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
+          <span style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
+          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">Ver Perfil</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+          <span class="explore-badge ${b.type}">${typeLabel}</span>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary)">${totalCards} cartas</span>
+          ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+        </div>
+        ${progressHTML}
+        ${isTracking ? `
+        <div style="display:flex;gap:var(--space-2);margin-top:var(--space-3);flex-wrap:wrap">
+          <input type="text" id="exploreSearchInput" placeholder="Buscar (ej: GoldRoger OP09)..." style="flex:1;min-width:150px;padding:var(--space-2);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+          <button class="explore-filter-btn active" data-filter="all" style="padding:6px 14px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">Todas</button>
+          <button class="explore-filter-btn" data-filter="faltantes" style="padding:6px 14px;background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border-default);border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs)">Faltantes</button>
+        </div>
+        ` : ""}
       </div>
       <div class="explore-detail-grid"></div>
     `;
-    const grid = container.querySelector(".explore-detail-grid");
-    cards.forEach(row => {
-      const carta = cartasMap[row.card_id];
-      if (!carta) return;
-      const qty = row.quantity || 1;
-      const div = document.createElement("div");
-      div.className = "card fade-in";
-      div.innerHTML = `
-        <div class="card-img-wrap">
-          <img src="${carta.card_image || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" loading="lazy">
-          ${qty > 1 ? `<span class="deck-card-qty">&times;${qty}</span>` : ""}
-        </div>
-        <div class="card-body">
-          <h3>${formatearNombre(carta)}</h3>
-          <span class="card-set-id">${carta.card_set_id || ""}</span>
-          ${b.type === "sale" && row.price != null ? `<div class="card-price">$${parseFloat(row.price).toFixed(2)} <span class="${row.price_currency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${row.price_currency === "USD" ? "#ffd700" : "var(--accent)"}">${row.price_currency || "ARS"}</span></div>` : ""}
-        </div>`;
-      div.addEventListener("click", () => openCardInModal(carta));
-      grid.appendChild(div);
-    });
+
+    setupExploreFilters();
+    filterExploreCards();
+    updateExploreProgress();
   }
 }

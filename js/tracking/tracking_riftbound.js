@@ -189,10 +189,14 @@ function renderTrackingExtra_RB(type, panel) {
       buildTrackingToggle("trackingIncludePromo", "Promos", true);
     var charInput = document.getElementById("trackingCharacterInput");
     charInput.addEventListener("input", function() {
-      var query = charInput.value.trim().toLowerCase();
+      var query = charInput.value.trim();
       var suggestions = document.getElementById("trackingCharSuggestions");
       if (query.length < 2) { suggestions.innerHTML = ""; return; }
-      var names = getUniqueCharacterNames_RB().filter(function(n) { return n.toLowerCase().includes(query); }).slice(0, 20);
+      var terms = query.toLowerCase().split(/\s+/).filter(function(t) { return t.length > 1; });
+      var names = getUniqueCharacterNames_RB().filter(function(n) {
+        var lower = n.toLowerCase();
+        return terms.every(function(term) { return lower.includes(term); });
+      }).slice(0, 20);
       suggestions.innerHTML = names.map(function(n) {
         return '<div class="tracking-suggestion" style="padding:6px 10px;cursor:pointer;font-size:var(--text-xs);color:var(--text-secondary);border-radius:var(--radius-sm)" onmouseover="this.style.background=\'var(--bg-input)\'" onmouseout="this.style.background=\'transparent\'">' + n + '</div>';
       }).join("");

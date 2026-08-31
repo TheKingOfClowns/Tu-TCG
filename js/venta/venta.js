@@ -175,7 +175,7 @@ function renderVentaView() {
   const modeContainer = document.getElementById("ventaModeContainer");
   if (!grid || !currentVentaId) return;
   const col = ventaCols[currentVentaId];
-  if (!col) { mostrarVista("ventaCols"); return; }
+  if (!col) { if (typeof navigateToView === 'function') navigateToView("ventaCols", {}, {}); else mostrarVista("ventaCols"); return; }
   if (col.subtype === "deck") {
     grid.style.display = "none";
     if (pagination) pagination.style.display = "none";

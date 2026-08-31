@@ -90,11 +90,7 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
         return;
       }
       if (q) {
-        results = results.filter(c =>
-          (c.card_name || "").toLowerCase().includes(q) ||
-          (c.card_set_id || "").toLowerCase().includes(q) ||
-          (c.set_name || "").toLowerCase().includes(q)
-        );
+        results = fuzzySearch(results, q, ['card_name', 'card_set_id', 'set_name']);
       }
       grid.innerHTML = "";
       if (!results.length) {

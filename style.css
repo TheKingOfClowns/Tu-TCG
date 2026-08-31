@@ -2434,6 +2434,14 @@ body {
   color: #a78bfa;
   border: 1px solid rgba(139, 92, 246, 0.2);
 }
+.explore-filter-btn.active {
+  background: var(--accent) !important;
+  color: var(--bg-primary) !important;
+  border-color: var(--accent) !important;
+}
+.explore-progress {
+  padding: 0;
+}
 .explore-detail-header {
   display: flex;
   align-items: center;

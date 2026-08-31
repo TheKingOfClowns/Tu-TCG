@@ -79,7 +79,7 @@ function renderBinder_PK() {
   var toggleContainer = document.getElementById("binderPublicToggleContainer");
   if (!grid || !currentCollectionId) return;
   var col = collections[currentCollectionId];
-  if (!col) { mostrarVista("collections"); return; }
+  if (!col) { if (typeof navigateToView === 'function') navigateToView("collections", {}, {}); else mostrarVista("collections"); return; }
   if (col.subtype === "deck") {
     grid.style.display = "none";
     if (pagination) pagination.style.display = "none";

@@ -90,10 +90,14 @@ function renderTrackingExtra(type, panel) {
       ${buildTrackingToggle("trackingIncludePromo", "Promos", true)}`;
     const charInput = document.getElementById("trackingCharacterInput");
     charInput.addEventListener("input", () => {
-      const query = charInput.value.trim().toLowerCase();
+      const query = charInput.value.trim();
       const suggestions = document.getElementById("trackingCharSuggestions");
       if (query.length < 2) { suggestions.innerHTML = ""; return; }
-      const names = getUniqueCharacterNames().filter(n => n.toLowerCase().includes(query)).slice(0, 20);
+      const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+      const names = getUniqueCharacterNames().filter(n => {
+        const lower = n.toLowerCase();
+        return terms.every(term => lower.includes(term));
+      }).slice(0, 20);
       suggestions.innerHTML = names.map(n => `<div class="tracking-suggestion" style="padding:6px 10px;cursor:pointer;font-size:var(--text-xs);color:var(--text-secondary);border-radius:var(--radius-sm)" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='transparent'">${n}</div>`).join("");
       suggestions.querySelectorAll(".tracking-suggestion").forEach(el => {
         el.addEventListener("click", () => { charInput.value = el.textContent; suggestions.innerHTML = ""; });

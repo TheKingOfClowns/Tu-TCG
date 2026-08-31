@@ -8,14 +8,9 @@ function renderCards() {
   if (lang !== "all") {
     resultado = resultado.filter(c => c.language === lang);
   }
-  const texto = searchInput.value.toLowerCase().trim();
+  const texto = searchInput.value.trim();
   if (texto) {
-    resultado = resultado.filter(carta =>
-      (carta.card_name || "").toLowerCase().includes(texto) ||
-      (carta.card_set_id || "").toLowerCase().includes(texto) ||
-      (carta.variant || "").toLowerCase().includes(texto) ||
-      (carta.set_name || "").toLowerCase().includes(texto)
-    );
+    resultado = fuzzySearch(resultado, texto, ['card_name', 'card_set_id', 'variant', 'set_name']);
   }
   searchClear.style.display = texto ? "flex" : "none";
   if (expansionFilter.value) {

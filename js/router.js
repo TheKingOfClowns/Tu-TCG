@@ -92,7 +92,12 @@ var router = (function() {
 
   function navigateTo(path, state) {
     if (state === undefined) state = getNavigatorState();
-    history.pushState(state, '', path);
+    var currentPath = window.location.pathname;
+    if (path === currentPath) {
+      history.replaceState(state, '', path);
+    } else {
+      history.pushState(state, '', path);
+    }
     if (typeof onNavigate === 'function') onNavigate(path, state);
   }
 

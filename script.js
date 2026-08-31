@@ -18,6 +18,17 @@ const modal = document.getElementById("modal");
 const closeModal = document.getElementById("closeModal");
 const resultsCounter = document.getElementById("resultsCounter");
 function isUnlimited(card) { return card && unlimitedCards.has(card.card_set_id); }
+function fuzzySearch(cards, query, fields) {
+  if (!fields) fields = ['card_name', 'card_set_id', 'set_name'];
+  if (!query || !query.trim()) return cards;
+  var terms = query.toLowerCase().split(/\s+/).filter(function(t) { return t.length > 1; });
+  if (terms.length === 0) return cards;
+  return cards.filter(function(card) {
+    var fullCard = cartasMap[card._key] || card;
+    var searchable = fields.map(function(f) { return (fullCard[f] || ''); }).join(' ').toLowerCase();
+    return terms.every(function(term) { return searchable.includes(term); });
+  });
+}
 let cartasFiltradas = [];
 let currentCardIndex = -1;
 const cardsPerPage = 42;
@@ -395,6 +406,7 @@ async function syncObjectToSupabase(obj, type) {
         type: type,
         is_public: binder.is_public || false,
         config: config,
+        target_cards: (binder.subtype === "tracking" && binder.cards) ? binder.cards : null,
         updated_at: new Date().toISOString()
       }, { onConflict: "id" });
       if (upsertErr) { _DEBUG && console.error("Binder upsert error:", upsertErr); showToast("Error guardando colección en el servidor", "error"); continue; }
@@ -529,7 +541,7 @@ async function loadBindersFromDb() {
   try {
     const { data: binders, error } = await supabaseClient
       .from("binders")
-      .select("*, binder_cards(*)")
+      .select("*, binder_cards(*), target_cards")
       .eq("user_id", authUser.id)
       .order("created_at");
     if (error) throw error;
@@ -631,7 +643,12 @@ async function initCollections() {
         } else if (subtype === "tracking") {
           const trackingType = cfg.tracking_type || "expansion";
           const trackingConfig = cfg.tracking_config || {};
-          const cards = buildTrackingCardList(trackingType, trackingConfig);
+          let cards;
+          if (b.target_cards && Array.isArray(b.target_cards)) {
+            cards = b.target_cards;
+          } else {
+            cards = buildTrackingCardList(trackingType, trackingConfig);
+          }
           const ownedKeys = new Set((b.binder_cards || []).map(c => c.card_id));
           cards.forEach(c => { if (ownedKeys.has(c._key)) c.owned = true; });
           collections[b.id] = {
@@ -722,6 +739,10 @@ async function reloadVentaFromDb() {
 }
 async function migrateLocalToSupabase() {
   if (!isAuthenticated()) return;
+  const now = Date.now();
+  const lastMigration = parseInt(localStorage.getItem("tutcg_last_migration") || "0", 10);
+  if ((now - lastMigration) < 60000) return;
+  localStorage.setItem("tutcg_last_migration", String(now));
   rebuildLocalFallback();
   const key = collectionsKey();
   const ventaK = ventaKey();
@@ -1180,30 +1201,30 @@ document.getElementById("tcgGrid").addEventListener("click", e => {
 document.querySelectorAll(".welcome-card").forEach(card => {
   card.addEventListener("click", () => {
     const view = card.getAttribute("data-view");
-    if (view === "catalog" && currentTcg !== "one-piece") { mostrarVista("catalog"); return; }
-    mostrarVista(view);
+    if (view === "catalog" && currentTcg !== "one-piece") { navigateToView("catalog", {}, {}); return; }
+    navigateToView(view, {}, {});
   });
 });
 // Header / Sidebar nav
 document.getElementById("sidebarLogo")?.addEventListener("click", async () => {
   const singleMode = await isSingleTcgMode();
-  if (!singleMode && currentTcg) { 
-    guardarCollections(); 
-    guardarVenta(); 
+  if (!singleMode && currentTcg) {
+    guardarCollections();
+    guardarVenta();
     currentTcg = null;
   }
   pendingView = null;
-  mostrarVista("home");
+  navigateToView("home", {}, {});
 });
 document.getElementById("welcomeBackBtn").addEventListener("click", async () => {
   const singleMode = await isSingleTcgMode();
-  if (!singleMode && currentTcg) { 
-    guardarCollections(); 
-    guardarVenta(); 
+  if (!singleMode && currentTcg) {
+    guardarCollections();
+    guardarVenta();
     currentTcg = null;
   }
   pendingView = null;
-  mostrarVista("home");
+  navigateToView("home", {}, {});
 });
 document.querySelectorAll(".sidebar-nav-item").forEach(item => {
   item.addEventListener("click", async () => {
@@ -1216,7 +1237,7 @@ document.querySelectorAll(".sidebar-nav-item").forEach(item => {
         currentTcg = null;
       }
       pendingView = null;
-      mostrarVista("home");
+      navigateToView("home", {}, {});
     }
     else if (view === "catalog") {
       if (!singleMode) {
@@ -1224,11 +1245,11 @@ document.querySelectorAll(".sidebar-nav-item").forEach(item => {
         currentTcg = null;
         pendingView = "catalog";
       }
-      mostrarVista("catalog");
+      navigateToView("catalog", {}, {});
     }
-    else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; mostrarVista("collections"); }
-    else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; mostrarVista("ventaCols"); }
-    else if (view === "explore") { if (!currentTcg) pendingView = "explore"; mostrarVista("explore"); }
+    else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; navigateToView("collections", {}, {}); }
+    else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; navigateToView("ventaCols", {}, {}); }
+    else if (view === "explore") { if (!currentTcg) pendingView = "explore"; navigateToView("explore", {}, {}); }
     else if (view === "profile") { openProfile(); }
   });
 });
@@ -1244,7 +1265,7 @@ document.querySelectorAll(".bottom-nav-item").forEach(btn => {
         currentTcg = null;
       }
       pendingView = null;
-      mostrarVista("home");
+      navigateToView("home", {}, {});
     }
     else if (view === "catalog") {
       if (!singleMode) {
@@ -1252,11 +1273,11 @@ document.querySelectorAll(".bottom-nav-item").forEach(btn => {
         currentTcg = null;
         pendingView = "catalog";
       }
-      mostrarVista("catalog");
+      navigateToView("catalog", {}, {});
     }
-    else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; mostrarVista("collections"); }
-    else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; mostrarVista("ventaCols"); }
-    else if (view === "explore") { if (!currentTcg) pendingView = "explore"; mostrarVista("explore"); }
+    else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; navigateToView("collections", {}, {}); }
+    else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; navigateToView("ventaCols", {}, {}); }
+    else if (view === "explore") { if (!currentTcg) pendingView = "explore"; navigateToView("explore", {}, {}); }
     else if (view === "tcgHome") {
       if (!singleMode && currentTcg) {
         guardarCollections();
@@ -1264,7 +1285,7 @@ document.querySelectorAll(".bottom-nav-item").forEach(btn => {
         currentTcg = null;
       }
       pendingView = null;
-      mostrarVista("home");
+      navigateToView("home", {}, {});
     }
   });
 });
@@ -1392,8 +1413,8 @@ document.getElementById("agregarBtn").addEventListener("click", () => {
 document.getElementById("catalogAddBack").addEventListener("click", function() {
   var id = addingToBinderId; var type = addingToBinderType;
   limpiarAddingState();
-  if (type === "venta") { currentVentaId = id; ventaPage = 1; mostrarVista("venta"); }
-  else { currentCollectionId = id; binderPage = 1; mostrarVista("binder"); }
+  if (type === "venta") { currentVentaId = id; ventaPage = 1; navigateToView("venta", {id: id}, {}); }
+  else { currentCollectionId = id; binderPage = 1; navigateToView("binder", {id: id}, {}); }
 });
 document.getElementById("catalogAddCancel").addEventListener("click", limpiarAddingState);
 document.getElementById("catalogAddConfirm").addEventListener("click", function() {
@@ -1422,8 +1443,8 @@ document.getElementById("catalogAddConfirm").addEventListener("click", function(
   limpiarPendientes();
   var id = addingToBinderId;
   limpiarAddingState();
-  if (type === "venta") { currentVentaId = id; ventaPage = 1; mostrarVista("venta"); }
-  else { currentCollectionId = id; binderPage = 1; mostrarVista("binder"); }
+  if (type === "venta") { currentVentaId = id; ventaPage = 1; navigateToView("venta", {id: id}, {}); }
+  else { currentCollectionId = id; binderPage = 1; navigateToView("binder", {id: id}, {}); }
 });
 // ─── Landing Page Buttons ────────────────────────────────────────────────
 document.querySelectorAll("[id^='landingLoginBtn']").forEach(btn => {
@@ -1433,13 +1454,13 @@ document.querySelectorAll("[id^='landingRegisterBtn'], #landingCtaBtn").forEach(
   btn.addEventListener("click", () => showAuthModal("register"));
 });
 document.getElementById("landingExploreBtn")?.addEventListener("click", () => {
-  mostrarVista("catalog");
+  navigateToView("catalog", {}, {});
 });
 document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
   btn.addEventListener("click", () => {
     const action = btn.getAttribute("data-action");
     if (action === "catalog") {
-      mostrarVista("catalog");
+      navigateToView("catalog", {}, {});
     } else {
       document.querySelector(`#${action}Section`)?.scrollIntoView({ behavior: "smooth" });
     }
@@ -1460,11 +1481,25 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
 })();
 (async () => {
   const parsed = router.initRouter();
-  if (parsed.view !== 'home' || window.location.pathname !== '/') {
-    if (parsed.route && typeof navigateToView === 'function') {
-      await navigateToView(parsed.route, parsed.params, parsed.filters);
-      return;
+  if (parsed.route === 'binder' && parsed.params.id) {
+    const binder = await loadPublicBinderById(parsed.params.id);
+    if (binder) {
+      collections[binder.id] = binder;
+      currentCollectionId = binder.id;
     }
+  } else if (parsed.route === 'exploreDetail' && parsed.params.id) {
+    const binder = await loadPublicBinderById(parsed.params.id);
+    if (binder) {
+      exploreDetailBinder = binder;
+      const { data: prof } = await supabaseClient.from("profiles").select("username, avatar_url").eq("id", binder.user_id).single();
+      if (typeof setExploreDetailOwner === 'function' && prof) {
+        setExploreDetailOwner(prof.username || "Usuario", prof.avatar_url || "");
+      }
+    }
+  }
+  if (parsed.route && typeof navigateToView === 'function') {
+    await navigateToView(parsed.route, parsed.params, parsed.filters);
+    return;
   }
   const singleMode = await isSingleTcgMode();
   if (singleMode) {
@@ -1635,4 +1670,28 @@ function applyFiltersFromUrl(filters, quiet) {
   }
   rebuildingFilters = false;
 }
-var onNavigate = function(path, state) {};
+async function loadPublicBinderById(id) {
+  if (!id) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from("binders")
+      .select("*, binder_cards(*), target_cards")
+      .eq("id", id)
+      .single();
+    if (error || !data) return null;
+    const cfg = data.config || {};
+    const subtype = cfg.subtype || "binder";
+    if (subtype === "tracking") {
+      const ownedKeys = new Set((data.binder_cards || []).map(c => c.card_id));
+      if (data.target_cards && Array.isArray(data.target_cards)) {
+        data.target_cards.forEach(function(c) { if (ownedKeys.has(c._key)) c.owned = true; });
+      }
+    }
+    return data;
+  } catch (e) { console.error("Error loading public binder:", e); return null; }
+}
+var onNavigate = function(path, state) {
+  if (state && state.view) {
+    mostrarVista(state.view, state);
+  }
+};

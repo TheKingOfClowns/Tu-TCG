@@ -183,7 +183,7 @@ function renderBinder_OP() {
   if (!grid || !currentCollectionId) return;
   grid.parentElement.classList.remove("tracking-checklist");
   const col = collections[currentCollectionId];
-  if (!col) { mostrarVista("collections"); return; }
+  if (!col) { if (typeof navigateToView === 'function') navigateToView("collections", {}, {}); else mostrarVista("collections"); return; }
   if (col.subtype === "deck") {
     grid.style.display = "none";
     if (pagination) pagination.style.display = "none";
