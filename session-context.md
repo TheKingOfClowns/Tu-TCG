@@ -258,8 +258,32 @@ async function renderExploreView() {
 }
 ```
 
+### Fix de imágenes en Explore (2026-08-31)
+Problema: al navegar a Colecciones, Binder o Ventas desde Explore, las imágenes no cargaban porque `cartasMap` estaba vacío.
+
+**Solución:** Helper `ensureCartasLoaded()` en `script.js` que hace `await cargarCartas()` si es necesario:
+
+```javascript
+async function ensureCartasLoaded() {
+  if (Object.keys(cartasMap).length === 0) {
+    await cargarCartas();
+  }
+}
+```
+
+Usado en `mostrarVista()` antes de llamar a funciones de vista de Colecciones, Binder, y Ventas.
+
+```javascript
+let _exploreController = null;
+async function renderExploreView() {
+  if (_exploreController) _exploreController.abort();
+  _exploreController = new AbortController();
+  // query con .abortSignal(_exploreController.signal)
+}
+```
+
 ## Deploy
-- URL: `https://87fa00c7.tutcg.pages.dev` (deploy 2026-08-31)
+- URL: `https://deb162f8.tutcg.pages.dev` (deploy 2026-08-31)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
@@ -403,6 +427,59 @@ function isValidWspLink(url) // líneas ~154-161
 function isValidPhone(phone) // líneas ~163-168
 // Validación en handleProfileSave (líneas ~200-215)
 ```
+
+## User Plan Label — "Nakama" (2026-08-31)
+
+### Cambio realizado
+- "Premium" → "Nakama" en el label del plan de usuario
+- Todos los usuarios ahora ven "Nakama" (el tipo "Nakama Premium" se implementará más adelante)
+
+### Archivos modificados
+- `auth.js:160` — `sidebarUserPlan.textContent = "Nakama"`
+- `profile.js:175` — `sidebarUserPlan.textContent = "Nakama"`
+
+## Landing Page Improvements (2026-08-31)
+
+### Pasos del how-it-works
+1. Explora el catálogo
+2. Arma tu colección
+3. Construí tu deck
+4. Vende tus cartas (NUEVO)
+
+### Cambios realizados
+- Eliminado paso "Elegí tu TCG" (redundante)
+- Reordenados los pasos
+- Agregado paso 4: "Vende tus cartas" con descripción "Gestiona tus ventas y llegá a más compradores."
+- "Precios de mercado" → "Vos ponés vos precios" con descripción "Precios editables por el usuario."
+- Corregido typo: "raggi" → "cartas y decks"
+- Agregado nota: "Próximamente: más TCG disponibles para explorar"
+
+### Legibilidad
+- `.how-step p`, `.feature-card p`, `.stat-label`: font-size aumentado a 15px
+- Contraste mejorado para mejor lectura
+
+## Card Grid Unification (2026-08-31)
+
+### Objetivo
+Unificar tamaños de cards en todas las vistas para mejor UX y consistencia.
+
+### Columnas por breakpoint
+| Vista | Desktop (>1023px) | Tablet (768-1023px) | Mobile (<768px) |
+|-------|-------------------|----------------------|-----------------|
+| Catálogo | 5 | 3 | 2 |
+| Binder | 5 | 3 | 2 |
+| Venta | 5 | 3 | 2 |
+| Colecciones | 5 | 3 | 2 |
+| Explore | 5 | 3 | 2 |
+| Explore Detail | 5 | 3 | 2 |
+| Deck Builder | 5 | 3 | 2 |
+| Deck Picker | 5 | 3 | 2 |
+
+### CSS modificado en style.css
+- Base: `grid-template-columns: repeat(5, 1fr)` para todos los grids
+- Tablet: `repeat(3, 1fr)` para todos
+- Mobile: `repeat(2, 1fr)` para todos
+- `.explore-detail-grid` ahora usa 5 columnas fijas (era `auto-fill minmax(160px, 1fr)`)
 
 ## Pendiente de sesión anterior
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`
