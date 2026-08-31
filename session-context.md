@@ -209,8 +209,33 @@ Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (r
 - API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
 - Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
 
+## Routing — History API (2026-08-31)
+
+Path-based routing con History API para soporte de browser back button y deep links.
+
+### URLs
+| Vista | URL |
+|-------|-----|
+| Home | `/` |
+| Catálogo | `/catalog?expansion=OP09&color=Red` |
+| Colecciones | `/collections` |
+| Binder | `/collections/:id` |
+| Ventas | `/venta` |
+| Venta | `/venta/:id` |
+| Explore | `/explore` |
+| Explore Detail | `/explore/:id` |
+
+### Archivos
+- `js/router.js` — parseUrl, buildPath, navigateTo, handlePopState
+- `_redirects` — Cloudflare Pages SPA redirect (`/* /index.html 200`)
+
+### Funciones
+- `navigateToView(route, params, filters)` — navigation + pushState
+- `applyFiltersFromUrl(filters, quiet)` — restaura filtros desde URL
+- Botones "volver" internos usan `history.back()`
+
 ## Deploy
-- URL: `https://da1994fa.tutcg.pages.dev` (deploy 2026-08-29)
+- URL: `https://92f56fda.tutcg.pages.dev` (deploy 2026-08-31)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
