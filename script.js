@@ -1482,12 +1482,14 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
 (async () => {
   const parsed = router.initRouter();
   if (parsed.route === 'binder' && parsed.params.id) {
+    await cargarCartas();
     const binder = await loadPublicBinderById(parsed.params.id);
     if (binder) {
       collections[binder.id] = binder;
       currentCollectionId = binder.id;
     }
   } else if (parsed.route === 'exploreDetail' && parsed.params.id) {
+    await cargarCartas();
     const binder = await loadPublicBinderById(parsed.params.id);
     if (binder) {
       exploreDetailBinder = binder;
