@@ -950,7 +950,7 @@ async function selectTcg(tcgId) {
   mostrarVista(targetView);
 }
 // ─── View System ──────────────────────────────────────────────────────────
-async function mostrarVista(vista, navState) {
+function mostrarVista(vista, navState) {
   if (vista !== "catalog") limpiarAddingState();
   if (navState && navState.currentTcg) {
     currentTcg = navState.currentTcg;
@@ -1109,18 +1109,20 @@ async function mostrarVista(vista, navState) {
     document.getElementById("bottomExplore")?.classList.add("active");
     exploreDetailBinder = null;
     if (currentTcg && Object.keys(cartasMap).length === 0) {
-      await cargarCartas();
+      cargarCartas().then(() => renderExploreView());
+    } else {
+      renderExploreView();
     }
-    renderExploreView();
   } else if (vista === "exploreDetail") {
     document.getElementById("exploreDetailView").classList.add("active");
     document.getElementById("exploreDetailView").style.display = "";
     document.getElementById("sidebarExplore")?.classList.add("active");
     document.getElementById("bottomExplore")?.classList.add("active");
     if (currentTcg && Object.keys(cartasMap).length === 0) {
-      await cargarCartas();
+      cargarCartas().then(() => renderExploreDetail());
+    } else {
+      renderExploreDetail();
     }
-    renderExploreDetail();
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
     document.getElementById("sidebarProfile")?.classList.add("active");
