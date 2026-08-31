@@ -392,8 +392,8 @@ const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions
 - Si tiene contenido pero no es dominio válido → error
 
 ### Labels en index.html (actualizados)
-- Teléfono: "Teléfono (para guardar en contactos)"
-- Link WhatsApp: "Link WhatsApp (abre chat directo)"
+- Teléfono: "Teléfono"
+- Link WhatsApp: "Link WhatsApp"
 - Placeholder WhatsApp: `https://wa.me/5491112345678`
 - Input type: `url` (no `tel`)
 
