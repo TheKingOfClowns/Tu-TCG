@@ -1040,14 +1040,14 @@ function mostrarVista(vista, navState) {
       document.getElementById("tcgGrid").style.display = "";
       document.getElementById("tcgHomePlaceholder").style.display = "none";
       updateTcgHeroForView("collections");
-      document.getElementById("sidebarBinder")?.classList.add("active");
-      document.getElementById("bottomCollections")?.classList.add("active");
+    document.getElementById("sidebarColecciones")?.classList.add("active");
+    document.getElementById("bottomColecciones")?.classList.add("active");
       return;
     }
     document.getElementById("collectionManager").classList.add("active");
     document.getElementById("collectionManager").style.display = "";
-    document.getElementById("sidebarBinder")?.classList.add("active");
-    document.getElementById("bottomCollections")?.classList.add("active");
+    document.getElementById("sidebarColecciones")?.classList.add("active");
+    document.getElementById("bottomColecciones")?.classList.add("active");
     renderCollectionList();
   } else if (vista === "ventaCols") {
     if (!currentTcg) {

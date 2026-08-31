@@ -2,6 +2,8 @@
 let exploreDetailOwner = { username: "Usuario", avatar_url: "" };
 let exploreFilterMode = "all";
 let exploreSearchQuery = "";
+let exploreTabFilter = "todas";
+let exploreExploreSearchQuery = "";
 function setExploreDetailOwner(username, avatarUrl) {
   exploreDetailOwner = { username: username || "Usuario", avatar_url: avatarUrl || "" };
 }
@@ -142,11 +144,51 @@ function setupExploreFilters() {
     });
   }
 }
+let _exploreController = null;
+let _exploreSearchDebounce = null;
+function buildExploreFiltersHTML() {
+  return `
+    <div class="explore-filters">
+      <div class="explore-tabs">
+        <button class="explore-tab ${exploreTabFilter === 'colecciones' ? 'active' : ''}" data-tab="colecciones">Colecciones</button>
+        <button class="explore-tab ${exploreTabFilter === 'ventas' ? 'active' : ''}" data-tab="ventas">Ventas</button>
+        <button class="explore-tab ${exploreTabFilter === 'todas' ? 'active' : ''}" data-tab="todas">Todas</button>
+      </div>
+      <div class="explore-search">
+        <div style="position:relative">
+          <svg class="explore-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="exploreSearchInput" placeholder="Buscar por nombre, cartas..." value="${exploreExploreSearchQuery || ''}">
+        </div>
+      </div>
+    </div>
+  `;
+}
+function attachExploreListeners() {
+  document.querySelectorAll('.explore-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      exploreTabFilter = btn.dataset.tab;
+      renderExploreView();
+    });
+  });
+  const searchInput = document.getElementById('exploreSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(_exploreSearchDebounce);
+      _exploreSearchDebounce = setTimeout(() => {
+        exploreExploreSearchQuery = searchInput.value.trim();
+        renderExploreView();
+      }, 300);
+    });
+  }
+}
 async function renderExploreView() {
+  if (_exploreController) _exploreController.abort();
+  _exploreController = new AbortController();
   const container = document.getElementById("exploreContainer");
   if (!container) return;
-  container.className = "explore-grid";
-  container.innerHTML = '<div class="loader" style="text-align:center;padding:40px;color:var(--text-tertiary)">Cargando binders públicos…</div>';
+  const tcgName = currentTcg ? (tcgList.find(t => t.id === currentTcg)?.name || "") : "";
+  container.innerHTML = buildExploreFiltersHTML() + '<div class="loader" style="text-align:center;padding:40px;color:var(--text-tertiary)">Cargando binders públicos…</div>';
+  attachExploreListeners();
   if (!isAuthenticated()) {
     container.innerHTML = '<div class="collection-empty"><p>Inicia sesión para explorar binders públicos</p></div>';
     return;
@@ -156,21 +198,53 @@ async function renderExploreView() {
       .from("binders")
       .select("*, binder_cards(*), target_cards")
       .eq("is_public", true)
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .abortSignal(_exploreController.signal);
     if (error) throw error;
-    let filteredBinders = publicBinders;
+    const seen = new Set();
+    const uniqueBinders = publicBinders.filter(b => {
+      if (seen.has(b.id)) return false;
+      seen.add(b.id);
+      return true;
+    });
+    let filteredBinders = uniqueBinders;
     if (currentTcg) {
-      filteredBinders = publicBinders.filter(b => {
+      filteredBinders = filteredBinders.filter(b => {
         const cfg = b.config || {};
         return (!cfg.tcg || cfg.tcg === currentTcg);
       });
     }
-    if (!filteredBinders || !filteredBinders.length) {
-      const tcgName = currentTcg ? (tcgList.find(t => t.id === currentTcg)?.name || "") : "";
-      container.innerHTML = `<div class="collection-empty"><p>No hay binders públicos aún${tcgName ? " para " + tcgName : ""}</p><p style="font-size:var(--text-sm);color:var(--text-tertiary)">Los usuarios pueden publicar sus colecciones y ventas desde la vista de Binder o Venta</p></div>`;
+    if (exploreTabFilter === 'colecciones') {
+      filteredBinders = filteredBinders.filter(b => b.type !== "sale");
+    } else if (exploreTabFilter === 'ventas') {
+      filteredBinders = filteredBinders.filter(b => b.type === "sale");
+    }
+    if (filteredBinders.length === 0 || !filteredBinders) {
+      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>No hay binders' + (tcgName ? " para " + tcgName : "") + '</p><p style="font-size:var(--text-sm);color:var(--text-muted)">Los usuarios pueden publicar sus colecciones y ventas desde la vista de Colecciones o Venta</p></div>';
+      attachExploreListeners();
       return;
     }
-    container.innerHTML = "";
+    if (exploreExploreSearchQuery) {
+      const terms = exploreExploreSearchQuery.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+      if (terms.length > 0) {
+        filteredBinders = filteredBinders.filter(b => {
+          const cardNames = (b.binder_cards || []).map(c => {
+            const fullCard = cartasMap[c.card_id];
+            return fullCard ? fullCard.card_name : '';
+          }).join(' ').toLowerCase();
+          const searchable = (b.name + ' ' + cardNames).toLowerCase();
+          return terms.every(term => searchable.includes(term));
+        });
+      }
+    }
+    if (!filteredBinders || !filteredBinders.length) {
+      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>No se encontraron resultados para "' + exploreExploreSearchQuery + '"</p></div>';
+      attachExploreListeners();
+      return;
+    }
+    container.innerHTML = buildExploreFiltersHTML() + '<div id="exploreGridContainer" class="explore-grid"></div>';
+    attachExploreListeners();
+    const gridContainer = document.getElementById('exploreGridContainer');
     for (const b of filteredBinders) {
       let username = "Usuario";
       let avatarUrl = "";
@@ -186,7 +260,6 @@ async function renderExploreView() {
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
       const typeLabel = b.type === "sale" ? "Venta" : "Colección";
       const isOwner = authUser && b.user_id === authUser.id;
-      // Get cover image from first card
       let coverImg = null;
       if (b.binder_cards?.length) {
         const first = b.binder_cards[0];
@@ -208,24 +281,21 @@ async function renderExploreView() {
       const hasArs = arsTotal > 0;
       const hasUsd = usdTotal > 0;
       const div = document.createElement("div");
-      div.className = "explore-card";
+      div.className = "binder-cover-card";
       div.innerHTML = `
-        <div style="aspect-ratio:63/88;background:${coverImg ? `url(${coverImg}) center/cover` : 'linear-gradient(135deg, var(--bg-elevated), var(--bg-secondary))'};border-bottom:1px solid var(--border-subtle)"></div>
-        <div style="padding:var(--space-2) var(--space-3) var(--space-3)">
-          <div style="display:flex;align-items:center;gap:var(--space-1);margin-bottom:var(--space-1)">
-            <h3 style="font-size:11px;font-weight:var(--weight-semibold);color:#fff;margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.name}</h3>
-            <span class="explore-badge ${b.type}" style="font-size:8px;padding:1px 5px">${typeLabel}</span>
+        <div class="binder-cover-img" style="background-image:url(${coverImg ? coverImg : 'TUTCG.webp'})">
+          <div class="binder-cover-overlay">
+            <span class="binder-cover-count">${cardCount} cartas</span>
           </div>
-          <div style="display:flex;align-items:center;gap:var(--space-1)">
-            ${avatarUrl ? `<img src="${avatarUrl}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent);flex-shrink:0">` : `<div style="width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#0891b2,#1e3a5f);flex-shrink:0"></div>`}
-            <span style="font-size:10px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${username}${isOwner ? "" : ""}</span>
-            <span style="font-size:9px;color:var(--text-muted);margin-left:auto;white-space:nowrap">${cardCount} c</span>
-          </div>
-          ${b.type === "sale" && (hasArs || hasUsd) ? `<div style="margin-top:6px;display:flex;flex-direction:column;gap:2px">${hasArs ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${hasUsd ? `<span style="font-size:11px;font-family:var(--font-mono);color:#ffd700;font-weight:var(--weight-bold)">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+        </div>
+        <div class="binder-cover-meta">
+          <span class="binder-cover-name-badge">${b.name}</span>
+          <span class="binder-cover-badge ${b.type}">${typeLabel}</span>
+          ${b.type === "sale" && (hasArs || hasUsd) ? `<div style="margin-top:4px;display:flex;flex-direction:column;gap:1px">${hasArs ? `<span style="font-size:10px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${hasUsd ? `<span style="font-size:10px;font-family:var(--font-mono);color:#ffd700;font-weight:var(--weight-bold)">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
       `;
       div.addEventListener("click", () => openExploreDetail(b));
-      container.appendChild(div);
+      gridContainer.appendChild(div);
     }
   } catch (e) {
     console.error("Explore error:", e);
