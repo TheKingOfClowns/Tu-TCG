@@ -151,6 +151,22 @@ function sanitizeReviewComment(comment) {
   return comment.replace(/https?:\/\/\S+/gi, "[link eliminado]").substring(0, 100);
 }
 
+function isValidWspLink(url) {
+  if (!url) return true;
+  try {
+    const domains = ['wa.me', 'web.whatsapp.com', 'api.whatsapp.com'];
+    const parsed = new URL(url);
+    return domains.some(d => parsed.hostname.includes(d));
+  } catch { return false; }
+}
+
+function isValidPhone(phone) {
+  if (!phone) return true;
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 8) return false;
+  return /^[\d\s\+\-\(\)]{8,}$/.test(phone);
+}
+
 function updateSidebarProfile(profile) {
   const sidebarUserName = document.getElementById("sidebarUserName");
   const sidebarUserPlan = document.getElementById("sidebarUserPlan");
@@ -181,6 +197,23 @@ async function handleProfileSave(e) {
   saveBtn.textContent = "Guardando…";
   hideMsg();
 
+  const contactPhone = document.getElementById("profileContactPhone")?.value?.trim() || "";
+  const contactWsp = document.getElementById("profileContactWsp")?.value?.trim() || "";
+
+  if (contactPhone && !isValidPhone(contactPhone)) {
+    showMsg("El teléfono no es válido. Debe tener al menos 8 dígitos.", "error");
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Guardar cambios";
+    return false;
+  }
+
+  if (contactWsp && !isValidWspLink(contactWsp)) {
+    showMsg("El link de WhatsApp no es válido. Debe ser un link de wa.me, web.whatsapp.com o api.whatsapp.com", "error");
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Guardar cambios";
+    return false;
+  }
+
   const preferences = {
     language: document.getElementById("profileLanguage")?.value || "es",
     currency: document.getElementById("profileCurrency")?.value || "USD",
@@ -195,8 +228,8 @@ async function handleProfileSave(e) {
     bio: document.getElementById("profileBio")?.value || null,
     city: document.getElementById("profileCity")?.value || null,
     country: document.getElementById("profileCountry")?.value || null,
-    contact_phone: document.getElementById("profileContactPhone")?.value || null,
-    contact_wsp: document.getElementById("profileContactWsp")?.value || null,
+    contact_phone: contactPhone || null,
+    contact_wsp: contactWsp || null,
     social_links: getSocialLinksFromForm(),
     preferences: preferences,
     updated_at: new Date().toISOString()

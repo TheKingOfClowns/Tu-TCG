@@ -30,15 +30,15 @@ function toggleCardSelection(imgEl) {
   const carta = cartasMap[cardKey];
   if (!carta) return;
   const psMax = _getPlaysetMax();
-  const next = selectedCards[cardKey] ? (
-    selectedCards[cardKey].count === 1 ? psMax :
-    selectedCards[cardKey].count === psMax ? 10 : 0
+  const next = pendingCards[cardKey] ? (
+    pendingCards[cardKey].count === 1 ? psMax :
+    pendingCards[cardKey].count === psMax ? 10 : 0
   ) : 1;
   if (next === 0) {
-    delete selectedCards[cardKey];
+    delete pendingCards[cardKey];
     cardEl.classList.remove("selected");
   } else {
-    selectedCards[cardKey] = {
+    pendingCards[cardKey] = {
       card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image,
       card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza,
       set_id: carta.set_id, producto: carta.producto, category: carta.category,
@@ -54,15 +54,14 @@ function reapplySelectionClasses() {
   if (!selectionMode) return;
   cardsContainer.querySelectorAll(".card").forEach(el => {
     const key = el.getAttribute("data-cardkey");
-    if (key && selectedCards[key]) el.classList.add("selected");
+    if (key && pendingCards[key]) el.classList.add("selected");
   });
 }
 // ─── Pending Cards ────────────────────────────────────────────────────────
 function actualizarBadge() {
-  const source = selectionMode ? selectedCards : pendingCards;
-  const keys = Object.keys(source);
+  const keys = Object.keys(pendingCards);
   const unique = keys.length;
-  const total = keys.reduce((s, k) => s + source[k].count, 0);
+  const total = keys.reduce((s, k) => s + pendingCards[k].count, 0);
   const btn = document.getElementById("agregarBtn");
   if (unique) { btn.innerHTML = 'Agregar a <span class="pending-badge">' + unique + '</span> <span class="pending-total">(' + total + ')</span>'; }
   else { btn.textContent = "Agregar a"; }
@@ -551,7 +550,7 @@ function abrirModal(imgEl) {
 }
 
 function addCardToPending(carta, key) {
-  if (pendingCards[key]) { pendingCards[key].count++; }
+  if (pendingCards[key]) { if (pendingCards[key].count < 10) pendingCards[key].count++; }
   else {
     pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
   }

@@ -1,6 +1,15 @@
 // ─── Catalog Rendering ────────────────────────────────────────────────────
 // Dependencias (globales): state.catalog.*, DOM refs, helpers (getCardKey, etc.)
 
+function catalogCardClick(imgEl, e) {
+  if (selectionMode) {
+    e.stopPropagation();
+    toggleCardSelection(imgEl);
+  } else {
+    abrirModal(imgEl);
+  }
+}
+
 function renderCards() {
   var resultado = [...cartas];
   var lang = state.catalog.catalogLanguage || "en";
@@ -134,7 +143,7 @@ function renderCards() {
       <div class="pending-card-badge" id="badge-${cardKey.replace(/[^a-zA-Z0-9]/g, '_')}">0</div>
       ${addedBadge}
       <div class="card-img-wrap">
-        <img src="${imgSrc}" onerror="this.src='TUTCG.webp'" onclick="abrirModal(this)" loading="lazy">
+        <img src="${imgSrc}" onerror="this.src='TUTCG.webp'" onclick="catalogCardClick(this, event)" loading="lazy">
       </div>
       <div class="card-body">
         <h3>${nombre}</h3>
@@ -159,19 +168,19 @@ function renderCards() {
       const key = getCardKey(carta);
       const cardEl = btn.closest(".card");
       if (selectionMode) {
-        if (selectedCards[key]) selectedCards[key].count++;
+        if (pendingCards[key]) { if (pendingCards[key].count < 10) pendingCards[key].count++; }
         else {
-          selectedCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
-          if (cardEl) cardEl.classList.add("selected");
+          pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
         }
         actualizarBadge();
         actualizarBadgesEnPagina();
         return;
       }
-      if (pendingCards[key]) { pendingCards[key].count++; }
-      else {
-        pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
-      }
+      selectionMode = true;
+      const selBtn = document.getElementById("seleccionarBtn");
+      if (selBtn) { selBtn.textContent = "Cancelar"; selBtn.classList.add("active"); }
+      pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
+      if (cardEl) cardEl.classList.add("selected");
       actualizarBadge();
       actualizarBadgesEnPagina();
     });
@@ -187,10 +196,10 @@ function renderCards() {
       const key = getCardKey(carta);
       const cardEl = btn.closest(".card");
       if (selectionMode) {
-        if (!selectedCards[key]) return;
-        selectedCards[key].count--;
-        if (selectedCards[key].count <= 0) {
-          delete selectedCards[key];
+        if (!pendingCards[key]) return;
+        pendingCards[key].count--;
+        if (pendingCards[key].count <= 0) {
+          delete pendingCards[key];
           if (cardEl) cardEl.classList.remove("selected");
         }
         actualizarBadge();
@@ -214,9 +223,8 @@ function actualizarBadgesEnPagina() {
     const badge = el.querySelector(".pending-card-badge");
     const minus = el.querySelector(".minus-btn");
     if (!badge) return;
-    const source = selectionMode ? selectedCards : pendingCards;
-    if (key && source[key]) {
-      badge.textContent = source[key].count;
+    if (key && pendingCards[key]) {
+      badge.textContent = pendingCards[key].count;
       badge.style.display = "flex";
       if (minus) minus.style.display = "flex";
     } else {

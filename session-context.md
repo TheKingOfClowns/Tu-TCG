@@ -374,6 +374,36 @@ const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions
 });
 ```
 
+## Profile — Validación de contacto (2026-08-31)
+
+### Campos de contacto
+- `contact_phone` — Teléfono para guardar en contactos (validación simple)
+- `contact_wsp` — Link directo de WhatsApp (wa.me, web.whatsapp.com, api.whatsapp.com)
+
+### Validación simple (Opción A)
+**Teléfono (`isValidPhone`):**
+- Mínimo 8 dígitos
+- Solo acepta: números, +, -, espacios, paréntesis
+- Campo opcional (pasa si está vacío)
+
+**Link WhatsApp (`isValidWspLink`):**
+- Dominios válidos: `wa.me`, `web.whatsapp.com`, `api.whatsapp.com`
+- Campo opcional (pasa si está vacío)
+- Si tiene contenido pero no es dominio válido → error
+
+### Labels en index.html (actualizados)
+- Teléfono: "Teléfono (para guardar en contactos)"
+- Link WhatsApp: "Link WhatsApp (abre chat directo)"
+- Placeholder WhatsApp: `https://wa.me/5491112345678`
+- Input type: `url` (no `tel`)
+
+### Funciones en profile.js
+```javascript
+function isValidWspLink(url) // líneas ~154-161
+function isValidPhone(phone) // líneas ~163-168
+// Validación en handleProfileSave (líneas ~200-215)
+```
+
 ## Pendiente de sesión anterior
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`
 - Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`

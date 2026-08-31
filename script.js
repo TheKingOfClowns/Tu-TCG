@@ -1147,10 +1147,12 @@ searchClear.addEventListener("click", () => {
 });
 // ─── Event Listeners ──────────────────────────────────────────────────────
 // Search
-let _searchTimeout;
-searchInput.addEventListener("input", () => {
-  clearTimeout(_searchTimeout);
-  _searchTimeout = setTimeout(() => { currentPage = 1; renderCards(); router.updateUrl(); }, 250);
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    currentPage = 1;
+    renderCards();
+    router.updateUrl();
+  }
 });
 // Filters
 expansionFilter.addEventListener("change", () => { actualizarFiltrosPorExpansion(); currentPage = 1; renderCards(); router.updateUrl(); });
