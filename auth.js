@@ -103,13 +103,13 @@ function onSignIn() {
   if (typeof migrateLocalToSupabase === "function") {
     migrateLocalToSupabase().catch(console.error);
   }
-  if (typeof mostrarVista === "function" && window._pendingView) {
+  if (typeof navigateToView === "function" && window._pendingView) {
     const pending = window._pendingView;
     window._pendingView = null;
     if (pending === "profile" && typeof openProfile === "function") {
       openProfile();
     } else {
-      mostrarVista(pending);
+      navigateToView(pending, {}, {});
     }
   }
 }
@@ -117,7 +117,9 @@ function onSignIn() {
 function onSignOut() {
   updateAuthUI();
   if (typeof rebuildLocalFallback === "function") rebuildLocalFallback();
-  if (typeof mostrarVista === "function") {
+  if (typeof router !== "undefined" && router.navigateToRoute) {
+    router.navigateToRoute('home', {}, {});
+  } else if (typeof mostrarVista === "function") {
     mostrarVista("tcgHome");
   }
 }

@@ -256,7 +256,11 @@ async function openProfile() {
   const profile = await loadProfile();
   populateProfileForm(profile || {});
   hideMsg();
-  mostrarVista("profile");
+  if (typeof navigateToView === "function") {
+    navigateToView("profile", {}, {});
+  } else {
+    mostrarVista("profile");
+  }
 }
 
 // ─── Profile link handlers ────────────────────────────────────────────────

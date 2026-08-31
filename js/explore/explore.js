@@ -91,7 +91,7 @@ async function renderExploreView() {
 }
 function openExploreDetail(binder) {
   exploreDetailBinder = binder;
-  mostrarVista("exploreDetail");
+  if (typeof navigateToView === 'function') navigateToView("exploreDetail", {id: binder.id}, {}); else mostrarVista("exploreDetail");
 }
 function renderExploreDetail() {
   const container = document.getElementById("exploreDetailContainer");

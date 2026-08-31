@@ -523,7 +523,7 @@ document.getElementById("trackingFilters").addEventListener("click", e => {
 });
 document.getElementById("binderGrid").addEventListener("click", e => {
   if (e.target.closest(".binder-empty")) {
-    mostrarVista("catalog");
+    if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
     return;
   }
   const rmBtn = e.target.closest(".tracking-remove");

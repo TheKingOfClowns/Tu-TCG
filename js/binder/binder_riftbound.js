@@ -93,12 +93,12 @@ function renderCollectionList_RB() {
       if (openBtn) {
         currentCollectionId = openBtn.getAttribute("data-id");
         binderPage = 1;
-        mostrarVista("binder");
+        if (typeof navigateToView === 'function') navigateToView("binder", {id: currentCollectionId}, {}); else mostrarVista("binder");
       }
     });
   });
   container.querySelectorAll("[data-action='open']").forEach(function(b) {
-    b.addEventListener("click", function() { currentCollectionId = b.getAttribute("data-id"); binderPage = 1; mostrarVista("binder"); });
+    b.addEventListener("click", function() { currentCollectionId = b.getAttribute("data-id"); binderPage = 1; if (typeof navigateToView === 'function') navigateToView("binder", {id: currentCollectionId}, {}); else mostrarVista("binder"); });
   });
   container.querySelectorAll("[data-action='rename']").forEach(function(b) {
     b.addEventListener("click", function() {
@@ -235,7 +235,7 @@ function renderBinder_RB() {
         addingToBinderId = currentCollectionId;
         addingToBinderName = collections[currentCollectionId] ? collections[currentCollectionId].name : "";
         addingToBinderType = "collection";
-        mostrarVista("catalog");
+        if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
       }
     });
   }

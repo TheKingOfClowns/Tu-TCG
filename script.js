@@ -929,8 +929,18 @@ async function selectTcg(tcgId) {
   mostrarVista(targetView);
 }
 // ─── View System ──────────────────────────────────────────────────────────
-function mostrarVista(vista) {
+function mostrarVista(vista, navState) {
   if (vista !== "catalog") limpiarAddingState();
+  if (navState && navState.currentTcg) {
+    currentTcg = navState.currentTcg;
+    currentCollectionId = navState.currentCollectionId;
+    currentVentaId = navState.currentVentaId;
+    binderPage = navState.binderPage || 1;
+    ventaPage = navState.ventaPage || 1;
+    if (navState.filters && typeof applyFiltersFromUrl === 'function') {
+      applyFiltersFromUrl(navState.filters, true);
+    }
+  }
   document.getElementById("tcgSelector").classList.remove("active");
   document.getElementById("welcomeView").classList.remove("active");
   document.getElementById("catalogView").classList.remove("active");
@@ -1119,14 +1129,14 @@ searchClear.addEventListener("click", () => {
 let _searchTimeout;
 searchInput.addEventListener("input", () => {
   clearTimeout(_searchTimeout);
-  _searchTimeout = setTimeout(() => { currentPage = 1; renderCards(); }, 250);
+  _searchTimeout = setTimeout(() => { currentPage = 1; renderCards(); router.updateUrl(); }, 250);
 });
 // Filters
-expansionFilter.addEventListener("change", () => { actualizarFiltrosPorExpansion(); currentPage = 1; renderCards(); });
-colorFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
-rarityFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
-sortFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
-typeFilter.addEventListener("change", () => { currentPage = 1; renderCards(); });
+expansionFilter.addEventListener("change", () => { actualizarFiltrosPorExpansion(); currentPage = 1; renderCards(); router.updateUrl(); });
+colorFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
+rarityFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
+sortFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
+typeFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
 // Language toggle
 document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -1140,11 +1150,12 @@ document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
       actualizarFiltrosPorExpansion();
     }
     renderCards();
+    router.updateUrl();
   });
 });
 // Pagination
-nextBtnBottom.onclick = () => { currentPage++; renderCards(); };
-prevBtnBottom.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); } };
+nextBtnBottom.onclick = () => { currentPage++; renderCards(); router.updateUrl(); };
+prevBtnBottom.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); router.updateUrl(); } };
 // Modal
 closeModal.addEventListener("click", () => { modal.style.display = "none"; });
 modal.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
@@ -1297,8 +1308,8 @@ document.getElementById("binderClearAllBtn").addEventListener("click", () => {
     col.cards = []; binderPage = 1; guardarCollections(); renderBinder(); actualizarBotonesBinder();
   }
 });
-document.getElementById("binderBackBtn").addEventListener("click", () => { currentCollectionId = null; binderPage = 1; mostrarVista("collections"); });
-document.getElementById("exploreDetailBackBtn").addEventListener("click", () => { mostrarVista("explore"); });
+document.getElementById("binderBackBtn").addEventListener("click", () => { history.back(); });
+document.getElementById("exploreDetailBackBtn").addEventListener("click", () => { history.back(); });
 document.getElementById("binderPrevBtn").addEventListener("click", () => {
   const col = collections[currentCollectionId];
   if (col && binderPage > 1) { binderPage--; renderBinder(); }
@@ -1310,7 +1321,7 @@ document.getElementById("binderNextBtn").addEventListener("click", () => {
   if (binderPage < totalPages) { binderPage++; renderBinder(); }
 });
 // Venta events
-document.getElementById("ventaBackBtn").addEventListener("click", () => { currentVentaId = null; ventaPage = 1; mostrarVista("ventaCols"); });
+document.getElementById("ventaBackBtn").addEventListener("click", () => { history.back(); });
 document.getElementById("ventaClearPageBtn").addEventListener("click", () => {
   const col = ventaCols[currentVentaId];
   if (!col) return;
@@ -1448,6 +1459,13 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
   }
 })();
 (async () => {
+  const parsed = router.initRouter();
+  if (parsed.view !== 'home' || window.location.pathname !== '/') {
+    if (parsed.route && typeof navigateToView === 'function') {
+      await navigateToView(parsed.route, parsed.params, parsed.filters);
+      return;
+    }
+  }
   const singleMode = await isSingleTcgMode();
   if (singleMode) {
     await cargarCartas();
@@ -1553,3 +1571,67 @@ document.getElementById("confirmModal").addEventListener("click", e => {
     _confirmCallback = null;
   }
 });
+// ─── Router Integration ────────────────────────────────────────────────────
+async function navigateToView(route, params, filters) {
+  var navState = {
+    currentTcg: currentTcg,
+    currentCollectionId: params.id || null,
+    currentVentaId: params.id || null,
+    binderPage: binderPage,
+    ventaPage: ventaPage,
+    filters: filters || {}
+  };
+  if (route === 'catalog' || route === 'catalogView') {
+    if (currentTcg && typeof tcgConfigs !== 'undefined' && tcgConfigs[currentTcg]) {
+      await cargarCartas();
+    }
+    router.navigateToRoute('catalog', {}, navState);
+    mostrarVista("catalog", navState);
+  } else if (route === 'collections') {
+    router.navigateToRoute('collections', {}, navState);
+    mostrarVista("collections", navState);
+  } else if (route === 'binder') {
+    currentCollectionId = params.id;
+    navState.currentCollectionId = params.id;
+    router.navigateToRoute('binder', { id: params.id }, navState);
+    mostrarVista("binder", navState);
+  } else if (route === 'ventaCols') {
+    router.navigateToRoute('ventaCols', {}, navState);
+    mostrarVista("ventaCols", navState);
+  } else if (route === 'venta') {
+    currentVentaId = params.id;
+    navState.currentVentaId = params.id;
+    router.navigateToRoute('venta', { id: params.id }, navState);
+    mostrarVista("venta", navState);
+  } else if (route === 'explore') {
+    router.navigateToRoute('explore', {}, navState);
+    mostrarVista("explore", navState);
+  } else if (route === 'exploreDetail') {
+    navState.currentCollectionId = params.id;
+    router.navigateToRoute('exploreDetail', { id: params.id }, navState);
+    mostrarVista("exploreDetail", navState);
+  } else if (route === 'profile') {
+    router.navigateToRoute('profile', {}, navState);
+    mostrarVista("profile", navState);
+  } else {
+    router.navigateToRoute('home', {}, navState);
+    mostrarVista("home", navState);
+  }
+}
+function applyFiltersFromUrl(filters, quiet) {
+  if (!filters) return;
+  if (rebuildingFilters) return;
+  rebuildingFilters = true;
+  if (filters.expansion && expansionFilter) expansionFilter.value = filters.expansion;
+  if (filters.color && colorFilter) colorFilter.value = filters.color;
+  if (filters.rarity && rarityFilter) rarityFilter.value = filters.rarity;
+  if (filters.type && typeFilter) typeFilter.value = filters.type;
+  if (filters.page) currentPage = parseInt(filters.page, 10) || 1;
+  if (filters.language && state && state.catalog) {
+    state.catalog.catalogLanguage = filters.language;
+    var langBtns = document.querySelectorAll("#catalogLangToggle .lang-btn");
+    langBtns.forEach(function(b) { b.classList.toggle("active", b.getAttribute("data-lang") === filters.language); });
+  }
+  rebuildingFilters = false;
+}
+var onNavigate = function(path, state) {};

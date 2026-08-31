@@ -165,7 +165,7 @@ function pedirCrearVenta_OP() {
     }
   });
 }
-function openVenta(id) { currentVentaId = id; ventaPage = 1; mostrarVista("venta"); }
+function openVenta(id) { currentVentaId = id; ventaPage = 1; if (typeof navigateToView === 'function') navigateToView("venta", {id: id}, {}); else mostrarVista("venta"); }
 function renderVentaView() {
   const grid = document.getElementById("ventaGrid");
   const deckContainer = document.getElementById("ventaDeckContainer");
@@ -222,7 +222,7 @@ function renderVentaView() {
         addingToBinderId = currentVentaId;
         addingToBinderName = ventaCols[currentVentaId] ? ventaCols[currentVentaId].name : "";
         addingToBinderType = "venta";
-        mostrarVista("catalog");
+        if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
       }
     });
   }

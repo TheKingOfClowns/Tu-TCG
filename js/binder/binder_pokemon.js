@@ -51,11 +51,11 @@ function renderCollectionList_PK() {
     card.addEventListener("click", function(e) {
       if (e.target.closest("button")) return;
       var openBtn = card.querySelector("[data-action='open']");
-      if (openBtn) { currentCollectionId = openBtn.getAttribute("data-id"); binderPage = 1; mostrarVista("binder"); }
+      if (openBtn) { currentCollectionId = openBtn.getAttribute("data-id"); binderPage = 1; if (typeof navigateToView === 'function') navigateToView("binder", {id: currentCollectionId}, {}); else mostrarVista("binder"); }
     });
   });
   container.querySelectorAll("[data-action='open']").forEach(function(b) {
-    b.addEventListener("click", function() { currentCollectionId = b.getAttribute("data-id"); binderPage = 1; mostrarVista("binder"); });
+    b.addEventListener("click", function() { currentCollectionId = b.getAttribute("data-id"); binderPage = 1; if (typeof navigateToView === 'function') navigateToView("binder", {id: currentCollectionId}, {}); else mostrarVista("binder"); });
   });
   container.querySelectorAll("[data-action='rename']").forEach(function(b) {
     b.addEventListener("click", function() {
