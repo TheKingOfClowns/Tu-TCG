@@ -316,7 +316,8 @@ async function renderExploreView() {
       gridContainer.appendChild(div);
     }
   } catch (e) {
-    console.error("Explore error:", e);
+    const isAbort = e.name === 'AbortError' || e.message?.toLowerCase().includes('abort');
+    if (!isAbort) console.error("Explore error:", e);
     container.innerHTML = '<div class="collection-empty"><p>Error al cargar binders públicos</p></div>';
   }
 }
