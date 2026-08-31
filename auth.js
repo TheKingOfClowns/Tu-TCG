@@ -157,7 +157,7 @@ function updateAuthUI() {
       userBtn.title = email;
     }
     if (sidebarUserName) sidebarUserName.textContent = (authUser.user_metadata?.username) || (authUser.email ? authUser.email.split("@")[0] : "Usuario");
-    if (sidebarUserPlan) sidebarUserPlan.textContent = "Premium";
+    if (sidebarUserPlan) sidebarUserPlan.textContent = "Nakama";
     if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
     if (landingRegisterBtn2) landingRegisterBtn2.style.display = "none";
     if (landingLoginLink) landingLoginLink.style.display = "none";

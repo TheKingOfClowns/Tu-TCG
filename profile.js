@@ -172,7 +172,7 @@ function updateSidebarProfile(profile) {
   const sidebarUserPlan = document.getElementById("sidebarUserPlan");
   const sidebarUserAvatar = document.getElementById("sidebarUserAvatar");
   if (sidebarUserName) sidebarUserName.textContent = profile?.display_name || profile?.username || (authUser?.email ? authUser.email.split("@")[0] : "Usuario");
-  if (sidebarUserPlan) sidebarUserPlan.textContent = "Premium";
+    if (sidebarUserPlan) sidebarUserPlan.textContent = "Nakama";
   if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
   if (sidebarUserAvatar && profile?.avatar_url) {
     sidebarUserAvatar.style.backgroundImage = `url(${profile.avatar_url})`;
