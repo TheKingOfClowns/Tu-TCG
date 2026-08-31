@@ -1109,7 +1109,12 @@ function mostrarVista(vista, navState) {
     document.getElementById("bottomExplore")?.classList.add("active");
     exploreDetailBinder = null;
     if (currentTcg && Object.keys(cartasMap).length === 0) {
-      cargarCartas().then(() => renderExploreView());
+      cargarCartas()
+        .then(() => renderExploreView())
+        .catch(err => {
+          if (err.name !== 'AbortError') console.error('Explore cartas error:', err);
+          renderExploreView();
+        });
     } else {
       renderExploreView();
     }
@@ -1119,7 +1124,12 @@ function mostrarVista(vista, navState) {
     document.getElementById("sidebarExplore")?.classList.add("active");
     document.getElementById("bottomExplore")?.classList.add("active");
     if (currentTcg && Object.keys(cartasMap).length === 0) {
-      cargarCartas().then(() => renderExploreDetail());
+      cargarCartas()
+        .then(() => renderExploreDetail())
+        .catch(err => {
+          if (err.name !== 'AbortError') console.error('ExploreDetail cartas error:', err);
+          renderExploreDetail();
+        });
     } else {
       renderExploreDetail();
     }
