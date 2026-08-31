@@ -235,7 +235,7 @@ Path-based routing con History API para soporte de browser back button y deep li
 - Botones "volver" internos usan `history.back()`
 
 ## Deploy
-- URL: `https://92f56fda.tutcg.pages.dev` (deploy 2026-08-31)
+- URL: `https://72d447ff.tutcg.pages.dev` (deploy 2026-08-31)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
