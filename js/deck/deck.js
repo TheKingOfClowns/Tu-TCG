@@ -237,7 +237,7 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
     }
     // Now check cartas state
     if (!cartas || !cartas.length) {
-      grid.innerHTML = '<div class="deck-picker-empty">Cargando catálogo de cartas…</div>';
+      if (typeof skeletonCardGrid === 'function') skeletonCardGrid(grid, 10); else grid.innerHTML = '<div class="deck-picker-empty">Cargando catálogo de cartas…</div>';
       updateInfo();
       let retries = 0;
       const retry = setInterval(() => {

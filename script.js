@@ -157,6 +157,7 @@ function getTcgPrefix() {
 function collectionsKey() { return "tutcg_" + getTcgPrefix() + "_collections"; }
 function ventaKey() { return "tutcg_" + getTcgPrefix() + "_venta"; }
 async function cargarStatsLanding() {
+  if (typeof skeletonStats === 'function') skeletonStats();
   try {
     const configRes = await fetch("config/games.json");
     const gamesConfig = await configRes.json();
@@ -179,15 +180,14 @@ async function cargarStatsLanding() {
   } catch (e) { /* skip if games.json fails */ }
 }
 // ─── Card Data Loading ───────────────────────────────────────────────────
-async function cargarCartas() {
-  cardsContainer.innerHTML = `<div class="catalog-skeleton">${Array(12).fill(`
-    <div class="sk-card">
-      <div class="sk-img"></div>
-      <div class="sk-body">
-        <div class="sk-line"></div>
-        <div class="sk-line short"></div>
-      </div>
-    </div>`).join("")}</div>`;
+let _cartasPromise = null;
+function cargarCartas() {
+  if (_cartasPromise) return _cartasPromise;
+  _cartasPromise = _cargarCartas().finally(() => { _cartasPromise = null; });
+  return _cartasPromise;
+}
+async function _cargarCartas() {
+  if (typeof skeletonCardGrid === 'function') skeletonCardGrid(cardsContainer, 12, true);
   try {
     const configRes = await fetch("config/games.json");
     const gamesConfig = await configRes.json();
@@ -540,6 +540,7 @@ async function syncObjectToSupabase(obj, type) {
       binder._synced = true;
     }
   }
+  if (typeof invalidateExploreCache === 'function') invalidateExploreCache();
 }
 async function syncCollectionsToSupabase() { return syncObjectToSupabase(collections, "collection"); }
 async function syncVentaToSupabase() { return syncObjectToSupabase(ventaCols, "sale"); }
@@ -619,6 +620,20 @@ function rebuildLocalFallback() {
   } else { collections = {}; }
   localStorage.setItem(key, JSON.stringify(collections));
 }
+function _markCollectionsReady() {
+  window._collectionsReady = true;
+  const active = document.querySelector(".view-pane.active");
+  if (!active) return;
+  if (active.id === "collectionManager" && typeof renderCollectionList === 'function') renderCollectionList();
+  else if (active.id === "binderView" && currentCollectionId && Object.keys(cartasMap).length > 0 && typeof renderBinder === 'function') renderBinder();
+}
+function _markVentaReady() {
+  window._ventaReady = true;
+  const active = document.querySelector(".view-pane.active");
+  if (!active || Object.keys(cartasMap).length === 0) return;
+  if (active.id === "ventaManager" && typeof renderVentaList === 'function') renderVentaList();
+  else if (active.id === "ventaView" && typeof renderVentaView === 'function') renderVentaView();
+}
 async function initCollections() {
   if (isAuthenticated()) {
     const dbBinders = await loadBindersFromDb();
@@ -674,6 +689,7 @@ async function initCollections() {
         }
       });
       localStorage.setItem(collectionsKey(), JSON.stringify(collections));
+      _markCollectionsReady();
       return;
     }
     if (dbBinders !== null) {
@@ -682,20 +698,24 @@ async function initCollections() {
       if (localData) {
         try { collections = JSON.parse(localData); } catch (e) { collections = {}; }
         await syncCollectionsToSupabase();
+        _markCollectionsReady();
         return;
       }
     }
   }
   rebuildLocalFallback();
+  _markCollectionsReady();
 }
 function initVenta() {
   const key = ventaKey();
   const saved = localStorage.getItem(key);
   if (saved) { try { ventaCols = JSON.parse(saved); } catch (e) { ventaCols = {}; } } else { ventaCols = {}; }
   localStorage.setItem(key, JSON.stringify(ventaCols));
+  window._ventaReady = true;
 }
 async function reloadVentaFromDb() {
-  if (!isAuthenticated()) return;
+  if (!isAuthenticated()) { window._ventaReady = true; return; }
+  window._ventaReady = false;
   const dbBinders = await loadBindersFromDb();
   if (dbBinders && dbBinders.length) {
     ventaCols = {};
@@ -734,6 +754,7 @@ async function reloadVentaFromDb() {
       }
     });
     localStorage.setItem(ventaKey(), JSON.stringify(ventaCols));
+    _markVentaReady();
     return;
   }
   if (dbBinders !== null) {
@@ -743,6 +764,7 @@ async function reloadVentaFromDb() {
       await syncVentaToSupabase();
     }
   }
+  _markVentaReady();
 }
 async function migrateLocalToSupabase() {
   if (!isAuthenticated()) return;
@@ -863,6 +885,7 @@ async function toggleBinderPublic(id) {
   }
   if (collections[id]) guardarCollections();
   if (ventaCols[id]) guardarVenta();
+  if (typeof invalidateExploreCache === 'function') invalidateExploreCache();
   const currentView = document.querySelector(".view-pane.active");
   if (currentView?.id === "binderView") renderBinder();
   if (currentView?.id === "ventaView") renderVentaView();
@@ -897,6 +920,7 @@ let _createCallback = null;
 // ─── TCG Selector ─────────────────────────────────────────────────────────
 async function renderTcgSelector() {
   const grid = document.getElementById("tcgGrid");
+  if (typeof skeletonTcgSelector === 'function') skeletonTcgSelector(grid, 3);
   let enabledTcgs = new Set();
   try {
     const res = await fetch("config/games.json");
@@ -1036,7 +1060,21 @@ function mostrarVista(vista, navState) {
     document.getElementById("binderView").style.display = "";
     document.getElementById("sidebarBinder")?.classList.add("active");
     document.getElementById("bottomCollections")?.classList.add("active");
-    ensureCartasLoaded().then(() => renderBinder());
+    const bCol = collections[currentCollectionId];
+    if (!window._collectionsReady || (bCol && Object.keys(cartasMap).length === 0)) {
+      if (bCol && bCol.subtype === "deck" && typeof skeletonDeck === 'function') {
+        const bdc = document.getElementById("binderDeckContainer");
+        if (bdc) { bdc.style.display = ""; skeletonDeck(bdc); }
+        const bg = document.getElementById("binderGrid");
+        if (bg) bg.style.display = "none";
+      } else if (typeof skeletonCardGrid === 'function') {
+        skeletonCardGrid(document.getElementById("binderGrid"));
+      }
+    }
+    ensureCartasLoaded().then(() => {
+      if (!window._collectionsReady) return;
+      renderBinder();
+    });
   } else if (vista === "collections") {
     if (!currentTcg) {
 
@@ -1055,7 +1093,12 @@ function mostrarVista(vista, navState) {
     document.getElementById("collectionManager").style.display = "";
     document.getElementById("sidebarColecciones")?.classList.add("active");
     document.getElementById("bottomColecciones")?.classList.add("active");
-    ensureCartasLoaded().then(() => renderCollectionList());
+    if (!window._collectionsReady) {
+      if (typeof skeletonCoverGrid === 'function') skeletonCoverGrid(document.getElementById("collectionList"));
+      ensureCartasLoaded().then(() => { if (window._collectionsReady) renderCollectionList(); });
+    } else {
+      ensureCartasLoaded().then(() => renderCollectionList());
+    }
   } else if (vista === "ventaCols") {
     if (!currentTcg) {
 
@@ -1074,13 +1117,32 @@ function mostrarVista(vista, navState) {
     document.getElementById("ventaManager").style.display = "";
     document.getElementById("sidebarVenta")?.classList.add("active");
     document.getElementById("bottomVenta")?.classList.add("active");
-    ensureCartasLoaded().then(() => renderVentaList());
+    if (!window._ventaReady) {
+      if (typeof skeletonCoverGrid === 'function') skeletonCoverGrid(document.getElementById("ventaList"));
+      ensureCartasLoaded().then(() => { if (window._ventaReady) renderVentaList(); });
+    } else {
+      ensureCartasLoaded().then(() => renderVentaList());
+    }
   } else if (vista === "venta") {
     document.getElementById("ventaView").classList.add("active");
     document.getElementById("ventaView").style.display = "";
     document.getElementById("sidebarVenta")?.classList.add("active");
     document.getElementById("bottomVenta")?.classList.add("active");
-    ensureCartasLoaded().then(() => renderVentaView());
+    const vCol = ventaCols[currentVentaId];
+    if (!window._ventaReady || (vCol && Object.keys(cartasMap).length === 0)) {
+      if (vCol && vCol.subtype === "deck" && typeof skeletonDeck === 'function') {
+        const vdc = document.getElementById("ventaDeckContainer");
+        if (vdc) { vdc.style.display = ""; skeletonDeck(vdc); }
+        const vg = document.getElementById("ventaGrid");
+        if (vg) vg.style.display = "none";
+      } else if (typeof skeletonCardGrid === 'function') {
+        skeletonCardGrid(document.getElementById("ventaGrid"));
+      }
+    }
+    ensureCartasLoaded().then(() => {
+      if (!window._ventaReady) return;
+      renderVentaView();
+    });
   } else if (vista === "tcgHome") {
     if (!currentTcg) {
       document.getElementById("tcgSelector").classList.add("active");
@@ -1131,6 +1193,9 @@ function mostrarVista(vista, navState) {
     document.getElementById("exploreDetailView").style.display = "";
     document.getElementById("sidebarExplore")?.classList.add("active");
     document.getElementById("bottomExplore")?.classList.add("active");
+    if (!exploreDetailBinder && typeof skeletonExploreDetail === 'function') {
+      skeletonExploreDetail(document.getElementById("exploreDetailContainer"));
+    }
     if (currentTcg && Object.keys(cartasMap).length === 0) {
       cargarCartas()
         .then(() => renderExploreDetail())
@@ -1511,13 +1576,18 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
 (async () => {
   const parsed = router.initRouter();
   if (parsed.route === 'binder' && parsed.params.id) {
+    currentCollectionId = parsed.params.id;
+    mostrarVista("binder");
     await cargarCartas();
     const binder = await loadPublicBinderById(parsed.params.id);
     if (binder) {
       collections[binder.id] = binder;
       currentCollectionId = binder.id;
     }
+    await navigateToView("binder", parsed.params, parsed.filters);
+    return;
   } else if (parsed.route === 'exploreDetail' && parsed.params.id) {
+    mostrarVista("exploreDetail");
     await cargarCartas();
     const binder = await loadPublicBinderById(parsed.params.id);
     if (binder) {
@@ -1526,7 +1596,12 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
       if (typeof setExploreDetailOwner === 'function' && prof) {
         setExploreDetailOwner(prof.username || "Usuario", prof.avatar_url || "");
       }
+    } else {
+      await navigateToView("explore", {}, {});
+      return;
     }
+    await navigateToView("exploreDetail", parsed.params, parsed.filters);
+    return;
   }
   if (parsed.route && typeof navigateToView === 'function') {
     await navigateToView(parsed.route, parsed.params, parsed.filters);
@@ -1650,7 +1725,13 @@ async function navigateToView(route, params, filters) {
   };
   if (route === 'catalog' || route === 'catalogView') {
     if (currentTcg && typeof tcgConfigs !== 'undefined' && tcgConfigs[currentTcg]) {
-      await cargarCartas();
+      if (Object.keys(cartasMap).length === 0) {
+        mostrarVista("catalog", navState);
+        await cargarCartas();
+        router.navigateToRoute('catalog', {}, navState);
+        mostrarVista("catalog", navState);
+        return;
+      }
     }
     router.navigateToRoute('catalog', {}, navState);
     mostrarVista("catalog", navState);

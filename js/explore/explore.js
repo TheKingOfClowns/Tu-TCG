@@ -4,6 +4,9 @@ let exploreFilterMode = "all";
 let exploreSearchQuery = "";
 let exploreTabFilter = "todas";
 let exploreExploreSearchQuery = "";
+let _exploreCache = { data: null, ts: 0 };
+const EXPLORE_CACHE_TTL = 30000;
+window.invalidateExploreCache = function () { _exploreCache = { data: null, ts: 0 }; };
 function setExploreDetailOwner(username, avatarUrl) {
   exploreDetailOwner = { username: username || "Usuario", avatar_url: avatarUrl || "" };
 }
@@ -186,20 +189,29 @@ async function renderExploreView() {
   const container = document.getElementById("exploreContainer");
   if (!container) return;
   const tcgName = currentTcg ? (tcgList.find(t => t.id === currentTcg)?.name || "") : "";
-  container.innerHTML = buildExploreFiltersHTML() + '<div class="loader" style="text-align:center;padding:40px;color:var(--text-tertiary)">Cargando binders públicos…</div>';
+  container.innerHTML = buildExploreFiltersHTML() + '<div id="exploreSkeletonWrap"></div>';
+  if (typeof skeletonCoverGrid === 'function') skeletonCoverGrid(document.getElementById("exploreSkeletonWrap"), 10);
   attachExploreListeners();
   if (!isAuthenticated()) {
     container.innerHTML = '<div class="collection-empty"><p>Inicia sesión para explorar binders públicos</p></div>';
     return;
   }
   try {
-    const { data: publicBinders, error } = await supabaseClient
-      .from("binders")
-      .select("*, binder_cards(*), target_cards")
-      .eq("is_public", true)
-      .order("updated_at", { ascending: false })
-      .abortSignal(_exploreController.signal);
-    if (error) throw error;
+    let publicBinders = null;
+    const cacheFresh = _exploreCache.data && (Date.now() - _exploreCache.ts) < EXPLORE_CACHE_TTL;
+    if (cacheFresh) {
+      publicBinders = _exploreCache.data;
+    } else {
+      const res = await supabaseClient
+        .from("binders")
+        .select("*, binder_cards(*), target_cards")
+        .eq("is_public", true)
+        .order("updated_at", { ascending: false })
+        .abortSignal(_exploreController.signal);
+      if (res.error) throw res.error;
+      publicBinders = res.data;
+      _exploreCache = { data: publicBinders, ts: Date.now() };
+    }
     const seen = new Set();
     const uniqueBinders = publicBinders.filter(b => {
       if (seen.has(b.id)) return false;
@@ -244,18 +256,21 @@ async function renderExploreView() {
     container.innerHTML = buildExploreFiltersHTML() + '<div id="exploreGridContainer" class="explore-grid"></div>';
     attachExploreListeners();
     const gridContainer = document.getElementById('exploreGridContainer');
-    for (const b of filteredBinders) {
-      let username = "Usuario";
-      let avatarUrl = "";
+    const userIds = [...new Set(filteredBinders.map(b => b.user_id))];
+    const profileMap = {};
+    if (userIds.length) {
       try {
-        const { data: prof } = await supabaseClient
+        const { data: profs } = await supabaseClient
           .from("profiles")
-          .select("username, avatar_url")
-          .eq("id", b.user_id)
-          .single();
-        if (prof?.username) username = prof.username;
-        if (prof?.avatar_url) avatarUrl = prof.avatar_url;
-      } catch (e) { console.error("Explore profile fetch error:", e); }
+          .select("id, username, avatar_url")
+          .in("id", userIds);
+        (profs || []).forEach(p => { profileMap[p.id] = p; });
+      } catch (e) { console.error("Explore profiles fetch error:", e); }
+    }
+    for (const b of filteredBinders) {
+      const prof = profileMap[b.user_id];
+      const username = prof?.username || "Usuario";
+      const avatarUrl = prof?.avatar_url || "";
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
       const typeLabel = b.type === "sale" ? "Venta" : "Colección";
       const isOwner = authUser && b.user_id === authUser.id;
@@ -317,7 +332,8 @@ async function renderExploreView() {
     }
   } catch (e) {
     const isAbort = e.name === 'AbortError' || e.message?.toLowerCase().includes('abort');
-    if (!isAbort) console.error("Explore error:", e);
+    if (isAbort) return;
+    console.error("Explore error:", e);
     container.innerHTML = '<div class="collection-empty"><p>Error al cargar binders públicos</p></div>';
   }
 }

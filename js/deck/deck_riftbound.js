@@ -322,7 +322,7 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
       };
     }
     if (!cartas || !cartas.length) {
-      grid.innerHTML = '<div class="deck-picker-empty">Cargando catalogo de cartas...</div>';
+      if (typeof skeletonCardGrid === 'function') skeletonCardGrid(grid, 10); else grid.innerHTML = '<div class="deck-picker-empty">Cargando catalogo de cartas...</div>';
       updateInfo();
       let retries = 0;
       const retry = setInterval(() => {

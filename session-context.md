@@ -481,6 +481,37 @@ Unificar tamaños de cards en todas las vistas para mejor UX y consistencia.
 - Mobile: `repeat(2, 1fr)` para todos
 - `.explore-detail-grid` ahora usa 5 columnas fijas (era `auto-fill minmax(160px, 1fr)`)
 
+## Skeleton UI — Loading States (2026-08-31)
+
+Sistema de skeletons (shimmer) para todas las vistas mientras cargan datos (solo carga de datos, no imágenes individuales).
+
+### Archivos
+- `style.css` — Sección "Skeleton Loading": `.sk-shimmer` (gradiente + animación `shimmer`), `.sk-grid`/`.sk-card` (cartas 63/88, 5/3/2 responsive), `.sk-covers` (portadas), `.sk-deck` (líder + slots), `.sk-detail` (explore detail), `.sk-stat` (números landing), `.sk-tcg-grid` (selector TCG). Todos los wrappers llevan `grid-column: 1 / -1` para poder inyectarse dentro de grids existentes. Respeta `prefers-reduced-motion`.
+- `js/skeleton.js` — Helpers globales: `skeletonCardGrid(container, count, fill)`, `skeletonCoverGrid`, `skeletonDeck`, `skeletonExploreDetail`, `skeletonStats`, `skeletonTcgSelector`. Cargado en index.html antes de script.js.
+
+### Aplicación
+- **Catálogo**: `_cargarCartas()` usa `skeletonCardGrid(cardsContainer, 12, true)` (refactor del skeleton viejo `.catalog-skeleton`).
+- **Landing stats**: `cargarStatsLanding()` llama `skeletonStats()` al inicio.
+- **TCG selector**: `renderTcgSelector()` muestra skeleton en `#tcgGrid`.
+- **Colecciones/Ventas (lista)**: skeleton covers mientras flags `_collectionsReady`/`_ventaReady` son false; flags seteados por `initCollections`/`initVenta`/`reloadVentaFromDb` vía `_markCollectionsReady()`/`_markVentaReady()` que además re-renderizan si el pane está activo.
+- **Binder/Venta (detalle)**: skeleton grid (o deck si `subtype === "deck"`) mientras `ensureCartasLoaded()` pende o flags no listos. Los deck containers (`binderDeckContainer`/`ventaDeckContainer`) se muestran para el skeleton.
+- **Explore**: texto "Cargando…" reemplazado por `skeletonCoverGrid` dentro de `#exploreSkeletonWrap` (explore.js:189).
+- **Explore detail**: `skeletonExploreDetail` si `exploreDetailBinder` es null; deep link inválido redirige a `/explore`.
+- **Deck picker** (deck.js:240, deck_riftbound.js:325): skeleton grid en vez del texto.
+
+### Cambios de comportamiento
+- `cargarCartas()` tiene guard anti-concurrentes (`_cartasPromise`) para evitar doble fetch.
+- `navigateToView("catalog")` ya NO re-fetchea `cards_master.json` en cada visita: solo fetchea si `cartasMap` está vacío (muestra skeleton en el primer load; visitas siguientes renderizan instantáneo).
+- Startup deep links (`/collections/:id`, `/explore/:id`): `mostrarVista` se llama ANTES de cargar para mostrar el skeleton, y se re-renderiza al terminar.
+
+### Bug fix — "Error al cargar binders públicos" en Explore (2026-08-31)
+El catch de `renderExploreView` mostraba el error también para requests abortados (el AbortController cancela el fetch anterior al re-renderizar por navegación/tabs/búsqueda), pisando el skeleton. Fix: `if (isAbort) return;` — el mensaje de error solo aparece ante fallos reales.
+
+### Perf — Explore N+1 y cache (2026-08-31)
+- **Batch profiles**: `renderExploreView` reemplazó el query secuencial de `profiles` por binder (N+1, explore.js:251) por un solo `.in("id", [...userIds])` con lookup por mapa antes del loop.
+- **Cache TTL 30s**: `_exploreCache` en explore.js cachea el resultado crudo de `binders` públicos; tabs/búsqueda/re-entradas reusan el cache (filtros son client-side). `window.invalidateExploreCache()` limpia el cache.
+- **Invalidación**: `toggleBinderPublic` (script.js) y `syncObjectToSupabase` (fin de función) invalidan el cache cuando cambian datos propios.
+
 ## Pendiente de sesión anterior
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`
 - Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
