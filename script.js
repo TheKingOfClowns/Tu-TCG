@@ -1112,7 +1112,8 @@ function mostrarVista(vista, navState) {
       cargarCartas()
         .then(() => renderExploreView())
         .catch(err => {
-          if (err.name !== 'AbortError') console.error('Explore cartas error:', err);
+          const isAbort = err.name === 'AbortError' || err.message?.toLowerCase().includes('abort');
+          if (!isAbort) console.error('Explore cartas error:', err);
           renderExploreView();
         });
     } else {
@@ -1127,7 +1128,8 @@ function mostrarVista(vista, navState) {
       cargarCartas()
         .then(() => renderExploreDetail())
         .catch(err => {
-          if (err.name !== 'AbortError') console.error('ExploreDetail cartas error:', err);
+          const isAbort = err.name === 'AbortError' || err.message?.toLowerCase().includes('abort');
+          if (!isAbort) console.error('ExploreDetail cartas error:', err);
           renderExploreDetail();
         });
     } else {
