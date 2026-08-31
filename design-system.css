@@ -89,6 +89,10 @@
 
   --header-height: 64px;
   --sidebar-width: 260px;
+
+  --card-min-width: 180px;
+  --card-max-width: 1fr;
+  --card-aspect-ratio: 63 / 88;
 }
 
 *,
