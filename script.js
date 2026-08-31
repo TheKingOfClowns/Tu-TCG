@@ -1108,12 +1108,18 @@ function mostrarVista(vista, navState) {
     document.getElementById("sidebarExplore")?.classList.add("active");
     document.getElementById("bottomExplore")?.classList.add("active");
     exploreDetailBinder = null;
+    if (currentTcg && Object.keys(cartasMap).length === 0) {
+      await cargarCartas();
+    }
     renderExploreView();
   } else if (vista === "exploreDetail") {
     document.getElementById("exploreDetailView").classList.add("active");
     document.getElementById("exploreDetailView").style.display = "";
     document.getElementById("sidebarExplore")?.classList.add("active");
     document.getElementById("bottomExplore")?.classList.add("active");
+    if (currentTcg && Object.keys(cartasMap).length === 0) {
+      await cargarCartas();
+    }
     renderExploreDetail();
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
