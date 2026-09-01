@@ -512,6 +512,16 @@ El catch de `renderExploreView` mostraba el error también para requests abortad
 - **Cache TTL 30s**: `_exploreCache` en explore.js cachea el resultado crudo de `binders` públicos; tabs/búsqueda/re-entradas reusan el cache (filtros son client-side). `window.invalidateExploreCache()` limpia el cache.
 - **Invalidación**: `toggleBinderPublic` (script.js) y `syncObjectToSupabase` (fin de función) invalidan el cache cuando cambian datos propios.
 
+## Profile Público — Modal "Ver Perfil" (2026-08-31)
+
+### Cambios
+- `verPerfilPublico` (explore.js) reescrito: ahora consulta `username, display_name, avatar_url, bio, city, country, contact_phone, contact_wsp, social_links` y muestra toda la info pública con secciones condicionales (solo se renderiza lo que el usuario cargó).
+- Contacto: botón verde WhatsApp (link a `contact_wsp`, solo dominios wa.me/web.whatsapp.com/api.whatsapp.com validados con `sanitizeWspUrl`) + teléfono como link `tel:` (fuente mono). Si no hay contacto → "Este usuario no compartió información de contacto".
+- Redes sociales: filas por plataforma (Instagram, X, TikTok, YouTube, Discord, Otro), solo URLs `http(s)://`.
+- Seguridad: helper `escapeHtml` en explore.js para todos los campos de usuario; `tel:` sanitizado (`[^\d+]`).
+- Cierre: botón, backdrop y tecla Escape (handler global `window._publicProfileKeyHandler`, se limpia al cerrar).
+- CSS: clases `.pp-*` en style.css (sección "Public Profile Modal").
+
 ## Pendiente de sesión anterior
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`
 - Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
