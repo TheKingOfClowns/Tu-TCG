@@ -283,7 +283,7 @@ async function renderExploreView() {
 ```
 
 ## Deploy
-- URL: `https://45659752.tutcg.pages.dev` (deploy 2026-08-31)
+- URL: `https://c553a4d4.tutcg.pages.dev` (deploy 2026-08-31)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
