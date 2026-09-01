@@ -49,8 +49,8 @@ SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
 - Descargadas del sitio oficial OPCG y convertidas con sharp
 
 ### Stats del landing (globales)
-`cargarStatsLanding()` (`script.js:135`) carga todos los `cards_master.json` de juegos habilitados y suma totals para `#statCards` y `#statExpansions`. Los updates por TCG en `cargarCartas()` y `cargarFiltros()` solo corren si `currentTcg` está seteado para no pisar los globales.
-- `catalog.js:325` — `statCards`/`statExpansions` solo se actualizan si `currentTcg`
+`cargarStatsLanding()` (`script.js:159`) carga todos los `cards_master.json` de juegos habilitados y suma totals para `#statCards`. El stat de expansiones (`#statExpansions`) fue eliminado (2026-08-31) — solo queda "Cartas registradas", card única centrada (`.stats-grid` 1fr, max-width 320px). Los updates por TCG en `cargarCartas()` y `cargarFiltros()` solo corren si `currentTcg` está seteado para no pisar los globales.
+- `catalog.js:329` — `statCards` solo se actualiza si `currentTcg`
 
 ## Diseño (Nexus Design System)
 - Fondo: #050511, acento: #00f0ff (cyan), glass-panel (backdrop-blur)

@@ -162,7 +162,6 @@ async function cargarStatsLanding() {
     const configRes = await fetch("config/games.json");
     const gamesConfig = await configRes.json();
     var totalCards = 0;
-    var allSetIds = new Set();
     var enabledGames = Object.entries(gamesConfig).filter(function(e) { return e[1].enabled; });
     for (var i = 0; i < enabledGames.length; i++) {
       try {
@@ -170,13 +169,10 @@ async function cargarStatsLanding() {
         if (!res.ok) continue;
         var data = await res.json();
         totalCards += data.total_cards || (data.cards ? data.cards.length : 0);
-        (data.cards || []).forEach(function(c) { if (c.set_id) allSetIds.add(c.set_id); });
       } catch (e) { /* skip failed loads */ }
     }
     var statCards = document.getElementById("statCards");
     if (statCards) statCards.textContent = totalCards.toLocaleString();
-    var statExp = document.getElementById("statExpansions");
-    if (statExp) statExp.textContent = allSetIds.size;
   } catch (e) { /* skip if games.json fails */ }
 }
 // ─── Card Data Loading ───────────────────────────────────────────────────
@@ -228,9 +224,6 @@ async function _cargarCartas() {
     cartas.forEach(c => { cartasMap[getCardKey(c)] = c; });
     const statCards = document.getElementById("statCards");
     if (statCards && !currentTcg) statCards.textContent = cartas.length.toLocaleString();
-    const expansions = new Set(cartas.map(c => c.set_id).filter(Boolean));
-    const statExp = document.getElementById("statExpansions");
-    if (statExp && !currentTcg) statExp.textContent = expansions.size;
     cargarFiltros();
     actualizarFiltrosPorExpansion();
     renderCards();

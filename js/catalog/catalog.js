@@ -328,9 +328,6 @@ function cargarFiltros() {
   // ── Stats ──────────────────────────────────────
   var statCards = document.getElementById("statCards");
   if (statCards && currentTcg) statCards.textContent = cartas.length.toLocaleString();
-  var expansions = new Set(cartas.map(function(c) { return c.set_id; }).filter(Boolean));
-  var statExp = document.getElementById("statExpansions");
-  if (statExp && currentTcg) statExp.textContent = expansions.size;
   rebuildingFilters = false;
   if (prevExpansion) actualizarFiltrosPorExpansion();
 }

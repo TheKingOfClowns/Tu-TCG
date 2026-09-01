@@ -51,9 +51,7 @@
 
   window.skeletonStats = function () {
     var statCards = document.getElementById("statCards");
-    var statExpansions = document.getElementById("statExpansions");
     if (statCards) statCards.innerHTML = '<span class="sk-stat sk-shimmer"></span>';
-    if (statExpansions) statExpansions.innerHTML = '<span class="sk-stat sk-shimmer" style="width:56px"></span>';
   };
 
   window.skeletonTcgSelector = function (container, count) {
