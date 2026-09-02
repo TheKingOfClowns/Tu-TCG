@@ -1481,21 +1481,17 @@ document.getElementById("ventaNextBtn").addEventListener("click", () => {
 document.getElementById("addModalCancel").addEventListener("click", () => { document.getElementById("addModalOverlay").style.display = "none"; });
 document.getElementById("addModalCloseBtn")?.addEventListener("click", () => { document.getElementById("addModalOverlay").style.display = "none"; });
 document.getElementById("agregarBtn").addEventListener("click", () => {
+  if (!Object.keys(pendingCards).length) return;
   if (selectionMode) {
-    if (!Object.keys(selectedCards).length) return;
-    Object.values(selectedCards).forEach(c => {
-      const key = getCardKey(c);
-      if (pendingCards[key]) pendingCards[key].count += c.count;
-      else pendingCards[key] = { ...c };
-    });
     document.querySelectorAll(".card.selected").forEach(el => el.classList.remove("selected"));
+    selectionMode = false;
+    const selBtn = document.getElementById("seleccionarBtn");
+    if (selBtn) { selBtn.textContent = "Seleccionar"; selBtn.classList.remove("active"); }
     selectedCards = {};
-    actualizarBadge();
-    actualizarBadgesEnPagina();
-    if (Object.keys(pendingCards).length) mostrarAddModal();
-  } else {
-    if (Object.keys(pendingCards).length) mostrarAddModal();
   }
+  actualizarBadge();
+  actualizarBadgesEnPagina();
+  mostrarAddModal();
 });
 document.getElementById("catalogAddBack").addEventListener("click", function() {
   var id = addingToBinderId; var type = addingToBinderType;
