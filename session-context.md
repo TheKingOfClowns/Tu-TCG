@@ -617,6 +617,16 @@ Configurados en `~/.config/opencode/opencode.jsonc`:
 - `cloudflare-builds` — needs auth (opcional)
 - `cloudflare-observability` — needs auth (opcional)
 
+## OpenCode Plugins — ahorro de tokens (2026-09-09)
+Instalados a nivel **global** (`C:\Users\buron\.config\opencode`, vía `opencode plugin -g`):
+- `opencode-ponytail` 4.7.3 — modo "senior vago" (escalera YAGNI). Nivel inicial: `full` (default del plugin).
+- `opencode-caveman` 0.1.4 — respuestas tersas. Nivel inicial: `full` (default del plugin).
+- Ambos revisados antes de instalar: sin red/shell, solo escriben sus propios archivos (ponytail: `.ponytail-active`; caveman: skill + commands, sin sobrescribir).
+- No tocan el repo: nada que commitear por ellos.
+- Comandos: `/ponytail [lite|full|ultra|off]`, `/caveman [lite|full|ultra]` (`stop caveman` apaga), `/ponytail-review`, `/caveman-review`.
+- Rollback: quitar del array `plugin` en opencode.json global + desinstalar el paquete.
+- ⚠️ Si el gasto sube en vez de bajar, el primer sospechoso es Caveman (benchmark externo lo muestra >100% en algunos modelos).
+
 ## Convenciones
 - Leer este archivo al iniciar cada sesión.
 - Cada TCG tiene sus propios archivos JS: `_OP`, `_RB`, `_PK` y `dispatcher`, sin dispatchers inline.
