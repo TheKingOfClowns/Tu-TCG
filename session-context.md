@@ -351,8 +351,7 @@ Revisión completa del proyecto (script.js, 31 módulos, HTML, CSS, datos, repo)
 - Tokens sin uso de design-system.css se dejaron a propósito (reserva del design system).
 
 ## Deploy
-- URL último deploy: `https://d443bea5.tutcg.pages.dev` (2026-09-02, fix botón "Agregar a")
-- ⚠️ Hay trabajo posterior sin commitear ni desplegar (gran limpieza 2026-09-02 + quick-add por destino 2026-09-06 + contador entre +/−)
+- URL último deploy: `https://2227c4f2.tutcg.pages.dev` (2026-09-09, quick-add por destino + gran limpieza)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
