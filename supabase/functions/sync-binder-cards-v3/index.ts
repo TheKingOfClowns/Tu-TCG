@@ -27,17 +27,17 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("[sync-binder-cards-v2] Starting sync...");
+  console.log("[sync-binder-cards-v3] Starting sync...");
 
   try {
     const { binder_id, cards, user_id } = await req.json();
 
     if (!binder_id || !cards || !Array.isArray(cards)) {
-      console.error("[sync-binder-cards-v2] Invalid input:", { binder_id, cards });
+      console.error("[sync-binder-cards-v3] Invalid input:", { binder_id, cards });
       return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
     }
 
-    console.log(`[sync-binder-cards-v2] Syncing binder ${binder_id} with ${cards.length} cards for user ${user_id}`);
+    console.log(`[sync-binder-cards-v3] Syncing binder ${binder_id} with ${cards.length} cards for user ${user_id}`);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -48,16 +48,16 @@ Deno.serve(async (req: Request) => {
     });
 
     if (rpcError) {
-      console.error("[sync-binder-cards-v2] RPC error:", rpcError);
+      console.error("[sync-binder-cards-v3] RPC error:", rpcError);
       return new Response(JSON.stringify({ error: rpcError.message }), { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
     }
 
-    console.log(`[sync-binder-cards-v2] Successfully synced binder ${binder_id}`);
+    console.log(`[sync-binder-cards-v3] Successfully synced binder ${binder_id}`);
     return new Response(JSON.stringify({ success: true, count: cards.length }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
   } catch (err) {
-    console.error("[sync-binder-cards-v2] Unexpected error:", err);
+    console.error("[sync-binder-cards-v3] Unexpected error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders }

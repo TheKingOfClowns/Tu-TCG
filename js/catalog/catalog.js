@@ -2,12 +2,7 @@
 // Dependencias (globales): state.catalog.*, DOM refs, helpers (getCardKey, etc.)
 
 function catalogCardClick(imgEl, e) {
-  if (selectionMode) {
-    e.stopPropagation();
-    toggleCardSelection(imgEl);
-  } else {
-    abrirModal(imgEl);
-  }
+  abrirModal(imgEl);
 }
 
 function renderCards() {
@@ -78,19 +73,23 @@ function renderCards() {
   }
   cartasFiltradas = resultado;
   var addedKeys = null;
+  var targetCol = null;
   if (addingToBinderId) {
-    var targetCol = addingToBinderType === "venta" ? ventaCols[addingToBinderId] : collections[addingToBinderId];
-    if (targetCol && targetCol.cards) {
-      addedKeys = new Set();
-      targetCol.cards.forEach(function(c) { if (c._key) addedKeys.add(c._key); });
-      if (targetCol.leader && targetCol.leader._key) addedKeys.add(targetCol.leader._key);
-      if (targetCol.legend && targetCol.legend._key) addedKeys.add(targetCol.legend._key);
-      if (targetCol.champions) targetCol.champions.forEach(function(ch) { if (ch._key) addedKeys.add(ch._key); });
-      if (targetCol.runes) targetCol.runes.forEach(function(r) { if (r._key) addedKeys.add(r._key); });
-      if (targetCol.battlefields) targetCol.battlefields.forEach(function(b) { if (b._key) addedKeys.add(b._key); });
-      if (targetCol.sideboard) targetCol.sideboard.forEach(function(s) { if (s._key) addedKeys.add(s._key); });
-    }
+    targetCol = addingToBinderType === "venta" ? ventaCols[addingToBinderId] : collections[addingToBinderId];
+  } else if (catalogTargetId) {
+    targetCol = getCatalogTargetCol();
   }
+  if (targetCol) {
+    addedKeys = new Set();
+    (targetCol.cards || []).forEach(function(c) { if (c._key) addedKeys.add(c._key); });
+    if (targetCol.leader && targetCol.leader._key) addedKeys.add(targetCol.leader._key);
+    if (targetCol.legend && targetCol.legend._key) addedKeys.add(targetCol.legend._key);
+    if (targetCol.champions) targetCol.champions.forEach(function(ch) { if (ch._key) addedKeys.add(ch._key); });
+    if (targetCol.runes) targetCol.runes.forEach(function(r) { if (r._key) addedKeys.add(r._key); });
+    if (targetCol.battlefields) targetCol.battlefields.forEach(function(b) { if (b._key) addedKeys.add(b._key); });
+    if (targetCol.sideboard) targetCol.sideboard.forEach(function(s) { if (s._key) addedKeys.add(s._key); });
+  }
+  var showActions = !!(addingToBinderId || catalogTargetId);
   const totalPages = Math.max(1, Math.ceil(resultado.length / cardsPerPage));
   resultsCounter.textContent = resultado.length.toLocaleString() + " cartas encontradas";
   if (currentPage > totalPages) currentPage = totalPages;
@@ -140,7 +139,6 @@ function renderCards() {
     div.setAttribute("data-cardkey", cardKey);
     div.style.animationDelay = (Math.random() * 0.1) + "s";
     div.innerHTML = `
-      <div class="pending-card-badge" id="badge-${cardKey.replace(/[^a-zA-Z0-9]/g, '_')}">0</div>
       ${addedBadge}
       <div class="card-img-wrap">
         <img src="${imgSrc}" onerror="this.src='TUTCG.webp'" onclick="catalogCardClick(this, event)" loading="lazy">
@@ -150,10 +148,11 @@ function renderCards() {
         <span class="card-set-id">${setId}</span>
         ${metaBadges ? `<div class="card-meta">${metaBadges}</div>` : ""}
       </div>
-      <div class="card-actions">
+      ${showActions ? `<div class="card-actions">
         <button class="card-action-btn minus-btn" data-cardid="${cardId}" data-name="${escapeAttr(carta.card_name)}" data-image="${imgSrc}">&minus;</button>
+        <div class="pending-card-badge" id="badge-${cardKey.replace(/[^a-zA-Z0-9]/g, '_')}">0</div>
         <button class="card-action-btn plus-btn" data-cardid="${cardId}" data-name="${escapeAttr(carta.card_name)}" data-image="${imgSrc}">+</button>
-      </div>`;
+      </div>` : ""}`;
     cardsContainer.appendChild(div);
   });
   pageInfoBottom.textContent = "Página " + currentPage + " de " + totalPages;
@@ -166,22 +165,24 @@ function renderCards() {
       const carta = cartas.find(c => c.card_set_id === cardId && c.card_name === name && (c.card_image || "") === img);
       if (!carta) return;
       const key = getCardKey(carta);
-      const cardEl = btn.closest(".card");
-      if (selectionMode) {
+      if (addingToBinderId) {
         if (pendingCards[key]) { if (pendingCards[key].count < 10) pendingCards[key].count++; }
-        else {
-          pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
-        }
-        actualizarBadge();
+        else pendingCards[key] = makePendingCard(carta, 1);
         actualizarBadgesEnPagina();
         return;
       }
-      selectionMode = true;
-      const selBtn = document.getElementById("seleccionarBtn");
-      if (selBtn) { selBtn.textContent = "Cancelar"; selBtn.classList.add("active"); }
-      pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
-      if (cardEl) cardEl.classList.add("selected");
-      actualizarBadge();
+      const targetCol = getCatalogTargetCol();
+      if (!targetCol) return;
+      const max = getTargetMax(targetCol);
+      const current = countInTarget(targetCol, key);
+      if (max != null && current >= max) {
+        if (typeof showToast === "function") showToast('Límite de ' + max + ' alcanzado en "' + targetCol.name + '"', "info");
+        return;
+      }
+      pendingCards[key] = makePendingCard(carta, 1);
+      addPendingCardsToCol(targetCol, catalogTargetType === "venta");
+      limpiarPendientes();
+      if (typeof showToast === "function") showToast('Añadida a "' + targetCol.name + '"', "success");
       actualizarBadgesEnPagina();
     });
   });
@@ -194,43 +195,89 @@ function renderCards() {
       const carta = cartas.find(c => c.card_set_id === cardId && c.card_name === name && (c.card_image || "") === img);
       if (!carta) return;
       const key = getCardKey(carta);
-      const cardEl = btn.closest(".card");
-      if (selectionMode) {
+      if (addingToBinderId) {
         if (!pendingCards[key]) return;
         pendingCards[key].count--;
-        if (pendingCards[key].count <= 0) {
-          delete pendingCards[key];
-          if (cardEl) cardEl.classList.remove("selected");
-        }
-        actualizarBadge();
+        if (pendingCards[key].count <= 0) delete pendingCards[key];
         actualizarBadgesEnPagina();
         return;
       }
-      if (!pendingCards[key]) return;
-      pendingCards[key].count--;
-      if (pendingCards[key].count <= 0) delete pendingCards[key];
-      actualizarBadge();
+      const targetCol = getCatalogTargetCol();
+      if (!targetCol) return;
+      if (removeOneFromTarget(targetCol, key, catalogTargetType === "venta")) {
+        if (typeof showToast === "function") showToast('Quitada de "' + targetCol.name + '"', "info");
+      }
       actualizarBadgesEnPagina();
     });
   });
   actualizarBadgesEnPagina();
-  reapplySelectionClasses();
+}
+
+// ─── Quick-add helpers (target mode) ──────────────────────────────────────
+function countInTarget(col, key) {
+  if (!col || !key) return 0;
+  const isGrouped = col.display_mode === "playset" || col.display_mode === "editable";
+  if (isGrouped) {
+    return (col.cards || []).filter(c => c._key === key).reduce((s, c) => s + (c.quantity || 1), 0);
+  }
+  return (col.cards || []).filter(c => c._key === key).length;
+}
+function getTargetMax(col) {
+  if (!col) return null;
+  if (catalogTargetType === "venta") {
+    if (col.display_mode === "playset") return null;
+    return 10;
+  }
+  return _getPlaysetMax(col.tcg || currentTcg);
+}
+function removeOneFromTarget(col, key, isVenta) {
+  var cards = col.cards || [];
+  var idx = -1;
+  for (var i = cards.length - 1; i >= 0; i--) {
+    if (cards[i]._key === key) { idx = i; break; }
+  }
+  if (idx === -1) return false;
+  var row = cards[idx];
+  var isGrouped = col.display_mode === "playset" || col.display_mode === "editable";
+  if (isGrouped && (row.quantity || 1) > 1) {
+    row.quantity = (row.quantity || 1) - 1;
+  } else {
+    cards.splice(idx, 1);
+  }
+  if (isVenta) guardarVenta(); else guardarCollections();
+  return true;
 }
 
 function actualizarBadgesEnPagina() {
+  const targetCol = getCatalogTargetCol();
   cardsContainer.querySelectorAll(".card").forEach(el => {
     const key = el.getAttribute("data-cardkey");
     const badge = el.querySelector(".pending-card-badge");
     const minus = el.querySelector(".minus-btn");
+    const plus = el.querySelector(".plus-btn");
     if (!badge) return;
-    if (key && pendingCards[key]) {
-      badge.textContent = pendingCards[key].count;
-      badge.style.display = "flex";
-      if (minus) minus.style.display = "flex";
-    } else {
-      badge.style.display = "none";
-      if (minus) minus.style.display = "none";
+    if (addingToBinderId) {
+      if (key && pendingCards[key]) {
+        badge.textContent = pendingCards[key].count;
+        badge.style.display = "flex";
+        if (minus) minus.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+        if (minus) minus.style.display = "none";
+      }
+      return;
     }
+    if (targetCol) {
+      const n = key ? countInTarget(targetCol, key) : 0;
+      const max = getTargetMax(targetCol);
+      badge.textContent = max != null ? (n + " / " + max) : String(n);
+      badge.style.display = "flex";
+      if (minus) minus.style.display = n > 0 ? "flex" : "none";
+      if (plus) plus.disabled = (max != null && n >= max);
+      return;
+    }
+    badge.style.display = "none";
+    if (minus) minus.style.display = "none";
   });
 }
 
@@ -495,3 +542,106 @@ function buildPrbBadgeMap() {
     prbBadgeMap[key] = map;
   }
 }
+
+// ─── Catalog Event Listeners (bound here: renderCards/cargarFiltros live in this file) ──
+(function bindCatalogListeners() {
+  const searchClearEl = document.getElementById("searchClear");
+  const searchInputEl = document.getElementById("searchInput");
+  if (searchClearEl) searchClearEl.addEventListener("click", () => {
+    if (searchInputEl) searchInputEl.value = "";
+    if (searchClearEl) searchClearEl.style.display = "none";
+    currentPage = 1;
+    renderCards();
+  });
+  if (searchInputEl) searchInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      currentPage = 1;
+      renderCards();
+      router.updateUrl();
+    }
+  });
+  const el = (id) => document.getElementById(id);
+  ["expansionFilter", "colorFilter", "rarityFilter", "sortFilter", "typeFilter"].forEach(id => {
+    const f = el(id);
+    if (f) f.addEventListener("change", () => {
+      if (id === "expansionFilter") actualizarFiltrosPorExpansion();
+      currentPage = 1;
+      renderCards();
+      router.updateUrl();
+    });
+  });
+  document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const prevLang = state.catalog.catalogLanguage;
+      state.catalog.catalogLanguage = btn.getAttribute("data-lang");
+      currentPage = 1;
+      if (state.catalog.catalogLanguage !== prevLang) {
+        cargarFiltros();
+        actualizarFiltrosPorExpansion();
+      }
+      renderCards();
+      router.updateUrl();
+    });
+  });
+  const nextBtn = el("nextBtnBottom");
+  const prevBtn = el("prevBtnBottom");
+  if (nextBtn) nextBtn.onclick = () => { currentPage++; renderCards(); router.updateUrl(); };
+  if (prevBtn) prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); router.updateUrl(); } };
+})();
+
+// ─── Quick-add target selector ─────────────────────────────────────────────
+function getCatalogTargets() {
+  var targets = [];
+  Object.keys(collections).forEach(function(id) {
+    var col = collections[id];
+    if (col.subtype === "deck" || col.subtype === "tracking") return;
+    if ((col.tcg || "one-piece") !== currentTcg) return;
+    targets.push({ id: id, type: "collection", name: col.name });
+  });
+  Object.keys(ventaCols).forEach(function(id) {
+    var col = ventaCols[id];
+    if (col.subtype === "deck" || col.subtype === "tracking") return;
+    if ((col.tcg || "one-piece") !== currentTcg) return;
+    targets.push({ id: id, type: "venta", name: col.name });
+  });
+  return targets;
+}
+function refreshCatalogTargetSelect() {
+  var select = document.getElementById("catalogTargetSelect");
+  var label = document.getElementById("catalogTargetLabel");
+  if (!select || !label) return;
+  var targets = getCatalogTargets();
+  if (catalogTargetId && !targets.some(function(t) { return t.id === catalogTargetId && t.type === catalogTargetType; })) {
+    catalogTargetId = null;
+    catalogTargetType = null;
+  }
+  select.innerHTML = '<option value="">Sin destino</option>';
+  targets.forEach(function(t) {
+    var opt = document.createElement("option");
+    opt.value = t.type + "|" + t.id;
+    opt.textContent = (t.type === "venta" ? "Venta: " : "Binder: ") + t.name;
+    if (t.id === catalogTargetId && t.type === catalogTargetType) opt.selected = true;
+    select.appendChild(opt);
+  });
+  if (addingToBinderId) {
+    label.style.display = "none";
+  } else if (targets.length) {
+    label.style.display = "";
+  } else {
+    label.style.display = "none";
+  }
+}
+window.refreshCatalogTargetSelect = refreshCatalogTargetSelect;
+document.getElementById("catalogTargetSelect")?.addEventListener("change", function(e) {
+  var val = e.target.value || "";
+  if (!val) { catalogTargetId = null; catalogTargetType = null; }
+  else {
+    var parts = val.split("|");
+    catalogTargetType = parts[0];
+    catalogTargetId = parts[1];
+  }
+  var catalogPane = document.getElementById("catalogView");
+  if (catalogPane && catalogPane.classList.contains("active") && currentTcg) renderCards();
+});

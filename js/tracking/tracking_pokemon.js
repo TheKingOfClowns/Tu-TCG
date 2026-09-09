@@ -2,7 +2,7 @@
 // PK tracking stub. Delegates to OP implementation for now.
 
 function pedirCrearTracking_PK(preFillName) {
-  return pedirCrearTracking(preFillName);
+  if (typeof pedirCrearTracking_RB === "function") return pedirCrearTracking_RB(preFillName);
 }
 
 function renderTrackingExtra_PK(type, panel) {

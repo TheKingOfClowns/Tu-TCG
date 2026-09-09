@@ -251,13 +251,6 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
     } catch (e) { console.error("Deck picker error:", e); resolve(isMulti ? [] : null); }
   });
 }
-document.getElementById("deckPickerOverlay")?.addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) {
-    document.getElementById("deckPickerOverlay").style.display = "none";
-    _deckPickerResolve = null;
-    if (_deckPickerInterval) { clearInterval(_deckPickerInterval); _deckPickerInterval = null; }
-  }
-});
 // ─── Deck View Helpers ─────────────────────────────────────────────────
 
 function _opBuildLeaderHTML(leader, isSale) {

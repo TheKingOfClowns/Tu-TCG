@@ -2,10 +2,8 @@
 // Routes binder functions to the correct TCG implementation.
 
 (function() {
-  var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
-
   function _fn(name) {
-    var s = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+    var s = (typeof tcgShort === "function") ? tcgShort(currentTcg) : null;
     return (s && window[name + "_" + s]) || window[name + "_OP"];
   }
 
@@ -24,3 +22,54 @@
 
 // Event listener: registered here because pedirCrearColeccion is defined in this file
 document.getElementById("createCollectionBtn")?.addEventListener("click", pedirCrearColeccion);
+
+// Binder view events: registered here because renderBinder is defined in this file
+document.getElementById("binderClearPageBtn")?.addEventListener("click", () => {
+  const col = collections[currentCollectionId];
+  if (!col) return;
+  if (col.subtype === "tracking") return;
+  if (col.subtype === "deck") {
+    if (!col.cards.length) return;
+    const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
+    if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
+      col.cards = [];
+      guardarCollections(); renderBinder();
+    }
+    return;
+  }
+  const start = (binderPage - 1) * binderPerPage;
+  const end = Math.min(start + binderPerPage, col.cards.length);
+  if (start >= col.cards.length) return;
+  if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
+    col.cards.splice(start, end - start);
+    const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
+    if (binderPage > totalPages) binderPage = totalPages;
+    guardarCollections(); renderBinder();
+  }
+});
+document.getElementById("binderClearAllBtn")?.addEventListener("click", () => {
+  const col = collections[currentCollectionId];
+  if (!col) return;
+  if (col.subtype === "tracking") return;
+  if (col.subtype === "deck") {
+    if (!col.dons?.length) return;
+    if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
+      col.dons = [];
+      guardarCollections(); renderBinder();
+    }
+    return;
+  }
+  if (confirm('Vaciar la colección "' + col.name + '" por completo?')) {
+    col.cards = []; binderPage = 1; guardarCollections(); renderBinder();
+  }
+});
+document.getElementById("binderPrevBtn")?.addEventListener("click", () => {
+  const col = collections[currentCollectionId];
+  if (col && binderPage > 1) { binderPage--; renderBinder(); }
+});
+document.getElementById("binderNextBtn")?.addEventListener("click", () => {
+  const col = collections[currentCollectionId];
+  if (!col) return;
+  const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
+  if (binderPage < totalPages) { binderPage++; renderBinder(); }
+});

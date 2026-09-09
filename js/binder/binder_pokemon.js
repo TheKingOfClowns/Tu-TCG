@@ -90,6 +90,7 @@ function renderBinder_PK() {
     renderDeckView("collection", col, deckContainer, title, toggleContainer);
     return;
   }
-  // Fallback: use OP renderer for normal binder (same structure)
+  // Fallback: use OP renderer for normal binder (same structure).
+  // Called directly (not via dispatcher) to avoid re-entering renderBinder_PK.
   renderBinder_OP();
 }

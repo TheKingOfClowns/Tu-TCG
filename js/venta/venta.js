@@ -1,4 +1,4 @@
-// â”€â”€â”€ Venta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Venta ─────────────────────────────────────────────────────────────
 function renderVentaList_OP() {
   const container = document.getElementById("ventaList");
   if (!container) return;
@@ -11,7 +11,7 @@ function renderVentaList_OP() {
     const msg = currentTcg ? "No tienes colecciones de venta para este TCG" : "No tienes colecciones de venta";
     container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstVentaBtn">Crear primera colección de venta</button></div>`;
     const btn = document.getElementById("createFirstVentaBtn");
-    if (btn) btn.addEventListener("click", pedirCrearVenta_OP);
+    if (btn) btn.addEventListener("click", pedirCrearVenta);
     return;
   }
   container.className = "collection-binder-grid";
@@ -436,3 +436,55 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
   document.getElementById("ventaNextBtn").disabled = ventaPage >= totalPages;
   document.getElementById("ventaPageInfo").textContent = "Página " + ventaPage + " de " + totalPages;
 }
+
+// ─── Venta view events (bound here: renderVentaView is defined in this file) ──
+(function bindVentaViewListeners() {
+  const el = (id) => document.getElementById(id);
+  el("ventaClearPageBtn")?.addEventListener("click", () => {
+    const col = ventaCols[currentVentaId];
+    if (!col) return;
+    if (col.subtype === "deck") {
+      if (!col.cards.length) return;
+      const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
+      if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
+        col.cards = [];
+        guardarVenta(); renderVentaView();
+      }
+      return;
+    }
+    const start = (ventaPage - 1) * ventaPerPage;
+    const end = Math.min(start + ventaPerPage, col.cards.length);
+    if (start >= col.cards.length) return;
+    if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
+      col.cards.splice(start, end - start);
+      const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
+      if (ventaPage > totalPages) ventaPage = totalPages;
+      guardarVenta(); renderVentaView();
+    }
+  });
+  el("ventaClearAllBtn")?.addEventListener("click", () => {
+    const col = ventaCols[currentVentaId];
+    if (!col) return;
+    if (col.subtype === "deck") {
+      if (!col.dons?.length) return;
+      if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
+        col.dons = [];
+        guardarVenta(); renderVentaView();
+      }
+      return;
+    }
+    if (confirm('Vaciar la colección "' + col.name + '" por completo?')) {
+      col.cards = []; ventaPage = 1; guardarVenta(); renderVentaView();
+    }
+  });
+  el("ventaPrevBtn")?.addEventListener("click", () => {
+    const col = ventaCols[currentVentaId];
+    if (col && ventaPage > 1) { ventaPage--; renderVentaView(); }
+  });
+  el("ventaNextBtn")?.addEventListener("click", () => {
+    const col = ventaCols[currentVentaId];
+    if (!col) return;
+    const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
+    if (ventaPage < totalPages) { ventaPage++; renderVentaView(); }
+  });
+})();

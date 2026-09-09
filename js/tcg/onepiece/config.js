@@ -77,6 +77,5 @@ for (var i = 1; i <= 36; i++) {
 // ─── Backward-compatibility global aliases ────────────────────────────────
 var nombresExpansiones = window.tcgConfigs["one-piece"].expansionNames;
 var ordenExpansiones   = window.tcgConfigs["one-piece"].expansionOrder;
-var coloresES          = window.tcgConfigs["one-piece"].colorNames;
 var unlimitedCards     = window.tcgConfigs["one-piece"].unlimitedCards;
 var MANGA_PR01         = window.tcgConfigs["one-piece"].mangaSet;

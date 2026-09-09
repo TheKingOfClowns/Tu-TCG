@@ -30,8 +30,6 @@ function onAuthChange(fn) {
   if (authReady) fn(authUser);
 }
 
-function getUser() { return authUser; }
-function getSession() { return authSession; }
 function isAuthenticated() { return !!authUser; }
 
 // ─── Auth Actions ────────────────────────────────────────────────────────
@@ -93,16 +91,6 @@ async function getProfile() {
     .eq("id", authUser.id)
     .single();
   if (error && error.code !== "PGRST116") console.error("Profile fetch error:", error);
-  return data;
-}
-
-async function updateProfile(updates) {
-  if (!authUser) throw new Error("Not authenticated");
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq("id", authUser.id);
-  if (error) throw error;
   return data;
 }
 
@@ -175,6 +163,7 @@ function updateAuthUI() {
 }
 
 function showAuthModal(mode) {
+  mode = mode || "login";
   const overlay = document.getElementById("authModalOverlay");
   const form = document.getElementById("authForm");
   const title = document.getElementById("authModalTitle");
@@ -282,7 +271,7 @@ function protectRoute(view) {
 function checkResetPassword() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("reset") === "true" || params.get("type") === "recovery") {
-    showAuthModal("reset");
+    showResetPasswordForm();
   }
 }
 
@@ -343,4 +332,43 @@ document.addEventListener("DOMContentLoaded", () => {
   initAuth();
   updateAuthUI();
   checkResetPassword();
+});
+
+// ─── Auth UI event listeners (bound here: showAuthModal/hideAuthModal/signOut live here) ──
+document.querySelectorAll("[id^='landingLoginBtn']").forEach(btn => {
+  btn.addEventListener("click", () => showAuthModal("login"));
+});
+document.querySelectorAll("[id^='landingRegisterBtn'], #landingCtaBtn").forEach(btn => {
+  btn.addEventListener("click", () => showAuthModal("register"));
+});
+document.getElementById("authBtn")?.addEventListener("click", () => {
+  showAuthModal("login");
+});
+document.getElementById("userBtn")?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const dd = document.getElementById("userDropdown");
+  if (dd) dd.style.display = dd.style.display === "none" ? "block" : "none";
+});
+document.getElementById("dropdownLogout")?.addEventListener("click", async () => {
+  document.getElementById("userDropdown").style.display = "none";
+  await signOut();
+});
+document.getElementById("dropdownProfile")?.addEventListener("click", () => {
+  document.getElementById("userDropdown").style.display = "none";
+  if (typeof openProfile === "function") { openProfile(); }
+});
+document.addEventListener("click", () => {
+  const dd = document.getElementById("userDropdown");
+  if (dd) dd.style.display = "none";
+});
+document.getElementById("authModalOverlay")?.addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) hideAuthModal();
+});
+document.querySelector("#authToggleLink")?.addEventListener("click", (e) => {
+  if (e.target.id === "authToggle") {
+    e.preventDefault();
+    const overlay = document.getElementById("authModalOverlay");
+    const mode = overlay._mode === "login" ? "register" : overlay._mode === "register" ? "forgot" : "login";
+    showAuthModal(mode);
+  }
 });

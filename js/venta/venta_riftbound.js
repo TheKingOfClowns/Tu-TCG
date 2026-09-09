@@ -1,9 +1,5 @@
 // ─── Venta Riftbound ─────────────────────────────────────────────────────
 
-function _getPlaysetMax() {
-  return currentTcg === "riftbound" ? 3 : 4;
-}
-
 async function pedirCrearVenta_RB() {
   if (!isAuthenticated()) { showAuthModal(); return; }
 
@@ -181,6 +177,11 @@ function renderVentaList_RB() {
       if (openBtn) openVenta(openBtn.getAttribute("data-id"));
     });
   });
+}
+
+function esCartaAA_RB(card) {
+  var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs["riftbound"]) || null;
+  return !!(cfg && cfg.detectAA && cfg.detectAA(card));
 }
 
 function _getRarityBadge_RB(card) {

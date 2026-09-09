@@ -12,31 +12,30 @@
   var _confirmCreateTracking_OP = confirmCreateTracking;
 
   // ── DOM refs shared between TCG dispatchers ────────────────────────────
-  var _donOption = (function() {
+  window._donOption = (function() {
     var ts = document.getElementById("trackingTypeSelect");
     return ts ? ts.querySelector('option[value="don"]') : null;
   })();
-  var _langSelect = document.getElementById("trackingLangSelect");
+  window._langSelect = document.getElementById("trackingLangSelect");
 
   // ── Suffix resolver ────────────────────────────────────────────────────
-  var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
   function _suffix() {
-    return (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) ? (_suffixMap[currentTcg] || "OP") : "OP";
+    return (typeof tcgShort === "function") ? tcgShort(currentTcg) : "OP";
   }
 
   // ── pedirCrearTracking ─────────────────────────────────────────────────
   window.pedirCrearTracking = function pedirCrearTracking(preFillName) {
     var typeSelect = document.getElementById("trackingTypeSelect");
     var charOption = typeSelect ? typeSelect.querySelector('option[value="character"]') : null;
-    var langLabel = _langSelect ? _langSelect.previousElementSibling : null;
+    var langLabel = window._langSelect ? window._langSelect.previousElementSibling : null;
     var ts = document.getElementById("trackingTypeSelect");
 
-    if (typeSelect && _donOption && !typeSelect.querySelector('option[value="don"]')) {
-      typeSelect.appendChild(_donOption);
+    if (typeSelect && window._donOption && !typeSelect.querySelector('option[value="don"]')) {
+      typeSelect.appendChild(window._donOption);
     }
-    _donOption.style.display = "";
+    if (window._donOption) window._donOption.style.display = "";
     if (charOption) charOption.textContent = "Personaje/s";
-    if (_langSelect) _langSelect.style.display = "";
+    if (window._langSelect) window._langSelect.style.display = "";
     if (langLabel && langLabel.tagName === "LABEL" && langLabel.textContent.toLowerCase().includes("idioma")) {
       langLabel.style.display = "";
     }

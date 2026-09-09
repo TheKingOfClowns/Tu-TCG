@@ -1,7 +1,7 @@
 // ─── Tracking (One Piece) ──────────────────────────────────────────────────
 // OP tracking functions. Overridden by tracking_riftbound.js for RB.
 // Dependencias: script.js (cartas, cartasMap, getCardKey, getOrden, obtenerRareza,
-//                          formatearNombre, getCardKey, nombresExpansiones, coloresES,
+//                          formatearNombre, getCardKey, nombresExpansiones,
 //                          generarId, guardarCollections, renderCollectionList,
 //                          showConfirmModal, showToast, showAuthModal, isAuthenticated,
 //                          currentTcg, collections, currentCollectionId, binderPage,

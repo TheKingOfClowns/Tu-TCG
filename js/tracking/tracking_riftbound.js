@@ -103,11 +103,11 @@ function pedirCrearTracking_RB(preFillName) {
   const title = document.getElementById("trackingModalTitle");
   const confirmBtn = document.getElementById("trackingModalConfirm");
 
-  _donOption.style.display = "none";
+  if (window._donOption) window._donOption.style.display = "none";
   var charOption = typeSelect.querySelector('option[value="character"]');
   if (charOption) charOption.textContent = "Champions";
-  if (_langSelect) _langSelect.style.display = "none";
-  var langLabel = _langSelect ? _langSelect.previousElementSibling : null;
+  if (window._langSelect) window._langSelect.style.display = "none";
+  var langLabel = window._langSelect ? window._langSelect.previousElementSibling : null;
   if (langLabel && langLabel.tagName === "LABEL" && langLabel.textContent.toLowerCase().includes("idioma")) {
     langLabel.style.display = "none";
   }

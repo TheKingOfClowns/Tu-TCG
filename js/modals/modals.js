@@ -2,71 +2,23 @@
 window.currentNavList = [];
 window.currentNavIndex = -1;
 
-// ─── Selection Mode ───────────────────────────────────────────────────────
+// ─── Playests / Pending helpers ───────────────────────────────────────────
 function _getPlaysetMax(tcgId) {
   var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[tcgId || currentTcg]);
   return (cfg && cfg.playsetMax) ? cfg.playsetMax : 4;
 }
-function toggleSelectionMode() {
-  selectionMode = !selectionMode;
-  const btn = document.getElementById("seleccionarBtn");
-  if (selectionMode) {
-    btn.textContent = "Cancelar";
-    btn.classList.add("active");
-  } else {
-    btn.textContent = "Seleccionar";
-    btn.classList.remove("active");
-    document.querySelectorAll(".card.selected").forEach(el => el.classList.remove("selected"));
-    selectedCards = {};
-  }
-  actualizarBadge();
-  actualizarBadgesEnPagina();
+function makePendingCard(carta, count) {
+  return {
+    card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image,
+    card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza,
+    set_id: carta.set_id, producto: carta.producto, category: carta.category,
+    market_price: carta.market_price, inventory_price: carta.inventory_price,
+    print_type: carta.print_type, cardset: carta.cardset,
+    language: carta.language, attribute: carta.attribute, feature: carta.feature, variant: carta.variant,
+    count: count
+  };
 }
-function toggleCardSelection(imgEl) {
-  const cardEl = imgEl?.closest ? imgEl.closest(".card") : null;
-  if (!cardEl) return;
-  const cardKey = cardEl.getAttribute("data-cardkey");
-  if (!cardKey) return;
-  const carta = cartasMap[cardKey];
-  if (!carta) return;
-  const psMax = _getPlaysetMax();
-  const next = pendingCards[cardKey] ? (
-    pendingCards[cardKey].count === 1 ? psMax :
-    pendingCards[cardKey].count === psMax ? 10 : 0
-  ) : 1;
-  if (next === 0) {
-    delete pendingCards[cardKey];
-    cardEl.classList.remove("selected");
-  } else {
-    pendingCards[cardKey] = {
-      card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image,
-      card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza,
-      set_id: carta.set_id, producto: carta.producto, category: carta.category,
-      market_price: carta.market_price, inventory_price: carta.inventory_price,
-      print_type: carta.print_type, cardset: carta.cardset, count: next
-    };
-    cardEl.classList.add("selected");
-  }
-  actualizarBadge();
-  actualizarBadgesEnPagina();
-}
-function reapplySelectionClasses() {
-  if (!selectionMode) return;
-  cardsContainer.querySelectorAll(".card").forEach(el => {
-    const key = el.getAttribute("data-cardkey");
-    if (key && pendingCards[key]) el.classList.add("selected");
-  });
-}
-// ─── Pending Cards ────────────────────────────────────────────────────────
-function actualizarBadge() {
-  const keys = Object.keys(pendingCards);
-  const unique = keys.length;
-  const total = keys.reduce((s, k) => s + pendingCards[k].count, 0);
-  const btn = document.getElementById("agregarBtn");
-  if (unique) { btn.innerHTML = 'Agregar a <span class="pending-badge">' + unique + '</span> <span class="pending-total">(' + total + ')</span>'; }
-  else { btn.textContent = "Agregar a"; }
-}
-function limpiarPendientes() { pendingCards = {}; actualizarBadge(); actualizarBadgesEnPagina(); }
+function limpiarPendientes() { pendingCards = {}; if (typeof actualizarBadgesEnPagina === "function") actualizarBadgesEnPagina(); }
 // ─── Create / Rename Modal ──────────────────────────────────────────────
 // Create / Rename Modal
 function showCreateModal(opts) {
@@ -97,141 +49,6 @@ function hideCreateModal() {
   document.getElementById("createModalOverlay").style.display = "none";
   _createCallback = null;
 }
-// ─── Add Modal ───────────────────────────────────────────────────────────
-function mostrarAddModal() {
-  const overlay = document.getElementById("addModalOverlay");
-  const list = document.getElementById("addModalList");
-  const pendSection = document.getElementById("addModalPendSection");
-  const qtyRow = document.getElementById("addModalQtyRow");
-  qtyRow.style.display = "none";
-  list.innerHTML = "";
-  pendSection.innerHTML = "";
-  const pendKeys = Object.keys(pendingCards);
-  if (!pendKeys.length) {
-    list.innerHTML = "<p style='color:var(--text-tertiary);padding:10px;font-size:var(--text-sm)'>No hay cartas pendientes</p>";
-    document.getElementById("addModalConfirm").style.display = "none";
-    overlay.style.display = "flex";
-    return;
-  }
-  document.getElementById("addModalConfirm").style.display = "";
-  const totalCount = pendKeys.reduce((s, k) => s + pendingCards[k].count, 0);
-  const maxShow = 5;
-  const showAll = pendKeys.length <= maxShow;
-  const visibleKeys = showAll ? pendKeys : pendKeys.slice(0, maxShow);
-  const makeItem = (key, pc) => `
-    <button class="pend-btn pend-minus" data-key="${key}" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--text-muted);font-size:12px;font-weight:var(--weight-bold);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:1px solid var(--border-default)">&minus;</button>
-    <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold);min-width:18px;text-align:center">${pc.count}x</span>
-    <button class="pend-btn pend-plus" data-key="${key}" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--text-muted);font-size:12px;font-weight:var(--weight-bold);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:1px solid var(--border-default)">+</button>
-    <span style="font-size:var(--text-xs);color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${formatearNombre(pc)}</span>
-    <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);margin-left:auto;flex-shrink:0">${(pc.category || pc.producto) === "DON" ? (pc.variant || "") : (pc.card_set_id || "")}</span>`;
-  const pendHeader = document.createElement("div");
-  pendHeader.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)";
-  pendHeader.innerHTML = `<span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Pendientes · ${pendKeys.length} cartas · ${totalCount} copias</span>`;
-  pendSection.appendChild(pendHeader);
-  const pendGrid = document.createElement("div");
-  pendGrid.style.cssText = "display:flex;flex-direction:column;gap:2px";
-  const renderKeys = (keys) => {
-    pendGrid.innerHTML = "";
-    keys.forEach(key => {
-      const pc = pendingCards[key];
-      if (!pc) return;
-      const item = document.createElement("div");
-      item.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:4px 6px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)";
-      item.innerHTML = makeItem(key, pc);
-      pendGrid.appendChild(item);
-    });
-  };
-  renderKeys(visibleKeys);
-  if (!showAll) {
-    const toggleBtn = document.createElement("button");
-    toggleBtn.style.cssText = "margin-top:var(--space-1);padding:4px 8px;font-size:10px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:var(--font-mono)";
-    let expanded = false;
-    const updateLabel = () => { toggleBtn.textContent = expanded ? "▲ Mostrar menos" : `▼ +${pendKeys.length - maxShow} más`; };
-    updateLabel();
-    toggleBtn.addEventListener("click", () => {
-      expanded = !expanded;
-      renderKeys(expanded ? pendKeys : visibleKeys);
-      updateLabel();
-      if (expanded) pendGrid.appendChild(toggleBtn); else pendGrid.appendChild(toggleBtn);
-    });
-    pendGrid.appendChild(toggleBtn);
-  }
-  pendSection.appendChild(pendGrid);
-  // Pend buttons events
-  pendSection.querySelectorAll(".pend-minus").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const key = btn.getAttribute("data-key");
-      if (!pendingCards[key]) return;
-      pendingCards[key].count--;
-      if (pendingCards[key].count <= 0) delete pendingCards[key];
-      actualizarBadge();
-      mostrarAddModal();
-    });
-  });
-  pendSection.querySelectorAll(".pend-plus").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const key = btn.getAttribute("data-key");
-      if (!pendingCards[key]) return;
-      pendingCards[key].count++;
-      actualizarBadge();
-      mostrarAddModal();
-    });
-  });
-  // Collections list
-  const colIds = Object.keys(collections);
-  const ventaIds = Object.keys(ventaCols);
-  if (colIds.length || ventaIds.length) {
-    document.getElementById("addModalConfirm").style.display = "";
-    if (colIds.length) {
-      const sep = document.createElement("div");
-      sep.style.cssText = "font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;padding:var(--space-2) 0 var(--space-1)";
-      sep.textContent = "Binder";
-      list.appendChild(sep);
-      colIds.forEach(id => {
-        const col = collections[id];
-        if (col.subtype === "deck") return;
-        const label = document.createElement("label");
-        label.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-sm);color:var(--text-secondary);transition:background var(--transition-fast)";
-        label.innerHTML = `<input type="checkbox" value="${id}" style="accent-color:var(--accent);width:14px;height:14px"> <span style="flex:1">${col.name}</span> <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)">${col.cards.length}</span>`;
-        list.appendChild(label);
-      });
-    }
-    if (ventaIds.length) {
-      const sep = document.createElement("div");
-      sep.style.cssText = "font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;padding:var(--space-3) 0 var(--space-1)";
-      sep.textContent = "Venta";
-      list.appendChild(sep);
-      ventaIds.forEach(id => {
-        const col = ventaCols[id];
-        if (col.subtype === "deck") return;
-        var modeBadge = "";
-        if (col.display_mode === "playset") {
-          var vpsMax = _getPlaysetMax(col.tcg);
-          modeBadge = '<span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">x' + vpsMax + '</span>';
-        } else if (col.display_mode === "editable") {
-          modeBadge = '<span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">SL</span>';
-        } else {
-          modeBadge = '<span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">x1</span>';
-        }
-        const label = document.createElement("label");
-        label.style.cssText = "display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-sm);color:var(--text-secondary);transition:background var(--transition-fast)";
-        label.innerHTML = `<input type="checkbox" value="${id}" data-venta="true" style="accent-color:var(--accent);width:14px;height:14px"> <span style="flex:1">${col.name}</span> ${modeBadge} <span style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)">${col.cards.length}</span> <span style="font-size:10px;color:var(--accent);font-family:var(--font-mono);background:rgba(0,240,255,0.08);padding:1px 5px;border-radius:var(--radius-sm)">Venta</span>`;
-        list.appendChild(label);
-      });
-    }
-  } else {
-    list.innerHTML += "<p style='color:var(--text-tertiary);padding:20px 10px;font-size:var(--text-sm);text-align:center'>Crea una colección primero</p>";
-    document.getElementById("addModalConfirm").style.display = "none";
-  }
-  if (addingToBinderId) {
-    var preCb = list.querySelector('input[value="' + addingToBinderId + '"]');
-    if (preCb) preCb.checked = true;
-  }
-  overlay.style.display = "flex";
-}
-
 // ─── Deck card-adding helpers (per-TCG) ──────────────────────────────────
 
 function _confirmAddDeck_RB(col, pc, key) {
@@ -336,88 +153,69 @@ function _confirmAddDeck_PK(col, pc, key) {
   }
 }
 
-function confirmarAdd() {
-  const overlay = document.getElementById("addModalOverlay");
-  const checks = overlay.querySelectorAll("#addModalList input:checked");
-  if (!checks.length) { alert("Selecciona al menos una colección"); return; }
-  var needsSave = false;
-  checks.forEach(cb => {
-    const colId = cb.value;
-    const isVenta = cb.hasAttribute("data-venta");
-    const target = isVenta ? ventaCols : collections;
-    const col = target[colId];
-    if (!col) return;
-    if (col.subtype === "deck") {
-      var _deckTcg = col.tcg || "one-piece";
-      var dispatchFn = window["_confirmAddDeck_" + ({ "one-piece":"OP","riftbound":"RB","pokemon":"PK" }[_deckTcg] || "OP")];
-      Object.values(pendingCards).forEach(function(pc) {
-        var key = getCardKey(pc);
-        if (typeof dispatchFn === "function") dispatchFn(col, pc, key, _deckTcg);
-      });
-      if (isVenta) guardarVenta(); else guardarCollections();
-      overlay.style.display = "none";
-      actualizarBotonesBinder();
-      limpiarPendientes();
-      return;
-    }
-    if (col.subtype === "tracking") {
-      let added = 0;
-      Object.values(pendingCards).forEach(pc => {
-        const key = getCardKey(pc);
-        if (!col.cards.some(c => c._key === key)) {
-          col.cards.push({ _key: key, owned: false });
-          added++;
-        }
-      });
-      col.target = col.cards.length;
-      guardarCollections();
-      overlay.style.display = "none";
-      limpiarPendientes();
-      if (added) showToast(added + " carta(s) agregada(s)", "success");
-      return;
-    }
-    const isGrouped = isVenta && (col.display_mode === "playset" || col.display_mode === "editable");
-    const colTcg = col.tcg || "one-piece";
-    const playsetMax = _getPlaysetMax(colTcg);
-    needsSave = true;
+function addPendingCardsToCol(col, isVenta) {
+  var addedTotal = 0;
+  if (col.subtype === "deck") {
+    var _deckTcg = col.tcg || "one-piece";
+    var dispatchFn = window["_confirmAddDeck_" + (typeof tcgShort === "function" ? tcgShort(_deckTcg) : "OP")];
+    Object.values(pendingCards).forEach(function(pc) {
+      var key = getCardKey(pc);
+      if (typeof dispatchFn === "function") dispatchFn(col, pc, key, _deckTcg);
+      addedTotal += pc.count || 1;
+    });
+    if (isVenta) guardarVenta(); else guardarCollections();
+    return addedTotal;
+  }
+  if (col.subtype === "tracking") {
     Object.values(pendingCards).forEach(pc => {
       const key = getCardKey(pc);
-      if (isGrouped) {
-        const maxPerStack = col.display_mode === "playset" ? playsetMax : 999;
-        var remaining = pc.count;
-        var cards = col.cards || [];
-        for (var ci = 0; ci < cards.length && remaining > 0; ci++) {
-          var existing = cards[ci];
-          if (existing._key !== key) continue;
-          var space = maxPerStack - (existing.quantity || 1);
-          if (space <= 0) continue;
-          var add = Math.min(remaining, space);
-          existing.quantity = (existing.quantity || 1) + add;
-          remaining -= add;
-        }
-        while (remaining > 0) {
-          var qty = Math.min(remaining, maxPerStack);
-          cards.push({ _key: key, quantity: qty, customPrice: 0, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset });
-          remaining -= qty;
-        }
-        col.cards = cards;
-      } else {
-        const maxCount = (isVenta && col.display_mode === "playset") ? Math.min(pc.count, playsetMax) : pc.count;
-        for (let i = 0; i < maxCount; i++) {
-          const entry = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset };
-          if (isVenta) entry.customPrice = 0;
-          col.cards.push(entry);
-        }
+      if (!col.cards.some(c => c._key === key)) {
+        col.cards.push({ _key: key, owned: false });
+        addedTotal++;
       }
     });
-  });
-  if (needsSave) {
+    col.target = col.cards.length;
     guardarCollections();
-    guardarVenta();
+    return addedTotal;
   }
-  overlay.style.display = "none";
-  actualizarBotonesBinder();
-  limpiarPendientes();
+  const isGrouped = isVenta && (col.display_mode === "playset" || col.display_mode === "editable");
+  const colTcg = col.tcg || "one-piece";
+  const playsetMax = _getPlaysetMax(colTcg);
+  Object.values(pendingCards).forEach(pc => {
+    const key = getCardKey(pc);
+    if (isGrouped) {
+      const maxPerStack = col.display_mode === "playset" ? playsetMax : 999;
+      var remaining = pc.count;
+      var cards = col.cards || [];
+      for (var ci = 0; ci < cards.length && remaining > 0; ci++) {
+        var existing = cards[ci];
+        if (existing._key !== key) continue;
+        var space = maxPerStack - (existing.quantity || 1);
+        if (space <= 0) continue;
+        var add = Math.min(remaining, space);
+        existing.quantity = (existing.quantity || 1) + add;
+        remaining -= add;
+        addedTotal += add;
+      }
+      while (remaining > 0) {
+        var qty = Math.min(remaining, maxPerStack);
+        cards.push({ _key: key, quantity: qty, customPrice: 0, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset });
+        remaining -= qty;
+        addedTotal += qty;
+      }
+      col.cards = cards;
+    } else {
+      const maxCount = (isVenta && col.display_mode === "playset") ? Math.min(pc.count, playsetMax) : pc.count;
+      for (let i = 0; i < maxCount; i++) {
+        const entry = { _key: key, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, rarity: pc.rarity, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset };
+        if (isVenta) entry.customPrice = 0;
+        col.cards.push(entry);
+        addedTotal++;
+      }
+    }
+  });
+  if (isVenta) guardarVenta(); else guardarCollections();
+  return addedTotal;
 }
 function renderModalInfo(carta) {
   const efecto = (carta.effect || "").replace(/\n/g, "<br>");
@@ -531,7 +329,6 @@ function openCardInModal(carta, navList, startIdx) {
   });
 }
 function abrirModal(imgEl) {
-  if (selectionMode) { toggleCardSelection(imgEl); return; }
   if (typeof addingToBinderId !== "undefined" && addingToBinderId) {
     let cardEl = imgEl && imgEl.closest ? imgEl.closest(".card") : null;
     let cardKey = cardEl && cardEl.getAttribute("data-cardkey");
@@ -552,17 +349,35 @@ function abrirModal(imgEl) {
 function addCardToPending(carta, key) {
   if (pendingCards[key]) { if (pendingCards[key].count < 10) pendingCards[key].count++; }
   else {
-    pendingCards[key] = { card_set_id: carta.card_set_id, card_name: carta.card_name, card_image: carta.card_image, card_color: carta.card_color, card_type: carta.card_type, rarity: carta.rarity || carta.rareza, set_id: carta.set_id, producto: carta.producto, category: carta.category, market_price: carta.market_price, inventory_price: carta.inventory_price, print_type: carta.print_type, cardset: carta.cardset, count: 1 };
+    pendingCards[key] = makePendingCard(carta, 1);
   }
-  if (typeof actualizarBadge === "function") actualizarBadge();
   if (typeof actualizarBadgesEnPagina === "function") actualizarBadgesEnPagina();
 }
 
 // ─── Event listeners (registered here so functions exist at load time) ────
-document.getElementById("addModalConfirm")?.addEventListener("click", confirmarAdd);
 document.getElementById("createModalConfirm")?.addEventListener("click", confirmCreateModal);
 document.getElementById("createModalCancel")?.addEventListener("click", hideCreateModal);
 document.getElementById("createModalOverlay")?.addEventListener("click", function(e) { if (e.target === e.currentTarget) hideCreateModal(); });
 document.getElementById("createModalInput")?.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); confirmCreateModal(); } });
-document.getElementById("seleccionarBtn")?.addEventListener("click", toggleSelectionMode);
-document.getElementById("cancelarPendBtn")?.addEventListener("click", limpiarPendientes);
+
+// ─── Catalog "Agregar cartas" banner events (deck flow) ──────────────────
+document.getElementById("catalogAddCancel")?.addEventListener("click", limpiarAddingState);
+document.getElementById("catalogAddConfirm")?.addEventListener("click", function() {
+  if (!addingToBinderId || !Object.keys(pendingCards).length) return;
+  var type = addingToBinderType;
+  var target = (type === "venta") ? ventaCols : collections;
+  var col = target[addingToBinderId];
+  if (!col) return;
+  addPendingCardsToCol(col, type === "venta");
+  limpiarPendientes();
+  var id = addingToBinderId;
+  limpiarAddingState();
+  if (type === "venta") { currentVentaId = id; ventaPage = 1; navigateToView("venta", {id: id}, {}); }
+  else { currentCollectionId = id; binderPage = 1; navigateToView("binder", {id: id}, {}); }
+});
+document.getElementById("catalogAddBack")?.addEventListener("click", function() {
+  var id = addingToBinderId; var type = addingToBinderType;
+  limpiarAddingState();
+  if (type === "venta") { currentVentaId = id; ventaPage = 1; navigateToView("venta", {id: id}, {}); }
+  else { currentCollectionId = id; binderPage = 1; navigateToView("binder", {id: id}, {}); }
+});

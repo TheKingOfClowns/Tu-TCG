@@ -34,7 +34,6 @@
       <button class="sidebar-nav-item" data-view="catalog" id="sidebarCatalog">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
         Catálogo
-        <span class="sidebar-badge" id="sidebarCatalogCount" style="display:none"></span>
       </button>
       <button class="sidebar-nav-item" data-view="collections" id="sidebarColecciones">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -328,9 +327,12 @@
             </div>
             </div>
           <div class="catalog-toolbar-right">
-            <button class="btn-ghost" id="seleccionarBtn">Seleccionar</button>
-            <button class="btn-primary btn-sm" id="agregarBtn">Agregar a</button>
-            <button class="btn-danger btn-sm" id="cancelarPendBtn">Borrar Todo</button>
+            <label class="catalog-target-label" id="catalogTargetLabel" style="display:none">
+              <span>Agregando a:</span>
+              <select id="catalogTargetSelect">
+                <option value="">Sin destino</option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -622,30 +624,6 @@
         </div>
       </section>
 
-      <!-- ── Add Modal ── -->
-      <div class="modal-overlay-dark" id="addModalOverlay" style="display:none">
-        <div class="add-modal-panel glass-panel" style="max-width:460px;display:flex;flex-direction:column;max-height:80vh">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-5) var(--space-6) var(--space-3);border-bottom:1px solid var(--border-subtle);flex-shrink:0">
-            <h3 style="font-size:var(--text-lg);font-weight:var(--weight-extrabold);color:#fff;margin:0">Añadir a colecciones</h3>
-            <button class="modal-close-btn" id="addModalCloseBtn" style="position:static;width:32px;height:32px;background:rgba(255,255,255,0.04);color:var(--text-muted)">&times;</button>
-          </div>
-          <div style="flex:1;overflow-y:auto;padding:var(--space-3) var(--space-6)" id="addModalBody">
-            <div id="addModalPendSection" style="margin-bottom:var(--space-4)"></div>
-            <div id="addModalList"></div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-4) var(--space-6);border-top:1px solid var(--border-subtle);flex-shrink:0">
-            <div class="add-modal-qty" id="addModalQtyRow" style="display:none;margin:0">
-              <label style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">Cantidad:</label>
-              <input type="number" id="addModalQty" value="1" min="1" max="99" style="width:60px;padding:4px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);font-size:var(--text-sm);font-family:var(--font-mono);outline:none">
-            </div>
-            <div style="display:flex;gap:var(--space-2);margin-left:auto">
-              <button class="btn-ghost btn-sm" id="addModalCancel" style="padding:6px 14px">Cancelar</button>
-              <button class="btn-primary btn-sm" id="addModalConfirm" style="padding:6px 14px">Añadir</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- ── Create / Rename Modal ── -->
       <div class="modal-overlay-dark" id="createModalOverlay" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:400px">
@@ -669,14 +647,14 @@
             <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Nombre</label>
             <input type="text" id="trackingNameInput" placeholder="Nombre del binder" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
             <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">¿Qué vas a coleccionar?</label>
-            <select id="trackingTypeSelect" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+            <select id="trackingTypeSelect" style="width:100%;padding:var(--space-3);background-color:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
               <option value="expansion">Expansiones</option>
               <option value="rarity">Rarezas</option>
               <option value="character">Personaje/s</option>
               <option value="don">Don Cards</option>
             </select>
             <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Idioma</label>
-            <select id="trackingLangSelect" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+            <select id="trackingLangSelect" style="width:100%;padding:var(--space-3);background-color:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
               <option value="en">Solo EN</option>
               <option value="ja">Solo JA</option>
               <option value="all">Ambos</option>

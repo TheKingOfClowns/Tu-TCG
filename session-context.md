@@ -1,7 +1,7 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-08-31
+2026-09-06
 
 ## Proyecto
 App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler pages deploy`.
@@ -11,11 +11,11 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 
 - `index.html` — Layout principal + orden de carga de scripts
 - `style.css` / `design-system.css` — Estilos y tokens
-- `script.js` — Lógica principal (~1700 líneas), estado global, sync Supabase
-- `js/state.js` — Estado (solo `catalog.catalogLanguage`)
+- `script.js` — Lógica principal (~1570 líneas), estado global, sync Supabase
+- `js/state.js` — Estado (`window.state`, solo `catalog.catalogLanguage`)
 - `js/tcg/{tcg}/config.js` — Config por TCG (deckRules, rarities, cardTypes, colors, etc.)
-- `js/modals/modals.js` — Modal de carta, modal "Agregar a", badges, event listeners
-- `js/catalog/catalog.js` — Renderizado de catálogo, filtros data-driven, badges, stats
+- `js/modals/modals.js` — Modal de carta, `_confirmAddDeck_*`, `addPendingCardsToCol`, create modal
+- `js/catalog/catalog.js` — Renderizado de catálogo, filtros data-driven, selector de destino rápido, stats
 - `js/binder/binder.js` + `_RB` + `_PK` + `dispatcher_binder.js` — Colecciones
 - `js/venta/venta.js` + `_RB` + `_PK` + `dispatcher_venta.js` — Venta
 - `js/deck/deck.js` + `_RB` + `_PK` + `dispatcher.js` — Deck builder
@@ -24,12 +24,12 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 - `auth.js` / `profile.js` — Autenticación y perfil Supabase
 
 ## Supabase
-- URL: configurada en `.env` (NO hardcodear)
-- Anon key: configurada en `.env` (NO hardcodear)
+- Cliente: `supabase.js` (`SUPABASE_URL` + `SUPABASE_ANON_KEY` hardcodeadas — son keys publishable, aptas para frontend; `.env.example` queda como referencia)
 - Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles`
+- Edge Function: `sync-binder-cards-v3` (fuente en `supabase/functions/sync-binder-cards-v3/`, llama a la RPC `sync_binder_cards_atomic`)
 
 ### Configuración de credenciales
-Crear archivo `.env` en la raíz del proyecto (ver `.env.example`):
+`.env.example` en la raíz (referencia):
 ```
 SUPABASE_URL=https://scykfvomdwpiypmblnvv.supabase.co
 SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
@@ -79,28 +79,28 @@ window.tcgConfigs["one-piece"] = {
 Los módulos leen de `tcgConfigs[currentTcg]` y se adaptan. Para agregar un TCG nuevo solo se necesita: `config.js` + `cards_master.json` + stubs `_XX`.js por módulo + entry en `config/games.json`.
 
 ### Dispatchers genéricos
-Todos los dispatchers usan lookup por `tcgConfigs[currentTcg].short`:
+Todos los dispatchers usan el helper único `window.tcgShort()` (definido en `js/registry.js`):
 ```js
-var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
 function _fn(name) {
-  var s = (tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+  var s = (typeof tcgShort === "function") ? tcgShort(currentTcg) : null;
   return (s && window[name + "_" + s]) || window[name + "_OP"];
 }
 ```
+`tcgShort(tcgId)` lee `tcgConfigs[tcgId].short` (fallback "OP").
 
 ### Catálogo data-driven
 `cargarFiltros()` y `actualizarFiltrosPorExpansion()` leen `rarities`, `cardTypes`, `colors`, `colorNames` de `tcgConfigs[currentTcg]`. El filtro de expansiones se adapta automáticamente (usa `expansionNames` si existe, sino `set_name` de las cartas). AA detection usa `detectAA` de la config.
 
 ### Modals data-driven
 - `playsetMax` lee de `_getPlaysetMax(tcgId)` que consulta `tcgConfigs[tcgId].playsetMax`
-- `confirmarAdd` despacha a `_confirmAddDeck_OP/RB/PK` según `col.tcg`
+- `addPendingCardsToCol(col, isVenta)` despacha decks a `_confirmAddDeck_OP/RB/PK` según `col.tcg` (vía `tcgShort`)
 - `renderModalInfo` usa `cfg.colorNames` y `cfg.expansionNames`
 
 ### Bug fixes
 - `removeFromCurrentCollection` y `setupBinderDragDrop` → usan `renderBinder()` (dispatcher) en vez de `renderBinder_OP()` directo
 - `renderVentaView` → usa `renderVentaIndividual(col, grid)` (dispatcher)
 - Event listeners problemáticos movidos de `script.js` a los archivos que definen las funciones:
-  - `confirmarAdd`/`confirmCreateModal`/`hideCreateModal` → `modals.js`
+  - `confirmCreateModal`/`hideCreateModal` → `modals.js`
   - `pedirCrearVenta` → `dispatcher_venta.js`
   - `pedirCrearColeccion` → `dispatcher_binder.js`
 - **tcgplayerMap undefined (2026-08-29):** `getTcgId()` Called before catalog load in `buildTrackingCardList` → Fix: initialize `tcgplayerMap = {}` at declaration (script.js:34)
@@ -123,7 +123,23 @@ Cuando solo hay un TCG habilitado en `config/games.json`:
 - `_singleTcgMode` cachea el resultado para no hacer fetch repetido
 - Para reactivar múltiples TCGs: cambiar `enabled: true` en games.json y recargar
 
-### Flujo "agregar al binder" (2026-07-15)
+### Flujo "agregar al binder" — Quick-Add por destino (2026-09-06)
+Reemplazo total del flujo anterior (Seleccionar + modal "Añadir a colecciones"): ahora el catálogo es limpio por defecto y las acciones aparecen al elegir un destino.
+
+- **Toolbar catálogo**: solo `[Agregando a: (Sin destino ▾)]` (`#catalogTargetSelect`). Lista binders y ventas del TCG actual (excluye decks/tracking), etiquetados "Binder:"/"Venta:". Se oculta si no hay destinos o durante el deck flow.
+- **Sin destino**: cartas sin botones; click en imagen abre el modal de carta (igual que antes).
+- **Con destino**: cada carta muestra `[−] [n/max] [+]`.
+  - `+`: agrega 1 copia directo (guardado inmediato + toast "Añadida a «X»")
+  - `−`: quita 1 copia del destino
+  - Tope: binder = playsetMax del TCG (OP 4 / RB 3 / PK 4); venta individual/editable = 10 por carta; venta playset = stacks sin tope total. `+` se deshabilita al llegar al tope.
+- **Estado**: `catalogTargetId` + `catalogTargetType` en script.js (persisten en sesión, in-memory). `getCatalogTargetCol()`, `refreshCatalogTargetSelect()` (expuesto en window), `getCatalogTargets()`.
+- **Helpers en catalog.js**: `countInTarget(col, key)`, `getTargetMax(col)`, `removeOneFromTarget(col, key, isVenta)`; `actualizarBadgesEnPagina()` muestra copias en destino (n/max) o pendientes en deck flow; `renderCards()` renderiza `.card-actions` solo si `addingToBinderId || catalogTargetId`.
+- **modals.js**: `addPendingCardsToCol(col, isVenta)` extrae la lógica que antes estaba en `confirmarAdd` (deck dispatch, tracking, venta grouped playset/editable, individual). El deck flow (`catalogAddConfirm`) lo reusa.
+- **Eliminado**: modal "Añadir a colecciones" (`#addModalOverlay`), botones Seleccionar/Agregar a/Borrar Todo, `selectionMode`, `selectedCards`, `toggleSelectionMode`, `toggleCardSelection`, `reapplySelectionClasses`, `mostrarAddModal`, `confirmarAdd`, `actualizarBadge` (badge del botón).
+- **Deck flow intacto**: banner "Agregando a: X" + buffer `pendingCards` + botón "Agregar" (`catalogAddConfirm`); `abrirModal` con `addingToBinderId` agrega a pendientes.
+- `refreshCatalogTargetSelect()` se llama al entrar al catálogo, en `_markCollectionsReady`/`_markVentaReady` y en `limpiarAddingState`.
+
+### Flujo "agregar al binder" (histórico, eliminado 2026-09-06)
 - `modals.js:524` — `abrirModal()` checkea `addingToBinderId`: si está seteado, agrega la carta a `pendingCards` en vez de abrir el modal
 - `modals.js:543` — `addCardToPending(carta, key)` extraída como helper
 - `index.html:358` — Botón `#catalogAddConfirm` ("Agregar") en el banner del catálogo
@@ -282,12 +298,65 @@ async function renderExploreView() {
 }
 ```
 
+## Gran Revisión y Limpieza (2026-09-02)
+
+Revisión completa del proyecto (script.js, 31 módulos, HTML, CSS, datos, repo). Bugs corregidos, dead code eliminado, estructura alineada a convenciones.
+
+### Bugs corregidos
+- **"Agregar a" roto en modo selección** (previo a esta sesión): handler usaba `selectedCards` (dead). Fix: usa `pendingCards` y sale del modo selección.
+- **Deck OP rechazaba todas las cartas**: `pendingCards` no guardaba `language` → alerta "Solo cartas en Ingles" siempre. Fix: helper `makePendingCard()` (modals.js) incluye `language/attribute/feature/variant`.
+- **Tracking Riftbound crasheaba**: `_donOption`/`_langSelect` eran privados del IIFE del dispatcher. Fix: `window._donOption`/`window._langSelect` + guards null.
+- **Tracking Pokémon: stack overflow** por recursión (`pedirCrearTracking_PK` → dispatcher → _PK). Fix: delega directo a `_RB`.
+- **Deck Pokémon**: picker delegaba a OP (vacío para PK) y se ignoraba la promesa. Fix: `showDeckPicker_PK` propio (tipos Pokémon/Trainer/Energy, 4 por nombre, 60 máx), `.then()` al agregar, IDs únicos (clase `.deck-add-slot`). CSS `deck-card-*` agregado a style.css.
+- **Doble render por navegación**: `navigateToView` llamaba `mostrarVista` y `onNavigate` también. Fix: solo `onNavigate` renderiza (`onNavigate` ahora es function declaration hoisted).
+- **Filtro de idioma no persistía en URL**: `window.state` no existía (`const state` no crea prop). Fix: `window.state = {...}` en state.js.
+- **Binder vacío no sincronizaba**: `if (allCardRows.length)` skipeaba la edge function. Fix: siempre llama `sync-binder-cards-v3` (la función hace DELETE antes de INSERT). + guard de session null.
+- **Tracking público 0/0 en explore detail**: usaba `b.cards` en vez de `b.target_cards`.
+- **Modal de login vacío**: `showAuthModal()` sin modo en 8 sitios → default `mode = mode || "login"`.
+- **XSS en Explore**: `username`/`b.name` sin escape + avatar_url sin sanitizar. Fix: `escapeHtml()` + solo URLs http(s).
+- **Nav no resaltaba binder**: IDs inexistentes `sidebarBinder`/`bottomCollections` → `sidebarColecciones`/`bottomColecciones`.
+- **Reset de contraseña**: `checkResetPassword` ahora llama `showResetPasswordForm()`.
+- **`esCartaAA_RB` no existía**: definida en venta_riftbound.js (usa `tcgConfigs.riftbound.detectAA`) — la detección AA de RB estaba silenciosamente deshabilitada.
+- **`_getPlaysetMax` duplicada/pisada**: eliminada la de venta_riftbound.js (queda la config-based de modals.js).
+- **Botones de footer muertos**: ahora muestran toast "Próximamente".
+- **Flecha de select invisible**: `background:` shorthand pisaba la SVG → `background-image` explícito en .catalog-filters select, .profile-field select y selects del tracking modal (inline `background-color:`).
+- **`registry.js` frágil**: dependía de latencia del fetch para que `tcgList` exista. Fix: retry con setTimeout hasta que script.js defina `tcgList`.
+
+### Dead code eliminado
+- Vars: `selectedCards`, `currentCardIndex`, `coloresES`.
+- Dispatchers muertos: `showDeckPicker`, `saveDeck` (deck/dispatcher.js), `attachVentaEvents`, `buildVentaCardHTML` (venta/dispatcher_venta.js).
+- Funciones: `getUser`, `getSession`, `updateProfile` (auth.js), `sanitizeReviewComment` (profile.js), `actualizarBotonesBinder` (no-op, buscaba clase inexistente).
+- Duplicados exactos `getFirstCardImage`/`getTotalPrice` en binder.js (script.js los define; binder.js cargaba antes y quedaban shadowed).
+- HTML: `sidebarCatalogCount`, `addModalQtyRow`/`addModalQty` (modal qty row siempre oculto).
+- CSS: `.modal-prices`, `.modal-price`, `.explore-card`, `.tcg-card-disabled`, `.drag-over`, `.deck-champion-badge`, `.deck-champion-set-btn`, `.venta-qty-label`, `.add-modal-qty`.
+- Listener duplicado de `deckPickerOverlay` (deck.js) — queda el de dispatcher.js.
+- `modals.js`: if/else con ambas ramas idénticas; `script.js`: condición sin efecto en welcome-card, líneas duplicadas en `mostrarVista` else.
+
+### Estructura / convenciones
+- **~25 event listeners movidos de script.js** al archivo que define la función: catálogo → catalog.js (bind via `document.getElementById`, no consts de script.js por orden de carga), modal add/banner → modals.js, binder clear/prev/next → dispatcher_binder.js, venta clear/prev/next → venta.js, auth UI → auth.js.
+- **Helper único `window.tcgShort(tcgId)`** en registry.js: reemplaza los 6 mapas de sufijos hardcodeados en dispatchers y `_confirmAddDeck_*`.
+- Llamadas directas corregidas: `pedirCrearVenta` (venta.js), `pedirCrearColeccion` (binder.js). `renderBinder_OP()` en binder_pokemon.js se mantiene directo a propósito (evita recursión dispatcher→_PK→dispatcher).
+
+### Repo
+- **Backups**: `cards_master_backup*.json` des-trackeados (quedan en disco, gitignoreados por `*_backup*.json`).
+- **riot.txt**: borrado del repo y del disco + gitignoreado (key no usada).
+- **Edge function v3**: `supabase/functions/sync-binder-cards-v3/` agregada al repo (index.ts + deno.json); v1/v2 borradas. SQL de `sync_binder_cards_atomic` en `scripts/migrations/004_sync_binder_cards_atomic.sql` (scripts/ está gitignoreado, queda local).
+- **`_tools/archive/`**: ~28 scripts one-off de análisis de promos archivados. Solo `scrape_set.js` y `scrape_set_en.js` quedan en _tools/.
+- **Skill duplicada**: `.github/skills/aidesigner-frontend` eliminada (queda `.claude/skills`).
+- **Imágenes `en/P/` vs `en/PROMO/`**: NO son duplicados — cards_master.json referencia ambas (454 PROMO/ + 96 P/). Se dejaron.
+- **URL Supabase unificada**: script.js usa `SUPABASE_URL` de supabase.js para la edge function.
+
+### Notas
+- `navigateToView` ya no llama `mostrarVista` (solo `onNavigate`); en catálogo con `cartasMap` vacío hace `cargarCartas()` y re-renderiza.
+- Tokens sin uso de design-system.css se dejaron a propósito (reserva del design system).
+
 ## Deploy
-- URL: `https://c553a4d4.tutcg.pages.dev` (deploy 2026-08-31)
+- URL último deploy: `https://d443bea5.tutcg.pages.dev` (2026-09-02, fix botón "Agregar a")
+- ⚠️ Hay trabajo posterior sin commitear ni desplegar (gran limpieza 2026-09-02 + quick-add por destino 2026-09-06 + contador entre +/−)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
-- Warning: El directorio tiene cambios sin commitear que generan warning. Pasar `--commit-dirty=true` o commitear antes.
+- Warning: si hay cambios sin commitear, pasar `--commit-dirty=true` o commitear antes.
 
 ## Venta — Moneda ARS/USD (2026-08-28)
 
@@ -334,7 +403,7 @@ ALTER TABLE binder_cards ADD COLUMN IF NOT EXISTS price_currency TEXT DEFAULT 'A
 ### Estructura HTML
 ```
 ┌─────────────────────────────────────┐
-│ [Colecciones][Ventas][Todas] 🔍   │ ← explore-filters (arriba)
+│ [Colecciones][Ventas][Todas]  🔍   │ ← explore-filters (arriba)
 ├─────────────────────────────────────┤
 │ ┌────┐ ┌────┐ ┌────┐ ┌────┐       │
 │ │    │ │    │ │    │ │    │       │ ← explore-grid (binders)
@@ -366,32 +435,41 @@ const uniqueBinders = publicBinders.filter(b => {
 - Función Postgres `sync_binder_cards_atomic` corregida y funcionando
 - Edge Function `sync-binder-cards-v3` desplegada con CORS para producción
 - Frontend apunta a `sync-binder-cards-v3`
+- **Fuente versionada en el repo** (`supabase/functions/sync-binder-cards-v3/`): index.ts + deno.json. SQL de la RPC en `scripts/migrations/004_sync_binder_cards_atomic.sql` (scripts/ está gitignoreado).
 
-### Fixes aplicados (2026-08-29)
+### Fixes aplicados
 1. **Postgres function:** `card_id` era casteado a `::UUID` pero la tabla usa `TEXT` y el frontend envía strings como `tcg_one-piece|OP01-001|...`
-   - Solución: cambiar a `::TEXT` y usar LATERAL para iterar el JSONB
+   - Solución: `card->>'card_id'` directo (TEXT) e INSERT vía `jsonb_array_elements` (LATERAL implícito)
 2. **CORS:** la función solo permitía localhost, no producción
    - Solución: agregar `https://tutcg.pages.dev` a corsOrigins y permitir cualquier origen `.pages.dev`
 
 ### Función Postgres `sync_binder_cards_atomic`
 ```sql
--- Usa LATERAL para iterar el JSONB array
-INSERT INTO binder_cards (binder_id, card_id, quantity, price, price_currency, card_tag, sort_order)
-SELECT p_binder_id, card->>'card_id', COALESCE((card->>'quantity')::int, 1),
-  NULLIF(card->>'price', '')::numeric, COALESCE(NULLIF(card->>'price_currency', ''), 'ARS'),
-  NULLIF(card->>'card_tag', '')::text, COALESCE((card->>'sort_order')::int, 0)
-FROM jsonb_array_elements(p_cards) AS card;
+-- Valida ownership, luego DELETE + re-INSERT (vaciar el binder borra todo)
+CREATE OR REPLACE FUNCTION public.sync_binder_cards_atomic(p_binder_id uuid, p_cards jsonb, p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $function$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM binders WHERE id = p_binder_id AND user_id = p_user_id) THEN
+    RAISE EXCEPTION 'Unauthorized: Binder does not belong to user';
+  END IF;
+  DELETE FROM binder_cards WHERE binder_id = p_binder_id;
+  IF jsonb_array_length(p_cards) > 0 THEN
+    INSERT INTO binder_cards (binder_id, card_id, quantity, price, price_currency, card_tag, sort_order)
+    SELECT p_binder_id, card->>'card_id', COALESCE((card->>'quantity')::int, 1),
+      NULLIF(card->>'price', '')::numeric, COALESCE(NULLIF(card->>'price_currency', ''), 'ARS'),
+      NULLIF(card->>'card_tag', '')::text, COALESCE((card->>'sort_order')::int, 0)
+    FROM jsonb_array_elements(p_cards) AS card;
+  END IF;
+END;
+$function$;
 ```
 
-### Archivos
-- `supabase/functions/sync-binder-cards-v2/index.ts` — CORS fix (no usar, v3 es la activa)
-- `supabase/functions/sync-binder-cards-v3/index.ts` — Edge Function activa
-- `supabase/functions/sync-binder-cards-v3/deno.json`
-
 ### Frontend (script.js)
-Usa fetch directo a la Edge Function:
+Usa fetch directo a la Edge Function (URL base desde `SUPABASE_URL`, guard de session null):
 ```javascript
-const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v3', {
+const session = (await supabaseClient.auth.getSession()).data.session;
+if (!session) { ...continue; }
+const response = await fetch(SUPABASE_URL + '/functions/v1/sync-binder-cards-v3', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
   body: JSON.stringify({ binder_id: id, cards: allCardRows, user_id: authUser.id })

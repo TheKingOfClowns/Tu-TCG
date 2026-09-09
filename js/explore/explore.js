@@ -309,7 +309,7 @@ async function renderExploreView() {
       }
     }
     if (!filteredBinders || !filteredBinders.length) {
-      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>No se encontraron resultados para "' + exploreExploreSearchQuery + '"</p></div>';
+      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>No se encontraron resultados para "' + escapeHtml(exploreExploreSearchQuery) + '"</p></div>';
       attachExploreListeners();
       return;
     }
@@ -329,8 +329,9 @@ async function renderExploreView() {
     }
     for (const b of filteredBinders) {
       const prof = profileMap[b.user_id];
-      const username = prof?.username || "Usuario";
-      const avatarUrl = prof?.avatar_url || "";
+      const username = escapeHtml(prof?.username || "Usuario");
+      const rawAvatar = prof?.avatar_url || "";
+      const avatarUrl = /^https?:\/\//i.test(rawAvatar) ? escapeHtml(rawAvatar) : "TUTCG.webp";
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
       const typeLabel = b.type === "sale" ? "Venta" : "Colección";
       const isOwner = authUser && b.user_id === authUser.id;
@@ -377,7 +378,7 @@ async function renderExploreView() {
             <span class="binder-cover-username">${username}</span>
           </div>
           <div class="binder-cover-name-row">
-            <span class="binder-cover-name-badge">${b.name}</span>
+            <span class="binder-cover-name-badge">${escapeHtml(b.name || "")}</span>
             <span class="binder-cover-badge ${b.type}">${typeLabel}</span>
           </div>
           ${isTracking ? `<div class="binder-cover-tracking">
@@ -447,7 +448,7 @@ function renderExploreDetail() {
   let progressHTML = "";
   if (isTracking) {
     const ownerHas = new Set((b.binder_cards || []).map(bc => bc.card_id));
-    const targetCards = b.cards || [];
+    const targetCards = b.target_cards || [];
     const has = targetCards.filter(c => ownerHas.has(c._key)).length;
     const total = targetCards.length;
     const pct = total > 0 ? Math.round((has / total) * 100) : 0;

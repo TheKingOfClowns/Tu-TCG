@@ -30,7 +30,6 @@ function fuzzySearch(cards, query, fields) {
   });
 }
 let cartasFiltradas = [];
-let currentCardIndex = -1;
 const cardsPerPage = 42;
 let currentPage = 1;
 let cartas = [];
@@ -513,9 +512,13 @@ async function syncObjectToSupabase(obj, type) {
           }
         }
       }
-      if (allCardRows.length) {
+      {
         const session = (await supabaseClient.auth.getSession()).data.session;
-        const response = await fetch('https://scykfvomdwpiypmblnvv.supabase.co/functions/v1/sync-binder-cards-v3', {
+        if (!session) {
+          _DEBUG && console.error("Sync cards error: no session");
+          continue;
+        }
+        const response = await fetch((typeof SUPABASE_URL !== "undefined" ? SUPABASE_URL : "https://scykfvomdwpiypmblnvv.supabase.co") + '/functions/v1/sync-binder-cards-v3', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -615,6 +618,7 @@ function rebuildLocalFallback() {
 }
 function _markCollectionsReady() {
   window._collectionsReady = true;
+  if (typeof refreshCatalogTargetSelect === 'function') refreshCatalogTargetSelect();
   const active = document.querySelector(".view-pane.active");
   if (!active) return;
   if (active.id === "collectionManager" && typeof renderCollectionList === 'function') renderCollectionList();
@@ -622,6 +626,7 @@ function _markCollectionsReady() {
 }
 function _markVentaReady() {
   window._ventaReady = true;
+  if (typeof refreshCatalogTargetSelect === 'function') refreshCatalogTargetSelect();
   const active = document.querySelector(".view-pane.active");
   if (!active || Object.keys(cartasMap).length === 0) return;
   if (active.id === "ventaManager" && typeof renderVentaList === 'function') renderVentaList();
@@ -887,14 +892,19 @@ async function toggleBinderPublic(id) {
 let _deckPickerResolve = null;
 let _deckPickerInterval = null;
 
-
-
-let selectionMode = false;
-let selectedCards = {};
+// ─── Catalog quick-add target ─────────────────────────────────────────────
+let catalogTargetId = null;      // id de la colección destino (binder o venta)
+let catalogTargetType = null;    // "collection" | "venta"
+function getCatalogTargetCol() {
+  if (!catalogTargetId) return null;
+  var target = catalogTargetType === "venta" ? ventaCols : collections;
+  return (target && target[catalogTargetId]) || null;
+}
 function limpiarAddingState() {
   addingToBinderId = null; addingToBinderName = null; addingToBinderType = null;
   var banner = document.getElementById("catalogAddBanner");
   if (banner) banner.style.display = "none";
+  if (typeof refreshCatalogTargetSelect === "function") refreshCatalogTargetSelect();
 }
 function actualizarCatalogBanner() {
   var banner = document.getElementById("catalogAddBanner");
@@ -1031,7 +1041,8 @@ function mostrarVista(vista, navState) {
       document.getElementById("bottomCatalog")?.classList.add("active");
       return;
     }
-    limpiarPendientes();
+    if (!addingToBinderId && typeof limpiarPendientes === "function") limpiarPendientes();
+    if (typeof refreshCatalogTargetSelect === "function") refreshCatalogTargetSelect();
     document.getElementById("catalogView").classList.add("active");
     document.getElementById("catalogView").style.display = "";
     resultsCounter.style.display = "";
@@ -1051,8 +1062,8 @@ function mostrarVista(vista, navState) {
   } else if (vista === "binder") {
     document.getElementById("binderView").classList.add("active");
     document.getElementById("binderView").style.display = "";
-    document.getElementById("sidebarBinder")?.classList.add("active");
-    document.getElementById("bottomCollections")?.classList.add("active");
+    document.getElementById("sidebarColecciones")?.classList.add("active");
+    document.getElementById("bottomColecciones")?.classList.add("active");
     const bCol = collections[currentCollectionId];
     if (!window._collectionsReady || (bCol && Object.keys(cartasMap).length === 0)) {
       if (bCol && bCol.subtype === "deck" && typeof skeletonDeck === 'function') {
@@ -1219,51 +1230,8 @@ function mostrarVista(vista, navState) {
     document.getElementById("tcgHomePlaceholder").style.display = "block";
     document.getElementById("sidebarHome")?.classList.add("active");
     document.getElementById("bottomHome")?.classList.add("active");
-    document.getElementById("sidebarHome")?.classList.add("active");
-    document.getElementById("bottomHome")?.classList.add("active");
   }
 }
-// ─── Search Clear ─────────────────────────────────────────────────────────
-searchClear.addEventListener("click", () => {
-  searchInput.value = "";
-  searchClear.style.display = "none";
-  currentPage = 1;
-  renderCards();
-});
-// ─── Event Listeners ──────────────────────────────────────────────────────
-// Search
-searchInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    currentPage = 1;
-    renderCards();
-    router.updateUrl();
-  }
-});
-// Filters
-expansionFilter.addEventListener("change", () => { actualizarFiltrosPorExpansion(); currentPage = 1; renderCards(); router.updateUrl(); });
-colorFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
-rarityFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
-sortFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
-typeFilter.addEventListener("change", () => { currentPage = 1; renderCards(); router.updateUrl(); });
-// Language toggle
-document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#catalogLangToggle .lang-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    const prevLang = state.catalog.catalogLanguage;
-    state.catalog.catalogLanguage = btn.getAttribute("data-lang");
-    currentPage = 1;
-    if (state.catalog.catalogLanguage !== prevLang) {
-      cargarFiltros();
-      actualizarFiltrosPorExpansion();
-    }
-    renderCards();
-    router.updateUrl();
-  });
-});
-// Pagination
-nextBtnBottom.onclick = () => { currentPage++; renderCards(); router.updateUrl(); };
-prevBtnBottom.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); router.updateUrl(); } };
 // Modal
 closeModal.addEventListener("click", () => { modal.style.display = "none"; });
 modal.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
@@ -1288,7 +1256,6 @@ document.getElementById("tcgGrid").addEventListener("click", e => {
 document.querySelectorAll(".welcome-card").forEach(card => {
   card.addEventListener("click", () => {
     const view = card.getAttribute("data-view");
-    if (view === "catalog" && currentTcg !== "one-piece") { navigateToView("catalog", {}, {}); return; }
     navigateToView(view, {}, {});
   });
 });
@@ -1376,166 +1343,10 @@ document.querySelectorAll(".bottom-nav-item").forEach(btn => {
     }
   });
 });
-// Binder events
-document.getElementById("binderClearPageBtn").addEventListener("click", () => {
-  const col = collections[currentCollectionId];
-  if (!col) return;
-  if (col.subtype === "tracking") return;
-  if (col.subtype === "deck") {
-    if (!col.cards.length) return;
-    const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-    if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
-      col.cards = [];
-      guardarCollections(); renderBinder();
-    }
-    return;
-  }
-  const start = (binderPage - 1) * binderPerPage;
-  const end = Math.min(start + binderPerPage, col.cards.length);
-  if (start >= col.cards.length) return;
-  if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
-    col.cards.splice(start, end - start);
-    const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
-    if (binderPage > totalPages) binderPage = totalPages;
-    guardarCollections(); renderBinder(); actualizarBotonesBinder();
-  }
-});
-document.getElementById("binderClearAllBtn").addEventListener("click", () => {
-  const col = collections[currentCollectionId];
-  if (!col) return;
-  if (col.subtype === "tracking") return;
-  if (col.subtype === "deck") {
-    if (!col.dons?.length) return;
-    if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
-      col.dons = [];
-      guardarCollections(); renderBinder();
-    }
-    return;
-  }
-  if (confirm('Vaciar la colección "' + col.name + '" por completo?')) {
-    col.cards = []; binderPage = 1; guardarCollections(); renderBinder(); actualizarBotonesBinder();
-  }
-});
-document.getElementById("binderBackBtn").addEventListener("click", () => { history.back(); });
-document.getElementById("exploreDetailBackBtn").addEventListener("click", () => { history.back(); });
-document.getElementById("binderPrevBtn").addEventListener("click", () => {
-  const col = collections[currentCollectionId];
-  if (col && binderPage > 1) { binderPage--; renderBinder(); }
-});
-document.getElementById("binderNextBtn").addEventListener("click", () => {
-  const col = collections[currentCollectionId];
-  if (!col) return;
-  const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
-  if (binderPage < totalPages) { binderPage++; renderBinder(); }
-});
-// Venta events
-document.getElementById("ventaBackBtn").addEventListener("click", () => { history.back(); });
-document.getElementById("ventaClearPageBtn").addEventListener("click", () => {
-  const col = ventaCols[currentVentaId];
-  if (!col) return;
-  if (col.subtype === "deck") {
-    if (!col.cards.length) return;
-    const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-    if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
-      col.cards = [];
-      guardarVenta(); renderVentaView();
-    }
-    return;
-  }
-  const start = (ventaPage - 1) * ventaPerPage;
-  const end = Math.min(start + ventaPerPage, col.cards.length);
-  if (start >= col.cards.length) return;
-  if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
-    col.cards.splice(start, end - start);
-    const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
-    if (ventaPage > totalPages) ventaPage = totalPages;
-    guardarVenta(); renderVentaView();
-  }
-});
-document.getElementById("ventaClearAllBtn").addEventListener("click", () => {
-  const col = ventaCols[currentVentaId];
-  if (!col) return;
-  if (col.subtype === "deck") {
-    if (!col.dons?.length) return;
-    if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
-      col.dons = [];
-      guardarVenta(); renderVentaView();
-    }
-    return;
-  }
-  if (confirm('Vaciar la colección "' + col.name + '" por completo?')) {
-    col.cards = []; ventaPage = 1; guardarVenta(); renderVentaView();
-  }
-});
-document.getElementById("ventaPrevBtn").addEventListener("click", () => {
-  const col = ventaCols[currentVentaId];
-  if (col && ventaPage > 1) { ventaPage--; renderVentaView(); }
-});
-document.getElementById("ventaNextBtn").addEventListener("click", () => {
-  const col = ventaCols[currentVentaId];
-  if (!col) return;
-  const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
-  if (ventaPage < totalPages) { ventaPage++; renderVentaView(); }
-});
-// Add modal events
-document.getElementById("addModalCancel").addEventListener("click", () => { document.getElementById("addModalOverlay").style.display = "none"; });
-document.getElementById("addModalCloseBtn")?.addEventListener("click", () => { document.getElementById("addModalOverlay").style.display = "none"; });
-document.getElementById("agregarBtn").addEventListener("click", () => {
-  if (!Object.keys(pendingCards).length) return;
-  if (selectionMode) {
-    document.querySelectorAll(".card.selected").forEach(el => el.classList.remove("selected"));
-    selectionMode = false;
-    const selBtn = document.getElementById("seleccionarBtn");
-    if (selBtn) { selBtn.textContent = "Seleccionar"; selBtn.classList.remove("active"); }
-    selectedCards = {};
-  }
-  actualizarBadge();
-  actualizarBadgesEnPagina();
-  mostrarAddModal();
-});
-document.getElementById("catalogAddBack").addEventListener("click", function() {
-  var id = addingToBinderId; var type = addingToBinderType;
-  limpiarAddingState();
-  if (type === "venta") { currentVentaId = id; ventaPage = 1; navigateToView("venta", {id: id}, {}); }
-  else { currentCollectionId = id; binderPage = 1; navigateToView("binder", {id: id}, {}); }
-});
-document.getElementById("catalogAddCancel").addEventListener("click", limpiarAddingState);
-document.getElementById("catalogAddConfirm").addEventListener("click", function() {
-  if (!addingToBinderId || !Object.keys(pendingCards).length) return;
-  var type = addingToBinderType;
-  var target = (type === "venta") ? ventaCols : collections;
-  var col = target[addingToBinderId];
-  if (!col) return;
-  if (col.subtype === "deck") {
-    var _deckTcg = col.tcg || "one-piece";
-    var dispatchFn = window["_confirmAddDeck_" + ({ "one-piece":"OP","riftbound":"RB","pokemon":"PK" }[_deckTcg] || "OP")];
-    Object.values(pendingCards).forEach(function(pc) {
-      var key = getCardKey(pc);
-      if (typeof dispatchFn === "function") dispatchFn(col, pc, key, _deckTcg);
-    });
-    if (type === "venta") guardarVenta(); else guardarCollections();
-  } else {
-    Object.values(pendingCards).forEach(function(pc) {
-      var key = getCardKey(pc);
-      var existing = (col.cards || []).find(function(c) { return c._key === key; });
-      if (existing) existing.quantity = (existing.quantity || 1) + (pc.count || 1);
-      else col.cards.push({ _key: key, quantity: pc.count || 1, card_set_id: pc.card_set_id, card_name: pc.card_name, card_image: pc.card_image, card_color: pc.card_color, card_type: pc.card_type, set_id: pc.set_id, producto: pc.producto, category: pc.category, market_price: pc.market_price, inventory_price: pc.inventory_price, print_type: pc.print_type, cardset: pc.cardset, customPrice: 0 });
-    });
-    if (type === "venta") guardarVenta(); else guardarCollections();
-  }
-  limpiarPendientes();
-  var id = addingToBinderId;
-  limpiarAddingState();
-  if (type === "venta") { currentVentaId = id; ventaPage = 1; navigateToView("venta", {id: id}, {}); }
-  else { currentCollectionId = id; binderPage = 1; navigateToView("binder", {id: id}, {}); }
-});
+document.getElementById("binderBackBtn")?.addEventListener("click", () => { history.back(); });
+document.getElementById("exploreDetailBackBtn")?.addEventListener("click", () => { history.back(); });
+document.getElementById("ventaBackBtn")?.addEventListener("click", () => { history.back(); });
 // ─── Landing Page Buttons ────────────────────────────────────────────────
-document.querySelectorAll("[id^='landingLoginBtn']").forEach(btn => {
-  btn.addEventListener("click", () => showAuthModal("login"));
-});
-document.querySelectorAll("[id^='landingRegisterBtn'], #landingCtaBtn").forEach(btn => {
-  btn.addEventListener("click", () => showAuthModal("register"));
-});
 document.getElementById("landingExploreBtn")?.addEventListener("click", () => {
   navigateToView("catalog", {}, {});
 });
@@ -1547,6 +1358,11 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
     } else {
       document.querySelector(`#${action}Section`)?.scrollIntoView({ behavior: "smooth" });
     }
+  });
+});
+document.querySelectorAll("#footerContact, #footerPrivacy, #footerTerms, #footerPrivacyLegal, #footerTermsLegal").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (typeof showToast === "function") showToast("Próximamente", "info");
   });
 });
 // ═══ Migration & Init ═════════════════════════════════════════════════════
@@ -1616,26 +1432,7 @@ document.querySelectorAll(".footer-link[data-action]").forEach(btn => {
     cargarStatsLanding();
   }
 })();
-// ─── Auth Integration ────────────────────────────────────────────────────
-document.getElementById("authBtn").addEventListener("click", () => {
-  showAuthModal("login");
-});
-document.getElementById("userBtn").addEventListener("click", (e) => {
-  e.stopPropagation();
-  const dd = document.getElementById("userDropdown");
-  dd.style.display = dd.style.display === "none" ? "block" : "none";
-});
-document.getElementById("dropdownLogout").addEventListener("click", async () => {
-  document.getElementById("userDropdown").style.display = "none";
-  await signOut();
-});
-document.getElementById("dropdownProfile").addEventListener("click", () => {
-  document.getElementById("userDropdown").style.display = "none";
-  if (typeof openProfile === "function") { openProfile(); }
-});
-document.addEventListener("click", () => {
-  document.getElementById("userDropdown").style.display = "none";
-});
+// ─── Auth Integration (UI listeners bound in auth.js; state sync below) ──
 // ─── Mobile Sidebar Toggle ──────────────────────────────────────────────
 function toggleSidebar(open) {
   const sidebar = document.getElementById("sidebar");
@@ -1647,17 +1444,6 @@ document.getElementById("menuBtn")?.addEventListener("click", () => toggleSideba
 document.getElementById("sidebarOverlay")?.addEventListener("click", () => toggleSidebar(false));
 document.querySelectorAll(".sidebar-nav-item, .sidebar-footer button").forEach(el => {
   el.addEventListener("click", () => { if (window.innerWidth < 768) toggleSidebar(false); });
-});
-document.getElementById("authModalOverlay").addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) hideAuthModal();
-});
-document.querySelector("#authToggleLink").addEventListener("click", (e) => {
-  if (e.target.id === "authToggle") {
-    e.preventDefault();
-    const overlay = document.getElementById("authModalOverlay");
-    const mode = overlay._mode === "login" ? "register" : overlay._mode === "register" ? "forgot" : "login";
-    showAuthModal(mode);
-  }
 });
 // Update auth UI after init and sync data
 onAuthChange(async (user) => {
@@ -1715,44 +1501,34 @@ async function navigateToView(route, params, filters) {
   if (route === 'catalog' || route === 'catalogView') {
     if (currentTcg && typeof tcgConfigs !== 'undefined' && tcgConfigs[currentTcg]) {
       if (Object.keys(cartasMap).length === 0) {
-        mostrarVista("catalog", navState);
-        await cargarCartas();
         router.navigateToRoute('catalog', {}, navState);
+        await cargarCartas();
         mostrarVista("catalog", navState);
         return;
       }
     }
     router.navigateToRoute('catalog', {}, navState);
-    mostrarVista("catalog", navState);
   } else if (route === 'collections') {
     router.navigateToRoute('collections', {}, navState);
-    mostrarVista("collections", navState);
   } else if (route === 'binder') {
     currentCollectionId = params.id;
     navState.currentCollectionId = params.id;
     router.navigateToRoute('binder', { id: params.id }, navState);
-    mostrarVista("binder", navState);
   } else if (route === 'ventaCols') {
     router.navigateToRoute('ventaCols', {}, navState);
-    mostrarVista("ventaCols", navState);
   } else if (route === 'venta') {
     currentVentaId = params.id;
     navState.currentVentaId = params.id;
     router.navigateToRoute('venta', { id: params.id }, navState);
-    mostrarVista("venta", navState);
   } else if (route === 'explore') {
     router.navigateToRoute('explore', {}, navState);
-    mostrarVista("explore", navState);
   } else if (route === 'exploreDetail') {
     navState.currentCollectionId = params.id;
     router.navigateToRoute('exploreDetail', { id: params.id }, navState);
-    mostrarVista("exploreDetail", navState);
   } else if (route === 'profile') {
     router.navigateToRoute('profile', {}, navState);
-    mostrarVista("profile", navState);
   } else {
     router.navigateToRoute('home', {}, navState);
-    mostrarVista("home", navState);
   }
 }
 function applyFiltersFromUrl(filters, quiet) {
@@ -1791,8 +1567,8 @@ async function loadPublicBinderById(id) {
     return data;
   } catch (e) { console.error("Error loading public binder:", e); return null; }
 }
-var onNavigate = function(path, state) {
+function onNavigate(path, state) {
   if (state && state.view) {
     mostrarVista(state.view, state);
   }
-};
+}

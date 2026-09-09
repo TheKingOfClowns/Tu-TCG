@@ -3,23 +3,13 @@
 // Suffix resolution: reads tcgConfigs[currentTcg].short → "_OP" / "_RB" / "_PK"
 
 (function() {
-  var _suffixMap = { "one-piece":"OP", "riftbound":"RB", "pokemon":"PK" };
-
   function _fn(name) {
-    var s = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) ? _suffixMap[currentTcg] : null;
+    var s = (typeof tcgShort === "function") ? tcgShort(currentTcg) : null;
     return (s && window[name + "_" + s]) || window[name + "_OP"];
   }
 
-  window.showDeckPicker = function showDeckPicker(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys) {
-    return _fn("showDeckPicker")(mode, legendColor, existingKeys, legendSetId, existingCounts, remainingSlots, legendFeature, restrictToKeys);
-  };
-
   window.renderDeckView = function renderDeckView(type, col, grid, title, toggleContainer) {
     return _fn("renderDeckView")(type, col, grid, title, toggleContainer);
-  };
-
-  window.saveDeck = function saveDeck(isSale) {
-    return _fn("saveDeck")(isSale);
   };
 
   // Overlay click handler

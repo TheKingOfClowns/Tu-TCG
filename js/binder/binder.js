@@ -1,57 +1,4 @@
 // ─── Collection List ──────────────────────────────────────────────────────
-function getFirstCardImage(cards, col) {
-  if (col?.leader?.card_image) return col.leader.card_image;
-  if (col?.leader?._key) {
-    const found = cartasMap[col.leader._key];
-    if (found?.card_image) return found.card_image;
-  }
-  if (col?.legend?.card_image) return col.legend.card_image;
-  if (col?.legend?._key) {
-    const found = cartasMap[col.legend._key];
-    if (found?.card_image) return found.card_image;
-  }
-  if (col?.champions?.length) {
-    const firstChamp = col.champions[0];
-    if (firstChamp.card_image) return firstChamp.card_image;
-    if (firstChamp._key) {
-      const found = cartasMap[firstChamp._key];
-      if (found?.card_image) return found.card_image;
-    }
-  }
-  if (!cards || !cards.length) return null;
-  const first = cards[0];
-  if (first.card_image) return first.card_image;
-  if (first._key) {
-    const found = cartasMap[first._key];
-    if (found?.card_image) return found.card_image;
-  }
-  return null;
-}
-function getTotalPrice(col) {
-  let total = 0;
-  const cards = col.cards || [];
-  const isDeck = col.subtype === "deck";
-  if (isDeck && col.leader && col.leader.customPrice != null) total += Number(col.leader.customPrice);
-  if (isDeck && col.legend && col.legend.customPrice != null) total += Number(col.legend.customPrice);
-  if (isDeck && col.champions) {
-    col.champions.forEach(function(ch) {
-      if (ch.customPrice != null) total += Number(ch.customPrice) * (ch.quantity || 1);
-    });
-  }
-  if (isDeck) {
-    (col.runes || []).forEach(function(r) { if (r.customPrice != null) total += Number(r.customPrice) * (r.quantity || 1); });
-    (col.battlefields || []).forEach(function(b) { if (b.customPrice != null) total += Number(b.customPrice); });
-    (col.sideboard || []).forEach(function(s) { if (s.customPrice != null) total += Number(s.customPrice); });
-  }
-  cards.forEach(c => {
-    const qty = c.quantity || 1;
-    if (c.customPrice != null) total += Number(c.customPrice) * qty;
-  });
-  if (isDeck && col.dons) {
-    col.dons.forEach(d => { if (d.customPrice != null) total += Number(d.customPrice); });
-  }
-  return total;
-}
 function renderCollectionList_OP() {
   const container = document.getElementById("collectionList");
   if (!container) return;
@@ -64,7 +11,7 @@ function renderCollectionList_OP() {
     const msg = currentTcg ? "No tienes colecciones para este TCG" : "No tienes colecciones";
     container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstColBtn">Crear primera colección</button></div>`;
     const btn = document.getElementById("createFirstColBtn");
-    if (btn) btn.addEventListener("click", pedirCrearColeccion_OP);
+    if (btn) btn.addEventListener("click", pedirCrearColeccion);
     return;
   }
   container.className = "collection-binder-grid";
@@ -310,10 +257,6 @@ function removeFromCurrentCollection(realIdx) {
   col.cards.splice(realIdx, 1);
   guardarCollections();
   renderBinder();
-  actualizarBotonesBinder();
-}
-function actualizarBotonesBinder() {
-  document.querySelectorAll(".add-binder-btn").forEach(btn => btn.classList.remove("added"));
 }
 function setupBinderDragDrop() {
   const slots = document.querySelectorAll("#binderGrid .card");

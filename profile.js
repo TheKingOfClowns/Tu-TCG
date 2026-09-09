@@ -146,11 +146,6 @@ function getSocialLinksFromForm() {
   return links;
 }
 
-function sanitizeReviewComment(comment) {
-  if (!comment) return "";
-  return comment.replace(/https?:\/\/\S+/gi, "[link eliminado]").substring(0, 100);
-}
-
 function isValidWspLink(url) {
   if (!url) return true;
   try {
