@@ -49,7 +49,7 @@ while ((dlMatch = dlRegex.exec(raw)) !== null) {
   const cardType = infoMatch ? infoMatch[2].toUpperCase() : '';
 
   const imgMatch = block.match(/data-src="[^"]*?card\/([^"?]+\.png)/);
-  const imgFile = imgMatch ? imgMatch[1].replace('.png', '.webp') : '';
+  const imgFile = imgMatch ? imgMatch[1].replace('.png', '.webp').toLowerCase() : ''; // ponytail: lowercase evita 404 por case en Pages/Linux
 
   const costMatch = block.match(/<div class="cost"><h3>(?:Cost|Life)<\/h3>\s*(\d+|-)\s*<\/div>/);
   const cost = costMatch ? costMatch[1] : '';
