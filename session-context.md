@@ -48,6 +48,11 @@ SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
 - Formato: WebP,命名: `{set_id}_{parallel}.webp` (ej: `op01-014_p1.webp`)
 - Descargadas del sitio oficial OPCG y convertidas con sharp
 
+### Fix case-sensitivity promos (2026-09-11)
+- 161 archivos en `en/PROMO/` con mayúscula en disco vs minúscula en JSON → 404 en Pages/Linux (200 con HTML fallback, F12 limpio). Windows local perdonaba.
+- Fix: renames a minúscula + 7 refs duplicadas unificadas a variante existente + `.toLowerCase()` en `scrape_set.js`/`scrape_set_en.js`.
+- Commit `047a6b6`, deploy `2350bd90`. Auditoría: 11333 refs, 0 faltantes.
+
 ### Stats del landing (globales)
 `cargarStatsLanding()` (`script.js:159`) carga todos los `cards_master.json` de juegos habilitados y suma totals para `#statCards`. El stat de expansiones (`#statExpansions`) fue eliminado (2026-08-31) — solo queda "Cartas registradas", card única centrada (`.stats-grid` 1fr, max-width 320px). Los updates por TCG en `cargarCartas()` y `cargarFiltros()` solo corren si `currentTcg` está seteado para no pisar los globales.
 - `catalog.js:329` — `statCards` solo se actualiza si `currentTcg`
@@ -351,7 +356,7 @@ Revisión completa del proyecto (script.js, 31 módulos, HTML, CSS, datos, repo)
 - Tokens sin uso de design-system.css se dejaron a propósito (reserva del design system).
 
 ## Deploy
-- URL último deploy: `https://2227c4f2.tutcg.pages.dev` (2026-09-09, quick-add por destino + gran limpieza)
+- URL último deploy: `https://2350bd90.tutcg.pages.dev` (2026-09-11, fix case imágenes promo)
 - Cloudflare login autenticado via `wrangler login`
 - Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
 - NO hacer deploy sin que el usuario lo pida explícitamente.
