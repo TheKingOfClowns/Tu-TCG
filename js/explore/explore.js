@@ -4,6 +4,10 @@ let exploreFilterMode = "all";
 let exploreSearchQuery = "";
 let exploreTabFilter = "todas";
 let exploreExploreSearchQuery = "";
+let explorePage = 1;
+let exploreDetailPage = 1;
+let _exploreCols = 0;
+let _exploreDetailCols = 0;
 let _exploreCache = { data: null, ts: 0 };
 const EXPLORE_CACHE_TTL = 30000;
 window.invalidateExploreCache = function () { _exploreCache = { data: null, ts: 0 }; };
@@ -101,12 +105,13 @@ function cerrarModalPerfilPublico() {
     window._publicProfileKeyHandler = null;
   }
 }
-function renderExploreDetailCards(cards, grid, b, navList) {
+function renderExploreDetailCards(cards, grid, b, navList, base) {
   grid.innerHTML = "";
   if (!cards || !cards.length) {
     grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary)">No hay cartas para mostrar</div>';
     return;
   }
+  const _base = base || 0;
   cards.forEach((row, idx) => {
     const carta = cartasMap[row._key] || row;
     if (!carta || !carta.card_image) return;
@@ -123,7 +128,7 @@ function renderExploreDetailCards(cards, grid, b, navList) {
         <span class="card-set-id">${carta.card_set_id || ""}</span>
         ${b.type === "sale" && row.price != null ? `<div class="card-price">$${parseFloat(row.price).toFixed(2)} <span class="${row.price_currency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${row.price_currency === "USD" ? "#ffd700" : "var(--accent)"}">${row.price_currency || "ARS"}</span></div>` : ""}
       </div>`;
-    const startIdx = navList ? idx : undefined;
+    const startIdx = navList ? _base + idx : undefined;
     div.addEventListener("click", () => openCardInModal(carta, navList, startIdx));
     grid.appendChild(div);
   });
@@ -175,7 +180,26 @@ function filterExploreCards() {
     cards = fuzzySearch(cards, exploreSearchQuery, ['card_name', 'card_set_id', 'set_name']);
   }
   const grid = container.querySelector(".explore-detail-grid");
-  if (grid) renderExploreDetailCards(cards, grid, b, cards);
+  if (!grid) return;
+  // ponytail: 3 filas exactas; navList completa para el modal
+  const _pg = (typeof pageSizeFor === "function") ? pageSizeFor(grid, 3) : { cols: 5, size: 15 };
+  _exploreDetailCols = _pg.cols;
+  const _totalPages = Math.max(1, Math.ceil(cards.length / _pg.size));
+  if (exploreDetailPage > _totalPages) exploreDetailPage = _totalPages;
+  const _start = (exploreDetailPage - 1) * _pg.size;
+  renderExploreDetailCards(cards.slice(_start, _start + _pg.size), grid, b, cards, _start);
+  let pager = container.querySelector("#exploreDetailPager");
+  if (pager) pager.remove();
+  if (_totalPages > 1) {
+    pager = document.createElement("div");
+    pager.id = "exploreDetailPager";
+    pager.className = "binder-pagination";
+    pager.innerHTML = '<button class="btn-page" id="exploreDetailPrevBtn">‹ Anterior</button><span>Página ' + exploreDetailPage + ' de ' + _totalPages + '</span><button class="btn-page" id="exploreDetailNextBtn">Siguiente ›</button>';
+    grid.after(pager);
+    const prevB = pager.querySelector("#exploreDetailPrevBtn"), nextB = pager.querySelector("#exploreDetailNextBtn");
+    if (prevB) { prevB.disabled = exploreDetailPage <= 1; prevB.addEventListener("click", () => { if (exploreDetailPage > 1) { exploreDetailPage--; filterExploreCards(); } }); }
+    if (nextB) { nextB.disabled = exploreDetailPage >= _totalPages; nextB.addEventListener("click", () => { if (exploreDetailPage < _totalPages) { exploreDetailPage++; filterExploreCards(); } }); }
+  }
 }
 function setupExploreFilters() {
   const container = document.getElementById("exploreDetailContainer");
@@ -184,6 +208,7 @@ function setupExploreFilters() {
   if (searchInput) {
     searchInput.addEventListener("input", () => {
       exploreSearchQuery = searchInput.value;
+      exploreDetailPage = 1;
       filterExploreCards();
     });
   }
@@ -192,6 +217,7 @@ function setupExploreFilters() {
   if (allBtn) {
     allBtn.addEventListener("click", () => {
       exploreFilterMode = "all";
+      exploreDetailPage = 1;
       if (faltantesBtn) faltantesBtn.classList.remove("active");
       allBtn.classList.add("active");
       filterExploreCards();
@@ -201,6 +227,7 @@ function setupExploreFilters() {
   if (faltantesBtn) {
     faltantesBtn.addEventListener("click", () => {
       exploreFilterMode = "faltantes";
+      exploreDetailPage = 1;
       if (allBtn) allBtn.classList.remove("active");
       faltantesBtn.classList.add("active");
       filterExploreCards();
@@ -209,6 +236,22 @@ function setupExploreFilters() {
   }
 }
 let _exploreController = null;
+// ponytail: resize recalcula filas solo si cambian las columnas (evita flashes)
+let _exploreRzT = null;
+window.addEventListener("resize", () => {
+  clearTimeout(_exploreRzT);
+  _exploreRzT = setTimeout(() => {
+    const ev = document.getElementById("exploreView");
+    if (!ev || ev.style.display === "none") return;
+    const gc = document.getElementById("exploreGridContainer");
+    if (gc && typeof pageSizeFor === "function" && pageSizeFor(gc, 3).cols !== _exploreCols && typeof renderExploreView === "function") { renderExploreView(); return; }
+    const edv = document.getElementById("exploreDetailView");
+    if (edv && edv.style.display !== "none" && typeof pageSizeFor === "function") {
+      const dg = document.querySelector("#exploreDetailContainer .explore-detail-grid");
+      if (dg && pageSizeFor(dg, 3).cols !== _exploreDetailCols && typeof filterExploreCards === "function") filterExploreCards();
+    }
+  }, 250);
+});
 function buildExploreFiltersHTML() {
   return `
     <div class="explore-filters">
@@ -230,6 +273,7 @@ function attachExploreListeners() {
   document.querySelectorAll('.explore-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       exploreTabFilter = btn.dataset.tab;
+      explorePage = 1;
       renderExploreView();
     });
   });
@@ -238,6 +282,7 @@ function attachExploreListeners() {
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         exploreExploreSearchQuery = searchInput.value.trim();
+        explorePage = 1;
         renderExploreView();
       }
     });
@@ -316,6 +361,12 @@ async function renderExploreView() {
     container.innerHTML = buildExploreFiltersHTML() + '<div id="exploreGridContainer" class="explore-grid"></div>';
     attachExploreListeners();
     const gridContainer = document.getElementById('exploreGridContainer');
+    // ponytail: 3 filas exactas de portadas
+    const _pg = (typeof pageSizeFor === "function") ? pageSizeFor(gridContainer, 3) : { cols: 5, size: 15 };
+    _exploreCols = _pg.cols;
+    const _totalPages = Math.max(1, Math.ceil(filteredBinders.length / _pg.size));
+    if (explorePage > _totalPages) explorePage = _totalPages;
+    const _pageBinders = filteredBinders.slice((explorePage - 1) * _pg.size, explorePage * _pg.size);
     const userIds = [...new Set(filteredBinders.map(b => b.user_id))];
     const profileMap = {};
     if (userIds.length) {
@@ -327,7 +378,7 @@ async function renderExploreView() {
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       } catch (e) { console.error("Explore profiles fetch error:", e); }
     }
-    for (const b of filteredBinders) {
+    for (const b of _pageBinders) {
       const prof = profileMap[b.user_id];
       const username = escapeHtml(prof?.username || "Usuario");
       const rawAvatar = prof?.avatar_url || "";
@@ -391,6 +442,15 @@ async function renderExploreView() {
       div.addEventListener("click", () => openExploreDetail(b));
       gridContainer.appendChild(div);
     }
+    if (_totalPages > 1) {
+      const pager = document.createElement("div");
+      pager.className = "binder-pagination";
+      pager.innerHTML = '<button class="btn-page" id="explorePrevBtn">‹ Anterior</button><span id="explorePageInfo">Página ' + explorePage + ' de ' + _totalPages + '</span><button class="btn-page" id="exploreNextBtn">Siguiente ›</button>';
+      container.appendChild(pager);
+      const prevB = pager.querySelector("#explorePrevBtn"), nextB = pager.querySelector("#exploreNextBtn");
+      if (prevB) { prevB.disabled = explorePage <= 1; prevB.addEventListener("click", () => { if (explorePage > 1) { explorePage--; renderExploreView(); } }); }
+      if (nextB) { nextB.disabled = explorePage >= _totalPages; nextB.addEventListener("click", () => { if (explorePage < _totalPages) { explorePage++; renderExploreView(); } }); }
+    }
   } catch (e) {
     const isAbort = e.name === 'AbortError' || e.message?.toLowerCase().includes('abort');
     if (isAbort) return;
@@ -402,6 +462,7 @@ function openExploreDetail(binder) {
   exploreDetailBinder = binder;
   exploreFilterMode = "all";
   exploreSearchQuery = "";
+  exploreDetailPage = 1;
   exploreDetailOwner = { username: "Usuario", avatar_url: "" };
   (async () => {
     try {

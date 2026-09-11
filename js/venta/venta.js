@@ -288,10 +288,11 @@ function buildVentaCardHTML_OP(c, globalIdx, mode) {
     <button class="binder-remove" data-ventaidx="${globalIdx}" data-mode="${mode}">&times;</button>`;
 }
 function renderVentaIndividual_OP(col, grid) {
-  const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
-  const start = (ventaPage - 1) * ventaPerPage;
-  const pageCards = col.cards.slice(start, start + ventaPerPage);
-  for (let i = 0; i < ventaPerPage; i++) {
+  const _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
+  const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
+  const start = (ventaPage - 1) * _pgSize;
+  const pageCards = col.cards.slice(start, start + _pgSize);
+  for (let i = 0; i < _pgSize; i++) {
     const slot = document.createElement("div");
     const globalIdx = start + i;
     slot.className = "card";
@@ -312,10 +313,11 @@ function renderVentaIndividual_OP(col, grid) {
 }
 function renderVentaGrouped_OP(col, grid, mode) {
   const cards = col.cards || [];
-  const totalPages = Math.max(1, Math.ceil(cards.length / ventaPerPage));
-  const start = (ventaPage - 1) * ventaPerPage;
-  const pageCards = cards.slice(start, start + ventaPerPage);
-  for (let i = 0; i < ventaPerPage; i++) {
+  const _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
+  const totalPages = Math.max(1, Math.ceil(cards.length / _pgSize));
+  const start = (ventaPage - 1) * _pgSize;
+  const pageCards = cards.slice(start, start + _pgSize);
+  for (let i = 0; i < _pgSize; i++) {
     const globalIdx = start + i;
     const slot = document.createElement("div");
     if (pageCards[i]) {
@@ -452,12 +454,13 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       }
       return;
     }
-    const start = (ventaPage - 1) * ventaPerPage;
-    const end = Math.min(start + ventaPerPage, col.cards.length);
+    const _pgSize = pageSizeFor(document.getElementById("ventaGrid"), 3).size;
+    const start = (ventaPage - 1) * _pgSize;
+    const end = Math.min(start + _pgSize, col.cards.length);
     if (start >= col.cards.length) return;
     if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
       col.cards.splice(start, end - start);
-      const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
+      const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
       if (ventaPage > totalPages) ventaPage = totalPages;
       guardarVenta(); renderVentaView();
     }
@@ -484,7 +487,16 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
   el("ventaNextBtn")?.addEventListener("click", () => {
     const col = ventaCols[currentVentaId];
     if (!col) return;
-    const totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
+    const totalPages = Math.max(1, Math.ceil(col.cards.length / pageSizeFor(document.getElementById("ventaGrid"), 3).size));
     if (ventaPage < totalPages) { ventaPage++; renderVentaView(); }
+  });
+  // ponytail: resize recalcula filas completas (debounce, solo venta visible)
+  var _ventaRzT = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(_ventaRzT);
+    _ventaRzT = setTimeout(() => {
+      var vv = document.getElementById("ventaView");
+      if (vv && vv.style.display !== "none" && typeof renderVentaView === "function") renderVentaView();
+    }, 250);
   });
 })();

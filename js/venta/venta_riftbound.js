@@ -197,10 +197,11 @@ function _getRarityBadge_RB(card) {
 }
 
 function renderVentaGrouped_RB(col, grid, mode) {
-  var totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
-  var start = (ventaPage - 1) * ventaPerPage;
-  var pageCards = col.cards.slice(start, start + ventaPerPage);
-  for (var i = 0; i < ventaPerPage; i++) {
+  var _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
+  var totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
+  var start = (ventaPage - 1) * _pgSize;
+  var pageCards = col.cards.slice(start, start + _pgSize);
+  for (var i = 0; i < _pgSize; i++) {
     var slot = document.createElement("div");
     var globalIdx = start + i;
     slot.className = "venta-card";
@@ -352,10 +353,11 @@ function buildVentaCardHTML_RB(c, globalIdx, mode) {
 }
 
 function renderVentaIndividual_RB(col, grid) {
-  var totalPages = Math.max(1, Math.ceil(col.cards.length / ventaPerPage));
-  var start = (ventaPage - 1) * ventaPerPage;
-  var pageCards = col.cards.slice(start, start + ventaPerPage);
-  for (var i = 0; i < ventaPerPage; i++) {
+  var _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
+  var totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
+  var start = (ventaPage - 1) * _pgSize;
+  var pageCards = col.cards.slice(start, start + _pgSize);
+  for (var i = 0; i < _pgSize; i++) {
     var slot = document.createElement("div");
     var globalIdx = start + i;
     slot.className = "card";

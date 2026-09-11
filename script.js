@@ -45,7 +45,6 @@ let currentCollectionId = null;
 let ventaCols = {};
 let currentVentaId = null;
 let ventaPage = 1;
-const ventaPerPage = 20;
 let addingToBinderId = null;
 let addingToBinderName = null;
 let addingToBinderType = null;
