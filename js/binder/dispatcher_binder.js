@@ -37,12 +37,13 @@ document.getElementById("binderClearPageBtn")?.addEventListener("click", () => {
     }
     return;
   }
-  const start = (binderPage - 1) * binderPerPage;
-  const end = Math.min(start + binderPerPage, col.cards.length);
+  const _pgSize = pageSizeFor(document.getElementById("binderGrid"), 3).size;
+  const start = (binderPage - 1) * _pgSize;
+  const end = Math.min(start + _pgSize, col.cards.length);
   if (start >= col.cards.length) return;
   if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
     col.cards.splice(start, end - start);
-    const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
+    const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
     if (binderPage > totalPages) binderPage = totalPages;
     guardarCollections(); renderBinder();
   }
@@ -70,6 +71,15 @@ document.getElementById("binderPrevBtn")?.addEventListener("click", () => {
 document.getElementById("binderNextBtn")?.addEventListener("click", () => {
   const col = collections[currentCollectionId];
   if (!col) return;
-  const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
+  const totalPages = Math.max(1, Math.ceil(col.cards.length / pageSizeFor(document.getElementById("binderGrid"), 3).size));
   if (binderPage < totalPages) { binderPage++; renderBinder(); }
+});
+// ponytail: resize recalcula filas completas (debounce, solo binder visible)
+var _binderRzT = null;
+window.addEventListener("resize", () => {
+  clearTimeout(_binderRzT);
+  _binderRzT = setTimeout(() => {
+    var bv = document.getElementById("binderView");
+    if (bv && bv.style.display !== "none" && typeof renderBinder === "function") renderBinder();
+  }, 250);
 });

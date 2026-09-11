@@ -5,7 +5,7 @@
 //                          generarId, guardarCollections, renderCollectionList,
 //                          showConfirmModal, showToast, showAuthModal, isAuthenticated,
 //                          currentTcg, collections, currentCollectionId, binderPage,
-//                          binderPerPage, openCardInModal, mostrarVista)
+//                          pageSizeFor, openCardInModal, mostrarVista)
 
 let _appendTo = null;
 
@@ -357,10 +357,11 @@ function renderTrackingBinder(col, grid, title) {
   if (col.checklist_mode) {
     renderTrackingCards(displayCards, grid, col);
   } else {
-    const start = (binderPage - 1) * binderPerPage;
-    const pageCards = displayCards.slice(start, start + binderPerPage);
-    const totalPages = Math.max(1, Math.ceil(displayCards.length / binderPerPage));
-    for (let i = 0; i < binderPerPage; i++) {
+    const _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
+    const start = (binderPage - 1) * _pgSize;
+    const pageCards = displayCards.slice(start, start + _pgSize);
+    const totalPages = Math.max(1, Math.ceil(displayCards.length / _pgSize));
+    for (let i = 0; i < _pgSize; i++) {
       renderTrackingSlot(i, pageCards, col, grid);
     }
     document.getElementById("binderPrevBtn").disabled = binderPage <= 1;

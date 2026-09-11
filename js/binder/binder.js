@@ -174,10 +174,11 @@ function renderBinder_OP() {
     }
   }
   grid.innerHTML = "";
-  const totalPages = Math.max(1, Math.ceil(col.cards.length / binderPerPage));
-  const start = (binderPage - 1) * binderPerPage;
-  const pageCards = col.cards.slice(start, start + binderPerPage);
-  for (let i = 0; i < binderPerPage; i++) {
+  var _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
+  const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
+  const start = (binderPage - 1) * _pgSize;
+  const pageCards = col.cards.slice(start, start + _pgSize);
+  for (let i = 0; i < _pgSize; i++) {
     const slot = document.createElement("div");
     const globalIdx = start + i;
     slot.className = "card fade-in";

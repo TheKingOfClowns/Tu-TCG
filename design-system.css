@@ -90,7 +90,8 @@
   --header-height: 64px;
   --sidebar-width: 260px;
 
-  --card-min-width: 180px;
+  --card-min-width: 200px; /* ponytail: lo setean los sliders de perfil (0-100 → 120-280px) */
+  --deck-min-width: 200px;
   --card-max-width: 1fr;
   --card-aspect-ratio: 63 / 88;
 }

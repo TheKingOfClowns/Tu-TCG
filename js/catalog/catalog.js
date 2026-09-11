@@ -90,11 +90,12 @@ function renderCards() {
     if (targetCol.sideboard) targetCol.sideboard.forEach(function(s) { if (s._key) addedKeys.add(s._key); });
   }
   var showActions = !!(addingToBinderId || catalogTargetId);
-  const totalPages = Math.max(1, Math.ceil(resultado.length / cardsPerPage));
+  var _pageSize = pageSizeFor(cardsContainer, 3).size; // ponytail: 3 filas exactas
+  const totalPages = Math.max(1, Math.ceil(resultado.length / _pageSize));
   resultsCounter.textContent = resultado.length.toLocaleString() + " cartas encontradas";
   if (currentPage > totalPages) currentPage = totalPages;
-  const start = (currentPage - 1) * cardsPerPage;
-  const end = start + cardsPerPage;
+  const start = (currentPage - 1) * _pageSize;
+  const end = start + _pageSize;
   const cartasPagina = resultado.slice(start, end);
   window.currentPageCards = cartasPagina;
   cardsContainer.innerHTML = "";
@@ -589,6 +590,15 @@ function buildPrbBadgeMap() {
   const prevBtn = el("prevBtnBottom");
   if (nextBtn) nextBtn.onclick = () => { currentPage++; renderCards(); router.updateUrl(); };
   if (prevBtn) prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); router.updateUrl(); } };
+  // ponytail: resize recalcula filas completas (debounce, solo catálogo visible)
+  var _rzT = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(_rzT);
+    _rzT = setTimeout(() => {
+      var cv = document.getElementById("catalogView");
+      if (cv && cv.style.display !== "none" && typeof renderCards === "function") renderCards();
+    }, 250);
+  });
 })();
 
 // ─── Quick-add target selector ─────────────────────────────────────────────

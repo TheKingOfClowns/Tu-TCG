@@ -30,14 +30,12 @@ function fuzzySearch(cards, query, fields) {
   });
 }
 let cartasFiltradas = [];
-const cardsPerPage = 42;
 let currentPage = 1;
 let cartas = [];
 let setCategoryMap = {};
 let cartasMap = {};
 let pendingCards = {};
 let binderPage = 1;
-const binderPerPage = 20;
 let currentTcg = "one-piece";
 let pendingView = null;
 let prbBadgeMap = {};
@@ -100,6 +98,18 @@ const tcgList = [
   { id:"yugioh",      name:"Yu-Gi-Oh!",          color:"#c9a84c", short:"YG", logo:"assets/logos/yugioh.webp" },
 ];
 // ─── Helpers ──────────────────────────────────────────────────────────────
+// ponytail: páginas de filas completas (N filas × columnas reales del container)
+function pageSizeFor(container, rows) {
+  var min = 200;
+  try {
+    var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--card-min-width"), 10);
+    if (!isNaN(v) && v > 0) min = v;
+  } catch (e) {}
+  var gap = 16;
+  var w = (container && container.clientWidth) || 1000;
+  var cols = Math.max(1, Math.floor((w + gap) / (Math.min(min, w * 0.42) + gap)));
+  return { cols: cols, size: (rows || 3) * cols };
+}
 function getOrden(setId) {
   const stMatch = setId?.match(/^ST-?(\d+)$/i);
   if (stMatch) return 30 + parseInt(stMatch[1], 10);
@@ -776,6 +786,9 @@ async function migrateLocalToSupabase() {
   const hasCols = Object.keys(collections).length > 0;
   const hasVenta = Object.keys(ventaCols).length > 0;
   if (!hasCols && !hasVenta) return;
+  // ponytail: sync vacío no avisa (SIGNED_IN se re-emite al reenfocar pestaña)
+  var dirty = Object.values(collections).concat(Object.values(ventaCols)).some(function(b) { return !b._synced; });
+  if (!dirty) return;
   const toast = document.createElement("div");
   toast.className = "toast-notification";
   toast.textContent = "Migrando datos locales a la nube…";
@@ -1124,8 +1137,10 @@ function mostrarVista(vista, navState) {
     if (!window._ventaReady) {
       if (typeof skeletonCoverGrid === 'function') skeletonCoverGrid(document.getElementById("ventaList"));
       ensureCartasLoaded().then(() => { if (window._ventaReady) renderVentaList(); });
-    } else {
+    } else if (Object.keys(cartasMap).length === 0) {
       ensureCartasLoaded().then(() => renderVentaList());
+    } else {
+      renderVentaList(); // ponytail: sync si listo, skeleton solo en carga real (evita robar primer click)
     }
   } else if (vista === "venta") {
     document.getElementById("ventaView").classList.add("active");
@@ -1142,11 +1157,13 @@ function mostrarVista(vista, navState) {
       } else if (typeof skeletonCardGrid === 'function') {
         skeletonCardGrid(document.getElementById("ventaGrid"));
       }
+      ensureCartasLoaded().then(() => {
+        if (!window._ventaReady) return;
+        renderVentaView();
+      });
+    } else {
+      renderVentaView(); // ponytail: sync si listo, sin skeleton (evita robar primer click)
     }
-    ensureCartasLoaded().then(() => {
-      if (!window._ventaReady) return;
-      renderVentaView();
-    });
   } else if (vista === "tcgHome") {
     if (!currentTcg) {
       document.getElementById("tcgSelector").classList.add("active");

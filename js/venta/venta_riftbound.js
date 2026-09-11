@@ -267,7 +267,7 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
   grid.querySelectorAll(".venta-price-input").forEach(function(inp) {
     inp.addEventListener("change", function() {
       var idx = parseInt(inp.getAttribute("data-ventaidx"));
-      if (idx >= 0 && idx < col.cards.length) { col.cards[idx].customPrice = parseFloat(inp.value) || 0; guardarVenta(); renderVentaView(); }
+      if (idx >= 0 && idx < col.cards.length) { col.cards[idx].customPrice = parseFloat(inp.value) || 0; guardarVenta(); } // ponytail: sin re-render (igual que OP, no roba foco)
     });
   });
   grid.querySelectorAll(".currency-btn").forEach(function(btn) {

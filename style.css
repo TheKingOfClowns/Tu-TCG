@@ -2374,6 +2374,14 @@ body {
   background-position: right 12px center;
   padding-right: 32px;
 }
+.profile-field input[type="range"] {
+  padding: 0;
+  border: none;
+  background: transparent;
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
 .profile-field-hint {
   font-size: var(--text-xs);
@@ -2859,6 +2867,29 @@ body {
 }
 .sk-line { height: 10px; border-radius: var(--radius-sm); }
 .sk-line.short { width: 60%; }
+
+/* Tamaño de cartas y portadas ajustable (sliders en perfil).
+   Va último a propósito: pisa los grids fijos de todos los breakpoints.
+   Tracks fijos uniformes + arranque a la izquierda (sin estirar).
+   Catálogo cierra filas vía tamaño de página dinámico (catalogPageSize).
+   TCG dashboard afuera (layout propio). */
+.catalog-grid,
+.binder-grid,
+.venta-grid,
+.explore-detail-grid,
+.sk-grid,
+.collection-binder-grid,
+.explore-grid,
+.sk-covers {
+  grid-template-columns: repeat(auto-fit, min(var(--card-min-width), 42vw));
+  justify-content: start;
+}
+.deck-main-grid,
+.deck-card-grid,
+.deck-picker-grid {
+  grid-template-columns: repeat(auto-fit, min(var(--deck-min-width), 42vw));
+  justify-content: start;
+}
 
 /* Cover grid: Colecciones, Venta, Explore */
 .sk-covers {

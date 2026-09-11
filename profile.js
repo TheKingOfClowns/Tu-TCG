@@ -389,9 +389,43 @@ async function openProfile() {
   }
 }
 
+// ─── Tamaño de cartas/deck (sliders 0-100 en Preferencias, solo localStorage) ───
+
+function sizePx(v) { return Math.round(120 + v * 1.6); } // 0→120px, 50→200px, 100→280px
+
+function applySize(v, save, cfg) {
+  var val = parseInt(v, 10);
+  if (isNaN(val)) val = 50;
+  val = Math.max(0, Math.min(100, val));
+  var px = sizePx(val);
+  document.documentElement.style.setProperty(cfg.varName, px + "px");
+  var slider = document.getElementById(cfg.sliderId);
+  if (slider) slider.value = val;
+  var hint = document.getElementById(cfg.hintId);
+  if (hint) hint.textContent = val + "% · ≈" + Math.max(2, Math.floor(1100 / px)) + "/fila";
+  if (save) { try { localStorage.setItem(cfg.storageKey, String(val)); } catch (e) {} }
+  return val;
+}
+
+var CARD_SIZE_CFG = { varName: "--card-min-width", sliderId: "profileCardSize", hintId: "profileCardSizeVal", storageKey: "tutcg_card_min" };
+var DECK_SIZE_CFG = { varName: "--deck-min-width", sliderId: "profileDeckSize", hintId: "profileDeckSizeVal", storageKey: "tutcg_deck_min" };
+
+function applyCardSize(v, save) { return applySize(v, save, CARD_SIZE_CFG); }
+function applyDeckSize(v, save) { return applySize(v, save, DECK_SIZE_CFG); }
+
+function initSizeSlider(cfg, applyFn) {
+  var saved = null;
+  try { saved = localStorage.getItem(cfg.storageKey); } catch (e) {}
+  applyFn(saved, false);
+  var slider = document.getElementById(cfg.sliderId);
+  if (slider) slider.addEventListener("input", function() { applyFn(slider.value, true); });
+}
+
 // ─── Profile link handlers ────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
+  initSizeSlider(CARD_SIZE_CFG, applyCardSize);
+  initSizeSlider(DECK_SIZE_CFG, applyDeckSize);
   const sidebarUser = document.getElementById("sidebarUser");
   if (sidebarUser) {
     sidebarUser.addEventListener("click", () => { openProfile(); });
