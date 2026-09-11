@@ -1,10 +1,36 @@
 # TuTCG — Session Context
 
 ## Fecha
-2026-09-06
+2026-09-11
 
 ## Proyecto
-App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy manual con `wrangler pages deploy`.
+App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy automático por push a `master` (vía principal desde 2026-09-11).
+
+## Sesión 2026-09-11 — Promos rotas, sliders tamaño, páginas de 3 filas
+
+### Fix promos sin imagen (case-sensitivity)
+- Síntoma: `tutcg.pages.dev/catalog?expansion=PROMO` con >60% roto, F12 limpio (200 con HTML fallback SPA, no 404).
+- Causa: 161 archivos en `en/PROMO/` en mayúscula en disco vs minúscula en JSON; Windows perdona, Pages/Linux no. Git `core.ignorecase` ocultaba que el ÍNDICE también estaba en mayúsculas → los auto-deploys desde GitHub seguían rotos tras el fix de disco.
+- Fix: renames a minúscula en disco + 7 refs duplicadas unificadas a variante existente (`047a6b6`) + 154 renames en ÍNDICE vía `git mv -f` (`88aea20`) + `.toLowerCase()` en `scrape_set.js`/`scrape_set_en.js`. Auditoría final: 11333 refs, 0 faltantes. Prod verificado 120/120 webp. Deploy final `5cf937cc`.
+- Lección: builds corren en Linux; auditar `git ls-files` vs JSON case-sensitive, no solo disco.
+
+### Sliders tamaño cartas/deck (perfil → Preferencias)
+- Dos ranges 0–100 (`#profileCardSize`, `#profileDeckSize`), mapeo `px = 120 + v×1.6`, label `% · ≈N/fila`, `localStorage` (`tutcg_card_min`, `tutcg_deck_min`), default 50 (≈5/fila, layout anterior). Solo local, fuera de Supabase.
+- CSS: token muerto `--card-min-width` reutilizado (200px) + nuevo `--deck-min-width`; UN bloque override al final de `style.css` (pisa `repeat` fijos de todos los breakpoints): tracks fijos `repeat(auto-fit, min(var(--x), 42vw))`, arranque izquierda. `44vw→42vw` para 2 cols en 360px. Covers incluidas (`.collection-binder-grid`, `.explore-grid`, `.sk-covers`); TCG dashboard y modal afuera.
+- Lógica en `profile.js`: `applySize(v, save, cfg)` + `initSizeSlider`; `applyCardSize`/`applyDeckSize` kept como wrappers.
+
+### Páginas de 3 filas exactas (catálogo, colección, ventas, explore)
+- Helper global `pageSizeFor(container, 3)` (`script.js`): columnas reales `floor((ancho+16)/(min+16))`, devuelve `3×cols` (9 cols → 27/pág). Elimina `cardsPerPage`/`binderPerPage`/`ventaPerPage`.
+- Catálogo (`catalog.js`), binder OP/RB/dispatcher/tracking (`binder.js`, `binder_riftbound.js`, `dispatcher_binder.js`, `tracking.js`), ventas OP/RB individual+grouped (`venta.js`, `venta_riftbound.js`; PK delega), explore lista (`explorePage`, prev/next solo si >1) y explore detalle (`exploreDetailPage`, `navList` completa para modal con `startIdx` global).
+- Reset a pág 1 en filtros/tabs/búsqueda/binder; clamp si el total achica; resize con debounce por vista (explore solo si cambian columnas, evita flashes).
+- Afuera: deck-subtype y tracking-checklist (listas finitas, todo visible), portadas de listas, `?page` en explore (solo memoria). Última página de listas finitas puede quedar parcial (sin arreglo posible).
+
+### Fixes UX chicos (mismo día)
+- Precio venta RB robaba foco (`venta_riftbound.js:270` re-renderizaba en `change`; ahora solo `guardarVenta()`, igual que OP) + `mostrarVista` venta renderiza sync si datos listos (sin skeleton que se comía el primer click).
+- Toast "Datos sincronizados" en cada vuelta de pestaña: supabase-js re-emite `SIGNED_IN` al reenfocar → early-return si ningún binder tiene `_synced=false` (`script.js:780`).
+
+### Commits del día
+`047a6b6` fix case disco+JSON → `88aea20` fix case índice → `956172f` sliders+3 filas+fixes UX → `e05da7d` 3 filas en ventas+explore. Todos pusheados a `master` (auto-deploy).
 
 ## Arquitectura modular
 Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatcher que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás.
