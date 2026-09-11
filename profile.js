@@ -413,19 +413,9 @@ var DECK_SIZE_CFG = { varName: "--deck-min-width", sliderId: "profileDeckSize", 
 function applyCardSize(v, save) { return applySize(v, save, CARD_SIZE_CFG); }
 function applyDeckSize(v, save) { return applySize(v, save, DECK_SIZE_CFG); }
 
-function initSizeSlider(cfg, applyFn) {
-  var saved = null;
-  try { saved = localStorage.getItem(cfg.storageKey); } catch (e) {}
-  applyFn(saved, false);
-  var slider = document.getElementById(cfg.sliderId);
-  if (slider) slider.addEventListener("input", function() { applyFn(slider.value, true); });
-}
-
 // ─── Profile link handlers ────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
-  initSizeSlider(CARD_SIZE_CFG, applyCardSize);
-  initSizeSlider(DECK_SIZE_CFG, applyDeckSize);
   const sidebarUser = document.getElementById("sidebarUser");
   if (sidebarUser) {
     sidebarUser.addEventListener("click", () => { openProfile(); });

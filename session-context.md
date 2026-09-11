@@ -14,13 +14,13 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftb
 - Fix: renames a minúscula en disco + 7 refs duplicadas unificadas a variante existente (`047a6b6`) + 154 renames en ÍNDICE vía `git mv -f` (`88aea20`) + `.toLowerCase()` en `scrape_set.js`/`scrape_set_en.js`. Auditoría final: 11333 refs, 0 faltantes. Prod verificado 120/120 webp. Deploy final `5cf937cc`.
 - Lección: builds corren en Linux; auditar `git ls-files` vs JSON case-sensitive, no solo disco.
 
-### Sliders tamaño cartas/deck (perfil → Preferencias)
-- Dos ranges 0–100 (`#profileCardSize`, `#profileDeckSize`), mapeo `px = 120 + v×1.6`, label `% · ≈N/fila`, `localStorage` (`tutcg_card_min`, `tutcg_deck_min`), default 50 (≈5/fila, layout anterior). Solo local, fuera de Supabase.
+### Opciones de vista (popover ⚙ en catálogo/binder/venta/explore)
+- Popover compartido `js/viewOpts.js`: slider tamaño cartas + slider tamaño deck (0–100, `px = 120 + v×1.6`, `localStorage` `tutcg_card_min`/`tutcg_deck_min`, default 50), filas por página 2–6 (`tutcg_page_rows`, default 3), count `Auto/10/20/30/40` (`tutcg_page_size`, `""`=Auto). Todo local, fuera de Supabase. Sliders sacados del perfil (2026-09-11).
 - CSS: token muerto `--card-min-width` reutilizado (200px) + nuevo `--deck-min-width`; UN bloque override al final de `style.css` (pisa `repeat` fijos de todos los breakpoints): tracks fijos `repeat(auto-fit, min(var(--x), 42vw))`, arranque izquierda. `44vw→42vw` para 2 cols en 360px. Covers incluidas (`.collection-binder-grid`, `.explore-grid`, `.sk-covers`); TCG dashboard y modal afuera.
-- Lógica en `profile.js`: `applySize(v, save, cfg)` + `initSizeSlider`; `applyCardSize`/`applyDeckSize` kept como wrappers.
+- Lógica en `profile.js`: `applySize(v, save, cfg)`; `applyCardSize`/`applyDeckSize` kept como wrappers (los usa el popover; arranque aplica guardados vía `viewOpts.js`).
 
-### Páginas de 3 filas exactas (catálogo, colección, ventas, explore)
-- Helper global `pageSizeFor(container, 3)` (`script.js`): columnas reales `floor((ancho+16)/(min+16))`, devuelve `3×cols` (9 cols → 27/pág). Elimina `cardsPerPage`/`binderPerPage`/`ventaPerPage`.
+### Páginas configurables (filas 2–6 o count fijo, catálogo/colección/ventas/explore)
+- Helper global `pageSizeFor(container, rows)` (`script.js`): columnas reales `floor((ancho+16)/(min+16))`; si hay count manual devuelve ese `size`, si no `filas×cols` (filas de `tutcg_page_rows`, default 3). Elimina `cardsPerPage`/`binderPerPage`/`ventaPerPage`.
 - Catálogo (`catalog.js`), binder OP/RB/dispatcher/tracking (`binder.js`, `binder_riftbound.js`, `dispatcher_binder.js`, `tracking.js`), ventas OP/RB individual+grouped (`venta.js`, `venta_riftbound.js`; PK delega), explore lista (`explorePage`, prev/next solo si >1) y explore detalle (`exploreDetailPage`, `navList` completa para modal con `startIdx` global).
 - Reset a pág 1 en filtros/tabs/búsqueda/binder; clamp si el total achica; resize con debounce por vista (explore solo si cambian columnas, evita flashes).
 - Afuera: deck-subtype y tracking-checklist (listas finitas, todo visible), portadas de listas, `?page` en explore (solo memoria). Última página de listas finitas puede quedar parcial (sin arreglo posible).

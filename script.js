@@ -97,7 +97,7 @@ const tcgList = [
   { id:"yugioh",      name:"Yu-Gi-Oh!",          color:"#c9a84c", short:"YG", logo:"assets/logos/yugioh.webp" },
 ];
 // ─── Helpers ──────────────────────────────────────────────────────────────
-// ponytail: páginas de filas completas (N filas × columnas reales del container)
+// ponytail: páginas de filas completas (N filas × columnas reales) salvo count manual 10/20/30/40
 function pageSizeFor(container, rows) {
   var min = 200;
   try {
@@ -107,7 +107,16 @@ function pageSizeFor(container, rows) {
   var gap = 16;
   var w = (container && container.clientWidth) || 1000;
   var cols = Math.max(1, Math.floor((w + gap) / (Math.min(min, w * 0.42) + gap)));
-  return { cols: cols, size: (rows || 3) * cols };
+  try {
+    var fixed = parseInt(localStorage.getItem("tutcg_page_size"), 10);
+    if (!isNaN(fixed) && fixed >= 10 && fixed <= 40) return { cols: cols, size: fixed };
+  } catch (e) {}
+  var r = rows || 3;
+  try {
+    var stored = parseInt(localStorage.getItem("tutcg_page_rows"), 10);
+    if (!isNaN(stored) && stored >= 2 && stored <= 6) r = stored;
+  } catch (e) {}
+  return { cols: cols, size: r * cols };
 }
 function getOrden(setId) {
   const stMatch = setId?.match(/^ST-?(\d+)$/i);

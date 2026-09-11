@@ -327,6 +327,7 @@
             </div>
             </div>
           <div class="catalog-toolbar-right">
+            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
             <label class="catalog-target-label" id="catalogTargetLabel" style="display:none">
               <span>Agregando a:</span>
               <select id="catalogTargetSelect">
@@ -395,6 +396,7 @@
             <h2 id="binderTitle">Binder</h2>
             <div class="binder-header-actions" id="binderPublicToggleContainer"></div>
             <div class="binder-header-actions">
+              <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
               <button class="btn-danger btn-sm" id="binderClearPageBtn">Vaciar página</button>
               <button class="btn-danger btn-sm" id="binderClearAllBtn">Vaciar todo</button>
             </div>
@@ -449,6 +451,7 @@
             <div class="binder-header-actions" id="ventaPublicToggleContainer"></div>
             <div class="binder-header-actions" id="ventaModeContainer"></div>
             <div class="binder-header-actions">
+              <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
               <button class="btn-danger btn-sm" id="ventaClearPageBtn">Vaciar página</button>
               <button class="btn-danger btn-sm" id="ventaClearAllBtn">Vaciar todo</button>
             </div>
@@ -468,6 +471,7 @@
         <div class="collection-inner">
           <div class="collection-header">
             <h2>Explorar Binders Públicos</h2>
+            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
           </div>
           <div id="exploreContainer"></div>
         </div>
@@ -482,6 +486,7 @@
               Volver
             </button>
             <h2 id="exploreDetailTitle">Binder</h2>
+            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
           </div>
           <div id="exploreDetailContainer"></div>
         </div>
@@ -547,14 +552,6 @@
                         <option value="USD">USD ($)</option>
                         <option value="ARS">ARS ($)</option>
                       </select>
-                    </div>
-                    <div class="profile-field profile-field-full">
-                      <label for="profileCardSize">Tamaño de cartas <span id="profileCardSizeVal" class="profile-field-hint"></span></label>
-                      <input type="range" id="profileCardSize" min="0" max="100" step="1" value="50">
-                    </div>
-                    <div class="profile-field profile-field-full">
-                      <label for="profileDeckSize">Tamaño de deck <span id="profileDeckSizeVal" class="profile-field-hint"></span></label>
-                      <input type="range" id="profileDeckSize" min="0" max="100" step="1" value="50">
                     </div>
                     <div class="profile-field profile-field-full">
                       <label class="profile-toggle-label">
@@ -799,5 +796,6 @@
   <script src="js/skeleton.js?v=1"></script>
   <script src="script.js?v=57"></script>
   <script src="profile.js"></script>
+  <script src="js/viewOpts.js?v=1"></script>
 </body>
 </html>

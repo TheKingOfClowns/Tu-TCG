@@ -45,13 +45,14 @@ async function signUp(email, password, username, firstName, lastName) {
   if (error) throw error;
 
   if (data?.user) {
-    await supabaseClient.from("profiles").upsert({
+    const { error: profileError } = await supabaseClient.from("profiles").upsert({
       id: data.user.id,
       username,
       display_name: username,
       first_name: firstName,
       last_name: lastName
     });
+    if (profileError) throw profileError;
   }
 
   return data;
@@ -190,7 +191,7 @@ function showAuthModal(mode) {
   } else if (mode === "register") {
     title.textContent = "Crear cuenta";
     fields.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px">
         <input type="text" id="authFirstName" placeholder="Nombre" required autocomplete="given-name">
         <input type="text" id="authLastName" placeholder="Apellido" required autocomplete="family-name">
       </div>
@@ -218,6 +219,21 @@ function hideAuthModal() {
   document.getElementById("authError").style.display = "none";
   document.getElementById("authSuccess").style.display = "none";
   window._pendingView = null;
+}
+
+// ponytail: solo mapea strings conocidos de Supabase; si Auth tiene anti-enumeración, email duplicado devuelve éxito falso y no hay error que mapear (pasar a RPC/trigger).
+function friendlyAuthError(err) {
+  const code = err?.code || err?.status || "";
+  const msg = (err?.message || "").toLowerCase();
+  if (code === "23505" || (msg.includes("duplicate") && msg.includes("username")) || (msg.includes("already exists") && msg.includes("username")))
+    return "Ese nombre de usuario ya está en uso. Elegí otro.";
+  if (code === "user_already_exists" || code === "email_exists" || msg.includes("already registered") || msg.includes("already exists") || msg.includes("already been registered"))
+    return "Ese email ya está registrado. Iniciá sesión o recuperá tu contraseña.";
+  if (msg.includes("invalid login credentials"))
+    return "Email o contraseña incorrectos.";
+  if (msg.includes("password should be at least") || msg.includes("password must be"))
+    return "La contraseña debe tener al menos 6 caracteres.";
+  return err?.message || "Error de autenticación";
 }
 
 async function handleAuthSubmit(e) {
@@ -254,7 +270,7 @@ async function handleAuthSubmit(e) {
       return;
     }
   } catch (err) {
-    errorEl.textContent = err.message || "Error de autenticación";
+    errorEl.textContent = friendlyAuthError(err);
     errorEl.style.display = "block";
   }
 }
