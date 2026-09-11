@@ -3452,6 +3452,19 @@ body {
   border-color: rgba(0, 240, 255, 0.35);
   color: var(--accent);
 }
+.toast-notification:has(.toast-undo-btn) { display: flex; align-items: center; gap: var(--space-3); }
+.toast-undo-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.toast-undo-btn:hover { background: var(--accent-dim); }
 
 /* ─── Tracking Binder ─────────────────────────────────────────────────────── */
 .tracking-header {

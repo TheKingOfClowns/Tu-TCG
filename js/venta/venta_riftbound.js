@@ -262,7 +262,7 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
     btn.addEventListener("click", function(e) {
       e.stopPropagation();
       var idx = parseInt(btn.getAttribute("data-idx"));
-      if (idx >= 0 && idx < col.cards.length) { col.cards.splice(idx, 1); guardarVenta(); renderVentaView(); }
+      if (idx >= 0 && idx < col.cards.length) { removeEntryWithUndo(col, idx, guardarVenta, renderVentaView); }
     });
   });
   grid.querySelectorAll(".venta-price-input").forEach(function(inp) {

@@ -344,15 +344,13 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       const idx = parseInt(btn.getAttribute("data-ventaidx"));
       const btnMode = btn.getAttribute("data-mode") || "individual";
       if (btnMode === "individual") {
-        col.cards.splice(idx, 1);
+        removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
       } else {
         const entry = col.cards.find((_, i) => i === idx);
         if (!entry) return;
-        if (entry.quantity > 1) entry.quantity--;
-        else col.cards.splice(idx, 1);
+        if (entry.quantity > 1) { entry.quantity--; guardarVenta(); renderVentaView(); }
+        else removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
       }
-      guardarVenta();
-      renderVentaView();
     });
   });
   // Price inputs
@@ -400,10 +398,8 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       const idx = parseInt(btn.getAttribute("data-ventaidx"));
       const col = ventaCols[currentVentaId];
       if (!col || !col.cards[idx]) return;
-      if (col.cards[idx].quantity > 1) col.cards[idx].quantity--;
-      else col.cards.splice(idx, 1);
-      guardarVenta();
-      renderVentaView();
+      if (col.cards[idx].quantity > 1) { col.cards[idx].quantity--; guardarVenta(); renderVentaView(); }
+      else removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
     });
   });
   // Quantity inputs (editable mode)
@@ -413,10 +409,8 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       const col = ventaCols[currentVentaId];
       if (!col || !col.cards[idx]) return;
       const val = parseInt(inp.value);
-      if (val < 1) { col.cards.splice(idx, 1); }
-      else { col.cards[idx].quantity = Math.min(val, 50); }
-      guardarVenta();
-      renderVentaView();
+      if (val < 1) { removeEntryWithUndo(col, idx, guardarVenta, renderVentaView); }
+      else { col.cards[idx].quantity = Math.min(val, 50); guardarVenta(); renderVentaView(); }
     });
   });
   // Click to open card modal

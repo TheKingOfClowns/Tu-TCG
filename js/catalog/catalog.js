@@ -206,9 +206,8 @@ function renderCards() {
       const targetCol = getCatalogTargetCol();
       if (!targetCol) return;
       if (removeOneFromTarget(targetCol, key, catalogTargetType === "venta")) {
-        if (typeof showToast === "function") showToast('Quitada de "' + targetCol.name + '"', "info");
+        actualizarBadgesEnPagina();
       }
-      actualizarBadgesEnPagina();
     });
   });
   actualizarBadgesEnPagina();
@@ -242,11 +241,10 @@ function removeOneFromTarget(col, key, isVenta) {
   var isGrouped = col.display_mode === "playset" || col.display_mode === "editable";
   if (isGrouped && (row.quantity || 1) > 1) {
     row.quantity = (row.quantity || 1) - 1;
-  } else {
-    cards.splice(idx, 1);
+    if (isVenta) guardarVenta(); else guardarCollections();
+    return true;
   }
-  if (isVenta) guardarVenta(); else guardarCollections();
-  return true;
+  return removeEntryWithUndo(col, idx, isVenta ? guardarVenta : guardarCollections, actualizarBadgesEnPagina);
 }
 
 function actualizarBadgesEnPagina() {

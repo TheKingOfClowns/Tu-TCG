@@ -172,6 +172,10 @@ Reemplazo total del flujo anterior (Seleccionar + modal "Añadir a colecciones")
 - **Deck flow intacto**: banner "Agregando a: X" + buffer `pendingCards` + botón "Agregar" (`catalogAddConfirm`); `abrirModal` con `addingToBinderId` agrega a pendientes.
 - `refreshCatalogTargetSelect()` se llama al entrar al catálogo, en `_markCollectionsReady`/`_markVentaReady` y en `limpiarAddingState`.
 
+### Quitar cartas — confirm + Deshacer (2026-09-11)
+- `removeEntryWithUndo(col, idx, save, render)` (`script.js`): confirma solo si es la última copia (o stack completo), snapshot `col.cards`, toast "Carta quitada" con botón Deshacer 8s, un solo nivel. Decrementos parciales (grouped −, qty) sin confirm (recuperables con +).
+- Call sites: binder ✕ (`removeFromCurrentCollection`, RB reusa, PK vía OP), venta ✕/−/qty-input (OP+RB), catálogo `−` (`removeOneFromTarget`, render=`actualizarBadgesEnPagina`). Deck/tracking afuera.
+
 ### Flujo "agregar al binder" (histórico, eliminado 2026-09-06)
 - `modals.js:524` — `abrirModal()` checkea `addingToBinderId`: si está seteado, agrega la carta a `pendingCards` en vez de abrir el modal
 - `modals.js:543` — `addCardToPending(carta, key)` extraída como helper

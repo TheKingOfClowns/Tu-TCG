@@ -255,9 +255,7 @@ function renderBinder_OP() {
 function removeFromCurrentCollection(realIdx) {
   const col = collections[currentCollectionId];
   if (!col) return;
-  col.cards.splice(realIdx, 1);
-  guardarCollections();
-  renderBinder();
+  removeEntryWithUndo(col, realIdx, guardarCollections, renderBinder);
 }
 function setupBinderDragDrop() {
   const slots = document.querySelectorAll("#binderGrid .card");

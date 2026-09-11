@@ -352,6 +352,57 @@ function showToast(msg, type) {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
+// ponytail: Deshacer de un solo nivel; una quitada nueva pisa la anterior
+var _lastRemoval = null;
+var _undoTimer = null;
+function countKeyCopies(col, key) {
+  var n = 0;
+  (col.cards || []).forEach(function (c) { if (c && c._key === key) n += (c.quantity || 1); });
+  return n;
+}
+function removeEntryWithUndo(col, idx, save, render) {
+  if (!col || !col.cards || idx < 0 || idx >= col.cards.length) return false;
+  var entry = col.cards[idx];
+  var qty = entry.quantity || 1;
+  if (countKeyCopies(col, entry._key) - qty <= 0) {
+    if (!confirm(qty > 1 ? ("Quitar las " + qty + " copias de esta carta? (podés deshacer)") : "Quitar esta carta? (podés deshacer)")) return false;
+  }
+  var snap = null;
+  try { snap = JSON.stringify(col.cards); } catch (e) {}
+  col.cards.splice(idx, 1);
+  save(); render();
+  _lastRemoval = { col: col, snap: snap, save: save, render: render };
+  showUndoToast("Carta quitada");
+  return true;
+}
+function undoLastRemoval() {
+  var r = _lastRemoval;
+  _lastRemoval = null;
+  if (!r || !r.snap) return;
+  try { r.col.cards = JSON.parse(r.snap); } catch (e) { return; }
+  r.save(); r.render();
+}
+function showUndoToast(msg) {
+  var existing = document.querySelector(".toast-notification");
+  if (existing) existing.remove();
+  if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+  var toast = document.createElement("div");
+  toast.className = "toast-notification info";
+  var span = document.createElement("span");
+  span.textContent = msg;
+  var btn = document.createElement("button");
+  btn.textContent = "Deshacer";
+  btn.className = "toast-undo-btn";
+  btn.addEventListener("click", function () {
+    if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+    toast.remove();
+    undoLastRemoval();
+  });
+  toast.appendChild(span);
+  toast.appendChild(btn);
+  document.body.appendChild(toast);
+  _undoTimer = setTimeout(function () { toast.remove(); _lastRemoval = null; }, 8000);
+}
 function decodeHtml(str) {
   const txt = document.createElement("textarea");
   txt.innerHTML = str;
