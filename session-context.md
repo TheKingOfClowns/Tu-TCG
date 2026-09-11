@@ -357,12 +357,12 @@ Revisión completa del proyecto (script.js, 31 módulos, HTML, CSS, datos, repo)
 - `navigateToView` ya no llama `mostrarVista` (solo `onNavigate`); en catálogo con `cartasMap` vacío hace `cargarCartas()` y re-renderiza.
 - Tokens sin uso de design-system.css se dejaron a propósito (reserva del design system).
 
-## Deploy
+## Deploy (auto por push a master — vía principal desde 2026-09-11)
 - URL último deploy: `https://5cf937cc.tutcg.pages.dev` (2026-09-11, fix case imágenes promo)
-- Cloudflare login autenticado via `wrangler login`
-- Comando: `npx wrangler pages deploy .` (sin --project-name, lo detecta solo)
-- NO hacer deploy sin que el usuario lo pida explícitamente.
-- Warning: si hay cambios sin commitear, pasar `--commit-dirty=true` o commitear antes.
+- Cada push a `master` dispara build+deploy solo (~2 min). NO usar `wrangler pages deploy` manual salvo emergencia: el próximo push lo pisa y si sale de disco desfasado rompe prod (caso 2026-09-11).
+- Builds corren en Linux (case-sensitive): verificar case de assets vs JSON antes de pushear.
+- NO pushear/deploys sin que el usuario lo pida explícitamente.
+- Cloudflare login autenticado via `wrangler login` (respaldo manual: `npx wrangler pages deploy . --commit-dirty=true`).
 
 ## Venta — Moneda ARS/USD (2026-08-28)
 
