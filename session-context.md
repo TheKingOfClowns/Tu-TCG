@@ -28,16 +28,22 @@ App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftb
 ### Fixes UX chicos (mismo día)
 - Precio venta RB robaba foco (`venta_riftbound.js:270` re-renderizaba en `change`; ahora solo `guardarVenta()`, igual que OP) + `mostrarVista` venta renderiza sync si datos listos (sin skeleton que se comía el primer click).
 - Toast "Datos sincronizados" en cada vuelta de pestaña: supabase-js re-emite `SIGNED_IN` al reenfocar → early-return si ningún binder tiene `_synced=false` (`script.js:780`).
+- Registro: apellido desbordaba el modal (grid `1fr 1fr` sin `minmax`) → `minmax(0,1fr)` + `input{min-width:0;width:100%}` (`auth.js`, `style.css`).
+- Portadas con slider chico cortaban el nombre (`ellipsis` 1 línea) → clamp 2 líneas + `overflow-wrap:anywhere` en `.binder-cover-name-badge`, `min-width:0` en meta (`12dfffc` y fix posterior).
+
+### Mensajes de error auth (2026-09-11)
+- `friendlyAuthError(err)` (`auth.js`): mapea `23505`/username duplicado, email registrado, login inválido, pass corta a español. `signUp` ahora propaga error del `upsert` de profile (antes se tragaba el duplicado).
+- Techo: con anti-enumeración activa el email duplicado devuelve éxito falso → pasar a RPC/trigger.
 
 ### Commits del día
-`047a6b6` fix case disco+JSON → `88aea20` fix case índice → `956172f` sliders+3 filas+fixes UX → `e05da7d` 3 filas en ventas+explore. Todos pusheados a `master` (auto-deploy).
+`047a6b6` fix case disco+JSON → `88aea20` fix case índice → `956172f` sliders+3 filas+fixes UX → `e05da7d` 3 filas en ventas+explore → `1ea4ae7` docs sesión → `12dfffc` popover vista+mensajes auth+fix apellido → `86b8e1d` confirm+Deshacer quitadas → `cf245b0` bumps `?v=` cache-busting → `6e62be7` planes+tripulaciones. Todos pusheados a `master` (auto-deploy). Lección 2026-09-11: bumpear `?v=` en cada JS con cambios (navegadores cachean por URL; Live Server incluido).
 
 ## Arquitectura modular
 Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatcher que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás.
 
 - `index.html` — Layout principal + orden de carga de scripts
 - `style.css` / `design-system.css` — Estilos y tokens
-- `script.js` — Lógica principal (~1570 líneas), estado global, sync Supabase
+- `script.js` — Lógica principal (~1830 líneas), estado global, sync Supabase, borrador staged, planes
 - `js/state.js` — Estado (`window.state`, solo `catalog.catalogLanguage`)
 - `js/tcg/{tcg}/config.js` — Config por TCG (deckRules, rarities, cardTypes, colors, etc.)
 - `js/modals/modals.js` — Modal de carta, `_confirmAddDeck_*`, `addPendingCardsToCol`, create modal
@@ -47,11 +53,12 @@ Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatche
 - `js/deck/deck.js` + `_RB` + `_PK` + `dispatcher.js` — Deck builder
 - `js/tracking/tracking.js` + `_RB` + `_PK` + `dispatcher_tracking.js` — Tracking
 - `js/explore/explore.js` — Vista explore
+- `js/viewOpts.js` — Popover ⚙ (tamaño, filas, count), `pageSizeFor` lo lee vía localStorage
 - `auth.js` / `profile.js` — Autenticación y perfil Supabase
 
 ## Supabase
 - Cliente: `supabase.js` (`SUPABASE_URL` + `SUPABASE_ANON_KEY` hardcodeadas — son keys publishable, aptas para frontend; `.env.example` queda como referencia)
-- Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles`
+- Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles` (`plan_level`, `crew`, `is_admin` desde 2026-09-11)
 - Edge Function: `sync-binder-cards-v3` (fuente en `supabase/functions/sync-binder-cards-v3/`, llama a la RPC `sync_binder_cards_atomic`)
 
 ### Configuración de credenciales
@@ -545,11 +552,11 @@ function isValidPhone(phone) // líneas ~163-168
 // Validación en handleProfileSave (líneas ~200-215)
 ```
 
-## User Plan Label — "Nakama" (2026-08-31)
+## User Plan Label — "Nakama" (2026-08-31, dinámico desde 2026-09-11)
 
 ### Cambio realizado
 - "Premium" → "Nakama" en el label del plan de usuario
-- Todos los usuarios ahora ven "Nakama" (el tipo "Nakama Premium" se implementará más adelante)
+- Desde planes: `tierLabel()` (`script.js`) — L0 "Nakama", L1/L2 nombre de crew, admin su crew. Ver `## Planes y tripulaciones`.
 
 ### Archivos modificados
 - `auth.js:160` — `sidebarUserPlan.textContent = "Nakama"`
@@ -644,8 +651,10 @@ El catch de `renderExploreView` mostraba el error también para requests abortad
 - `CREWS` (10 en inglés + color), `PLAN_LIMITS` en `script.js`. `getMyPlan()` (cache 60s), `guardSpaceForNew()` (count server cross-TCG) en dispatchers colección/venta + `confirmCreateTracking` OP/RB (PK delega; `_appendTo` no consume espacio).
 - Cap al agregar: `overCardCap()` en `addPendingCardsToCol` (quick-add + deck flow), steppers/input venta OP/RB. Tracking-targets exentos (jsonb).
 - Triggers `trg_binders_limit` / `trg_binder_cards_cap` (`SECURITY DEFINER`, suman `quantity`); `limitToast()` mapea `LIMIT_*` en sync. Contador "N/M espacios" en listas, picker crew en perfil (nivel≥1/admin), label sidebar dinámico.
+- Limpieza usuarios (2026-09-11): borrado `TheKingOfClowns` viejo vacío (60aa, 0 datos, CASCADE limpió profile) + rename `TheKingOfCl0wns` → `TheKingOfClowns` (d888, 23 binders intactos) en `profiles` + `auth.users.raw_user_meta_data`.
 
 ## Pendiente de sesión anterior
+- Checkout MercadoPago + webhook (setea `plan_level`+`crew`) + badge crew en explore
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`
 - Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
 - Agregar filtros de flags (checkboxes) en el catálogo para Pokémon
