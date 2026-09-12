@@ -7,7 +7,7 @@
   <title>TuTCG</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="design-system.css?v=3">
-<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
@@ -375,7 +375,7 @@
       <section class="view-pane" id="collectionManager" style="display:none">
         <div class="collection-inner">
           <div class="collection-header">
-            <h2>Mis Colecciones</h2>
+            <h2>Mis Colecciones <span class="space-counter" id="spaceCounterCol"></span></h2>
             <div style="display:flex;gap:var(--space-2)">
               <button class="btn-primary" id="createCollectionBtn">+ Nueva</button>
               <button class="btn-primary" id="createTrackingBtn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">+ Tracking</button>
@@ -432,7 +432,7 @@
       <section class="view-pane" id="ventaManager" style="display:none">
         <div class="collection-inner">
           <div class="collection-header">
-            <h2>Mis Ventas</h2>
+            <h2>Mis Ventas <span class="space-counter" id="spaceCounterVenta"></span></h2>
             <button class="btn-primary" id="createVentaBtn">+ Nueva</button>
           </div>
           <div class="collection-list" id="ventaList"></div>
@@ -563,6 +563,12 @@
                       </label>
                     </div>
                   </div>
+                </div>
+
+                <!-- Subscription -->
+                <div class="profile-section">
+                  <h3 class="profile-section-title">Suscripción</h3>
+                  <div id="planBlock"><p class="profile-field-hint">Cargando…</p></div>
                 </div>
               </div>
 
@@ -752,6 +758,24 @@
     </div>
   </div>
 
+  <!-- ═══ DRAFT BAR + EXIT MODAL ═══ -->
+  <div id="draftBar" class="draft-bar glass-panel" style="display:none">
+    <span class="draft-dot">●</span><span>Cambios sin guardar</span>
+    <button class="btn-ghost btn-sm" id="draftDiscardBtn">Descartar</button>
+    <button class="btn-primary btn-sm" id="draftSaveBtn">Guardar</button>
+  </div>
+  <div class="modal-overlay-dark" id="draftModal" style="display:none">
+    <div class="add-modal-panel glass-panel" style="max-width:360px">
+      <h3>Cambios sin guardar</h3>
+      <p id="draftModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0">Tenés cambios sin guardar. ¿Qué querés hacer?</p>
+      <div class="add-modal-actions">
+        <button class="btn-ghost" id="draftStayBtn">Seguir editando</button>
+        <button class="btn-ghost" id="draftModalDiscardBtn">Descartar</button>
+        <button class="btn-primary" id="draftModalSaveBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ USER MENU DROPDOWN ═══ -->
   <div class="dropdown-menu glass-panel" id="userDropdown" style="display:none">
     <div class="dropdown-item" id="dropdownProfile">
@@ -767,35 +791,35 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="supabase.js?v=2"></script>
-  <script src="auth.js?v=3"></script>
+  <script src="auth.js?v=5"></script>
   <script src="js/state.js?v=1"></script>
   <script src="js/tcg/onepiece/config.js?v=1"></script>
   <script src="js/tcg/riftbound/config.js?v=1"></script>
   <script src="js/tcg/pokemon/config.js?v=1"></script>
   <script src="js/registry.js?v=1"></script>
-  <script src="js/catalog/catalog.js?v=6"></script>
+  <script src="js/catalog/catalog.js?v=7"></script>
   <script src="js/binder/binder.js?v=3"></script>
   <script src="js/binder/binder_riftbound.js?v=2"></script>
   <script src="js/binder/binder_pokemon.js?v=1"></script>
-  <script src="js/binder/dispatcher_binder.js?v=2"></script>
-  <script src="js/venta/venta.js?v=3"></script>
-  <script src="js/venta/venta_riftbound.js?v=3"></script>
+  <script src="js/binder/dispatcher_binder.js?v=3"></script>
+  <script src="js/venta/venta.js?v=4"></script>
+  <script src="js/venta/venta_riftbound.js?v=4"></script>
   <script src="js/venta/venta_pokemon.js?v=1"></script>
-  <script src="js/venta/dispatcher_venta.js?v=2"></script>
+  <script src="js/venta/dispatcher_venta.js?v=3"></script>
   <script src="js/explore/explore.js?v=6"></script>
   <script src="js/deck/deck.js?v=1"></script>
   <script src="js/deck/deck_riftbound.js?v=1"></script>
   <script src="js/deck/deck_pokemon.js?v=1"></script>
   <script src="js/deck/dispatcher.js?v=2"></script>
-  <script src="js/tracking/tracking.js?v=1"></script>
-  <script src="js/tracking/tracking_riftbound.js?v=2"></script>
+  <script src="js/tracking/tracking.js?v=2"></script>
+  <script src="js/tracking/tracking_riftbound.js?v=3"></script>
   <script src="js/tracking/tracking_pokemon.js?v=1"></script>
   <script src="js/tracking/dispatcher_tracking.js?v=1"></script>
-  <script src="js/modals/modals.js?v=2"></script>
+  <script src="js/modals/modals.js?v=3"></script>
   <script src="js/router.js?v=2"></script>
   <script src="js/skeleton.js?v=1"></script>
-  <script src="script.js?v=58"></script>
-  <script src="profile.js?v=1"></script>
+  <script src="script.js?v=60"></script>
+  <script src="profile.js?v=2"></script>
   <script src="js/viewOpts.js?v=1"></script>
 </body>
 </html>

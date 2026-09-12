@@ -7,7 +7,8 @@
     return (s && window[name + "_" + s]) || window[name + "_OP"];
   }
 
-  window.pedirCrearColeccion = function pedirCrearColeccion() {
+  window.pedirCrearColeccion = async function pedirCrearColeccion() {
+    if (typeof guardSpaceForNew === "function" && !(await guardSpaceForNew())) return;
     return _fn("pedirCrearColeccion")();
   };
 

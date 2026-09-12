@@ -245,8 +245,7 @@ function buildTrackingCardList(type, config) {
   return cards;
 }
 
-function confirmCreateTracking() {
-  const name = document.getElementById("trackingNameInput").value.trim();
+async function confirmCreateTracking() {  const name = document.getElementById("trackingNameInput").value.trim();
   const type = document.getElementById("trackingTypeSelect").value;
   let config = {};
   const includeAA = document.getElementById("trackingIncludeAA")?.classList?.contains("on") ?? true;
@@ -295,6 +294,7 @@ function confirmCreateTracking() {
   }
   if (!name) return;
   if (!newCards.length) { showToast("No se encontraron cartas con esos filtros", "error"); return; }
+  if (typeof guardSpaceForNew === "function" && !(await guardSpaceForNew())) return;
   const id = generarId();
   collections[id] = {
     id, name, subtype: "tracking",

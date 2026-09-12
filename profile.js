@@ -57,6 +57,59 @@ function populateProfileForm(profile) {
   renderSocialLinks(profile?.social_links || []);
 
   updateSidebarProfile(profile);
+  renderPlanBlock(profile);
+}
+
+// ─── Subscription / crew ──────────────────────────────────────────────────
+
+async function renderPlanBlock(profile) {
+  const box = document.getElementById("planBlock");
+  if (!box) return;
+  const plan = {
+    level: profile?.plan_level || 0,
+    crew: profile?.crew || null,
+    isAdmin: !!profile?.is_admin
+  };
+  const label = (typeof tierLabel === "function") ? tierLabel(plan) : "Nakama";
+  const lim = ((typeof PLAN_LIMITS !== "undefined" && PLAN_LIMITS[plan.level]) || { spaces: 5, cards: 150 });
+  const crew = (typeof crewById === "function") ? crewById(plan.crew) : null;
+  let html = '<p style="font-size:var(--text-sm);margin-bottom:var(--space-2)">Plan: <strong style="color:' +
+    (crew ? crew.color : "var(--accent)") + '">' + label + "</strong></p>";
+  if (typeof getMySpaceUsage === "function") {
+    const used = await getMySpaceUsage();
+    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + used + "/" +
+      (plan.isAdmin ? "∞" : lim.spaces) + " espacios · " +
+      (lim.cards == null ? "cartas ilimitadas" : "hasta " + lim.cards + " cartas por binder") + "</p>";
+  }
+  if (plan.isAdmin || plan.level >= 1) {
+    const crews = (typeof CREWS !== "undefined") ? CREWS : [];
+    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-2)">Tu tripulación:</p><div class="crew-grid">' +
+      crews.map(function(c) {
+        return '<button type="button" class="crew-btn' + (plan.crew === c.id ? " active" : "") + '" data-crew="' + c.id + '"' +
+          ' style="--crew-color:' + c.color + '">' + c.name + "</button>";
+      }).join("") + "</div>";
+  } else {
+    html += '<p class="profile-field-hint">Subí de nivel para elegir tu tripulación. Próximamente.</p>';
+  }
+  box.innerHTML = html;
+  box.querySelectorAll(".crew-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() { setCrew(btn.getAttribute("data-crew")); });
+  });
+}
+
+async function setCrew(crewId) {
+  if (!isAuthenticated()) return;
+  try {
+    const { error } = await supabaseClient.from("profiles").update({ crew: crewId }).eq("id", authUser.id);
+    if (error) throw error;
+    if (typeof invalidatePlanCache === "function") invalidatePlanCache();
+    if (typeof refreshTierLabel === "function") refreshTierLabel();
+    const p = await loadProfile();
+    if (p) { renderPlanBlock(p); updateSidebarProfile(p); }
+    if (typeof showToast === "function") showToast("Tripulación actualizada", "success");
+  } catch (e) {
+    if (typeof showToast === "function") showToast("No se pudo guardar la tripulación", "error");
+  }
 }
 
 function renderSocialLinks(links) {
@@ -167,7 +220,11 @@ function updateSidebarProfile(profile) {
   const sidebarUserPlan = document.getElementById("sidebarUserPlan");
   const sidebarUserAvatar = document.getElementById("sidebarUserAvatar");
   if (sidebarUserName) sidebarUserName.textContent = profile?.display_name || profile?.username || (authUser?.email ? authUser.email.split("@")[0] : "Usuario");
-    if (sidebarUserPlan) sidebarUserPlan.textContent = "Nakama";
+  if (sidebarUserPlan) {
+    sidebarUserPlan.textContent = (typeof tierLabel === "function")
+      ? tierLabel({ level: profile?.plan_level || 0, crew: profile?.crew || null, isAdmin: !!profile?.is_admin })
+      : "Nakama";
+  }
   if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
   if (sidebarUserAvatar && profile?.avatar_url) {
     sidebarUserAvatar.style.backgroundImage = `url(${profile.avatar_url})`;

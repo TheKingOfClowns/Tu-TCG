@@ -7,7 +7,8 @@
     return (s && window[name + "_" + s]) || window[name + "_OP"];
   }
 
-  window.pedirCrearVenta = function pedirCrearVenta() {
+  window.pedirCrearVenta = async function pedirCrearVenta() {
+    if (typeof guardSpaceForNew === "function" && !(await guardSpaceForNew())) return;
     return _fn("pedirCrearVenta")();
   };
 

@@ -1060,6 +1060,36 @@ body {
   font-weight: var(--weight-extrabold);
   color: #fff;
 }
+.space-counter {
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+/* ═══ Crew picker (suscripción) ═══ */
+.crew-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.crew-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.crew-btn:hover { border-color: var(--crew-color, var(--accent)); color: var(--text-primary); }
+.crew-btn.active {
+  border-color: var(--crew-color, var(--accent));
+  color: var(--crew-color, var(--accent));
+  background: rgba(255, 255, 255, 0.04);
+}
 
 .collection-binder-grid {
   display: grid;
@@ -1111,6 +1141,7 @@ body {
   flex-direction: column;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-3);
+  min-width: 0;
 }
 
 .binder-cover-user-row {
@@ -1164,7 +1195,13 @@ body {
 }
 
 .binder-cover-name-badge {
-  display: inline-block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  max-width: 100%;
   font-size: 12px;
   font-weight: var(--weight-bold);
   padding: 3px 10px;
@@ -1172,9 +1209,6 @@ body {
   background: rgba(0, 240, 255, 0.1);
   color: var(--accent);
   border: 1px solid var(--border-accent);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
   align-self: flex-start;
 }
 
@@ -3465,6 +3499,28 @@ body {
   white-space: nowrap;
 }
 .toast-undo-btn:hover { background: var(--accent-dim); }
+
+/* ═══ Staged draft bar + exit modal ═══ */
+#draftModal { z-index: 2000; }
+.draft-bar {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1500;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  white-space: nowrap;
+}
+.draft-dot { color: var(--accent); }
+@media (max-width: 767px) {
+  .draft-bar { bottom: 84px; }
+}
 
 /* ─── Tracking Binder ─────────────────────────────────────────────────────── */
 .tracking-header {

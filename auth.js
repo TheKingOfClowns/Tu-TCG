@@ -100,6 +100,8 @@ async function getProfile() {
 function onSignIn() {
   hideAuthModal();
   updateAuthUI();
+  if (typeof invalidatePlanCache === "function") invalidatePlanCache();
+  if (typeof refreshTierLabel === "function") refreshTierLabel();
   if (typeof migrateLocalToSupabase === "function") {
     migrateLocalToSupabase().catch(console.error);
   }
@@ -116,6 +118,7 @@ function onSignIn() {
 
 function onSignOut() {
   updateAuthUI();
+  if (typeof invalidatePlanCache === "function") invalidatePlanCache();
   if (typeof rebuildLocalFallback === "function") rebuildLocalFallback();
   if (typeof router !== "undefined" && router.navigateToRoute) {
     router.navigateToRoute('home', {}, {});
@@ -367,6 +370,7 @@ document.getElementById("userBtn")?.addEventListener("click", (e) => {
 });
 document.getElementById("dropdownLogout")?.addEventListener("click", async () => {
   document.getElementById("userDropdown").style.display = "none";
+  if (typeof requestStagedExit === "function" && !requestStagedExit("logout", function() { signOut(); })) return;
   await signOut();
 });
 document.getElementById("dropdownProfile")?.addEventListener("click", () => {

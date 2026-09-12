@@ -228,8 +228,7 @@ function renderTrackingExtra_RB(type, panel) {
   }
 }
 
-function confirmCreateTracking_RB() {
-  var name = document.getElementById("trackingNameInput").value.trim();
+async function confirmCreateTracking_RB() {  var name = document.getElementById("trackingNameInput").value.trim();
   var type = document.getElementById("trackingTypeSelect").value;
   var config = {};
   var includeAA = document.getElementById("trackingIncludeAA") ? document.getElementById("trackingIncludeAA").classList.contains("on") : true;
@@ -278,6 +277,7 @@ function confirmCreateTracking_RB() {
   }
   if (!name) return;
   if (!newCards.length) { showToast("No se encontraron cartas con esos filtros", "error"); return; }
+  if (typeof guardSpaceForNew === "function" && !(await guardSpaceForNew())) return;
   var id = generarId();
   collections[id] = {
     id: id, name: name, subtype: "tracking", cards: newCards, is_public: false,

@@ -380,14 +380,20 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
   });
   // Quantity buttons
   grid.querySelectorAll(".venta-qty-btn[data-action='incr']").forEach(btn => {
-    btn.addEventListener("click", e => {
+    btn.addEventListener("click", async e => {
       e.stopPropagation();
       const idx = parseInt(btn.getAttribute("data-ventaidx"));
       const btnMode = btn.getAttribute("data-mode") || "playset";
       const col = ventaCols[currentVentaId];
       if (!col || !col.cards[idx]) return;
       const max = btnMode === "editable" ? 50 : 4;
-      if (col.cards[idx].quantity < max) col.cards[idx].quantity++;
+      if (col.cards[idx].quantity >= max) return;
+      if (typeof overCardCap === "function" && await overCardCap(col, 1)) {
+        const plan = (typeof getMyPlan === "function") ? await getMyPlan() : null;
+        if (typeof showToast === "function") showToast(upsellMsg("cards", plan), "error");
+        return;
+      }
+      col.cards[idx].quantity++;
       guardarVenta();
       renderVentaView();
     });
@@ -404,13 +410,22 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
   });
   // Quantity inputs (editable mode)
   grid.querySelectorAll(".venta-qty-input").forEach(inp => {
-    inp.addEventListener("change", () => {
+    inp.addEventListener("change", async () => {
       const idx = parseInt(inp.getAttribute("data-ventaidx"));
       const col = ventaCols[currentVentaId];
       if (!col || !col.cards[idx]) return;
       const val = parseInt(inp.value);
-      if (val < 1) { removeEntryWithUndo(col, idx, guardarVenta, renderVentaView); }
-      else { col.cards[idx].quantity = Math.min(val, 50); guardarVenta(); renderVentaView(); }
+      if (val < 1) { removeEntryWithUndo(col, idx, guardarVenta, renderVentaView); return; }
+      const delta = Math.min(val, 50) - (col.cards[idx].quantity || 1);
+      if (delta > 0 && typeof overCardCap === "function" && await overCardCap(col, delta)) {
+        const plan = (typeof getMyPlan === "function") ? await getMyPlan() : null;
+        if (typeof showToast === "function") showToast(upsellMsg("cards", plan), "error");
+        renderVentaView();
+        return;
+      }
+      col.cards[idx].quantity = Math.min(val, 50);
+      guardarVenta();
+      renderVentaView();
     });
   });
   // Click to open card modal

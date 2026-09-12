@@ -172,9 +172,12 @@ Reemplazo total del flujo anterior (Seleccionar + modal "Añadir a colecciones")
 - **Deck flow intacto**: banner "Agregando a: X" + buffer `pendingCards` + botón "Agregar" (`catalogAddConfirm`); `abrirModal` con `addingToBinderId` agrega a pendientes.
 - `refreshCatalogTargetSelect()` se llama al entrar al catálogo, en `_markCollectionsReady`/`_markVentaReady` y en `limpiarAddingState`.
 
-### Quitar cartas — confirm + Deshacer (2026-09-11)
-- `removeEntryWithUndo(col, idx, save, render)` (`script.js`): confirma solo si es la última copia (o stack completo), snapshot `col.cards`, toast "Carta quitada" con botón Deshacer 8s, un solo nivel. Decrementos parciales (grouped −, qty) sin confirm (recuperables con +).
-- Call sites: binder ✕ (`removeFromCurrentCollection`, RB reusa, PK vía OP), venta ✕/−/qty-input (OP+RB), catálogo `−` (`removeOneFromTarget`, render=`actualizarBadgesEnPagina`). Deck/tracking afuera.
+### Borrador staged — nada se persiste sin preguntar (2026-09-11)
+- Compuerta en `guardarCollections/guardarVenta` (`script.js`): con borrador armado solo marcan `_dirty` + barra "● Cambios sin guardar [Guardar/Descartar]", sin localStorage ni Supabase. Cubre TODO (✕, +/−, precios, moneda, cantidades, drag-drop, tracking, deck, rename, público, delete).
+- Baseline JSON en `_markCollectionsReady/_markVentaReady` (solo si limpio); armar al entrar a catálogo/binder/venta, desarmar al salir. Guardar persiste+sincroniza+re-baselinea; Descartar restaura+re-render.
+- Salir con draft sucio (cualquier vista fuera de contexto, backs, cambio TCG, logout, browser-back) → modal Guardar/Descartar/Seguir (`#draftModal`, pending retry de `mostrarVista`). Binder↔catálogo no pregunta (mismo borrador). `beforeunload` avisa genérico.
+- Excepciones: `toggleBinderPublic` salta su update directo en staging (el save lo sincroniza); `migrateLocalToSupabase` no corre con draft sucio (no pisa con rebuild); login con draft pendiente se guarda a mano (ya hay sesión).
+- `removeEntryWithUndo` quedó sin `confirm` (el borrador pregunta al salir); conserva Deshacer en memoria 8s.
 
 ### Flujo "agregar al binder" (histórico, eliminado 2026-09-06)
 - `modals.js:524` — `abrirModal()` checkea `addingToBinderId`: si está seteado, agrega la carta a `pendingCards` en vez de abrir el modal
@@ -635,6 +638,12 @@ El catch de `renderExploreView` mostraba el error también para requests abortad
 - Seguridad: helper `escapeHtml` en explore.js para todos los campos de usuario; `tel:` sanitizado (`[^\d+]`).
 - Cierre: botón, backdrop y tecla Escape (handler global `window._publicProfileKeyHandler`, se limpia al cerrar).
 - CSS: clases `.pp-*` en style.css (sección "Public Profile Modal").
+
+## Planes y tripulaciones (2026-09-11)
+- Niveles 0/1/2 (pool único): espacios 5/10/25, cartas por binder 150/500/∞. L0 label "Nakama" (intacto); L1/L2 muestran crew. Admin (`profiles.is_admin`, TheKingOfClowns) sin límites + crew Mugiwara.
+- `CREWS` (10 en inglés + color), `PLAN_LIMITS` en `script.js`. `getMyPlan()` (cache 60s), `guardSpaceForNew()` (count server cross-TCG) en dispatchers colección/venta + `confirmCreateTracking` OP/RB (PK delega; `_appendTo` no consume espacio).
+- Cap al agregar: `overCardCap()` en `addPendingCardsToCol` (quick-add + deck flow), steppers/input venta OP/RB. Tracking-targets exentos (jsonb).
+- Triggers `trg_binders_limit` / `trg_binder_cards_cap` (`SECURITY DEFINER`, suman `quantity`); `limitToast()` mapea `LIMIT_*` en sync. Contador "N/M espacios" en listas, picker crew en perfil (nivel≥1/admin), label sidebar dinámico.
 
 ## Pendiente de sesión anterior
 - **Scrapear cartas Pokémon** y poblar `cards_master.json`

@@ -153,7 +153,13 @@ function _confirmAddDeck_PK(col, pc, key) {
   }
 }
 
-function addPendingCardsToCol(col, isVenta) {
+async function addPendingCardsToCol(col, isVenta) {
+  var pendingTotal = Object.values(pendingCards).reduce(function(s, pc) { return s + (pc.count || 1); }, 0);
+  if (typeof overCardCap === "function" && await overCardCap(col, pendingTotal)) {
+    const plan = (typeof getMyPlan === "function") ? await getMyPlan() : null;
+    if (typeof showToast === "function") showToast(upsellMsg("cards", plan), "error");
+    return 0;
+  }
   var addedTotal = 0;
   if (col.subtype === "deck") {
     var _deckTcg = col.tcg || "one-piece";
@@ -362,13 +368,14 @@ document.getElementById("createModalInput")?.addEventListener("keydown", functio
 
 // ─── Catalog "Agregar cartas" banner events (deck flow) ──────────────────
 document.getElementById("catalogAddCancel")?.addEventListener("click", limpiarAddingState);
-document.getElementById("catalogAddConfirm")?.addEventListener("click", function() {
+document.getElementById("catalogAddConfirm")?.addEventListener("click", async function() {
   if (!addingToBinderId || !Object.keys(pendingCards).length) return;
   var type = addingToBinderType;
   var target = (type === "venta") ? ventaCols : collections;
   var col = target[addingToBinderId];
   if (!col) return;
-  addPendingCardsToCol(col, type === "venta");
+  const added = await addPendingCardsToCol(col, type === "venta");
+  if (!added) return;
   limpiarPendientes();
   var id = addingToBinderId;
   limpiarAddingState();

@@ -285,7 +285,7 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
     });
   });
   grid.querySelectorAll(".venta-qty-btn").forEach(function(btn) {
-    btn.addEventListener("click", function(e) {
+    btn.addEventListener("click", async function(e) {
       e.stopPropagation();
       var idx = parseInt(btn.getAttribute("data-ventaidx"));
       var btnMode = btn.getAttribute("data-mode") || "playset";
@@ -293,17 +293,34 @@ function attachVentaEvents_RB(col, mode, grid, totalPages) {
       var max = btnMode === "editable" ? 50 : _getPlaysetMax();
       if (idx >= 0 && idx < col.cards.length) {
         var card = col.cards[idx];
-        if (action === "incr") { card.quantity = Math.min((card.quantity || 1) + 1, max); }
+        if (action === "incr") {
+          if ((card.quantity || 1) >= max) return;
+          if (typeof overCardCap === "function" && await overCardCap(col, 1)) {
+            var plan = (typeof getMyPlan === "function") ? await getMyPlan() : null;
+            if (typeof showToast === "function") showToast(upsellMsg("cards", plan), "error");
+            return;
+          }
+          card.quantity = Math.min((card.quantity || 1) + 1, max);
+        }
         else { card.quantity = Math.max((card.quantity || 1) - 1, 1); }
         guardarVenta(); renderVentaView();
       }
     });
   });
   grid.querySelectorAll(".venta-qty-input").forEach(function(inp) {
-    inp.addEventListener("change", function() {
+    inp.addEventListener("change", async function() {
       var idx = parseInt(inp.getAttribute("data-ventaidx"));
       var val = parseInt(inp.value);
-      if (idx >= 0 && idx < col.cards.length && !isNaN(val)) { col.cards[idx].quantity = Math.max(1, Math.min(val, 50)); guardarVenta(); renderVentaView(); }
+      if (idx >= 0 && idx < col.cards.length && !isNaN(val)) {
+        var delta = Math.min(val, 50) - (col.cards[idx].quantity || 1);
+        if (delta > 0 && typeof overCardCap === "function" && await overCardCap(col, delta)) {
+          var plan2 = (typeof getMyPlan === "function") ? await getMyPlan() : null;
+          if (typeof showToast === "function") showToast(upsellMsg("cards", plan2), "error");
+          renderVentaView();
+          return;
+        }
+        col.cards[idx].quantity = Math.max(1, Math.min(val, 50)); guardarVenta(); renderVentaView();
+      }
     });
   });
   grid.querySelectorAll(".card img, .venta-card img").forEach(function(img) {

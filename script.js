@@ -355,18 +355,8 @@ function showToast(msg, type) {
 // ponytail: Deshacer de un solo nivel; una quitada nueva pisa la anterior
 var _lastRemoval = null;
 var _undoTimer = null;
-function countKeyCopies(col, key) {
-  var n = 0;
-  (col.cards || []).forEach(function (c) { if (c && c._key === key) n += (c.quantity || 1); });
-  return n;
-}
 function removeEntryWithUndo(col, idx, save, render) {
   if (!col || !col.cards || idx < 0 || idx >= col.cards.length) return false;
-  var entry = col.cards[idx];
-  var qty = entry.quantity || 1;
-  if (countKeyCopies(col, entry._key) - qty <= 0) {
-    if (!confirm(qty > 1 ? ("Quitar las " + qty + " copias de esta carta? (podés deshacer)") : "Quitar esta carta? (podés deshacer)")) return false;
-  }
   var snap = null;
   try { snap = JSON.stringify(col.cards); } catch (e) {}
   col.cards.splice(idx, 1);
@@ -417,15 +407,178 @@ function getCardKey(carta) {
 // ─── Collections / Supabase + LocalStorage ──────────────────────────────
 function guardarCollections() {
   if (!currentTcg) return;
+  if (_draftArmed && draftBaselineReady()) { stageChange(); return; }
   Object.values(collections).forEach(b => b._synced = false);
   localStorage.setItem(collectionsKey(), JSON.stringify(collections));
   if (isAuthenticated()) syncCollectionsToSupabase().catch(function(e) { _DEBUG && console.error(e); });
 }
 function guardarVenta() {
   if (!currentTcg) return;
+  if (_draftArmed && draftBaselineReady()) { stageChange(); return; }
   Object.values(ventaCols).forEach(b => b._synced = false);
   localStorage.setItem(ventaKey(), JSON.stringify(ventaCols));
   if (isAuthenticated()) syncVentaToSupabase().catch(function(e) { _DEBUG && console.error(e); });
+}
+// ─── Staged draft: nada se persiste sin preguntar ──────────────────────────
+// ponytail: compuerta central en guardar*; las mutaciones no se tocan, solo cambia cuándo persisten
+var _baseC = null, _baseV = null;
+var _draftArmed = false, _dirty = false;
+var _pendingExit = null;
+var DRAFT_CTX = { catalog: 1, binder: 1, venta: 1 };
+function draftBaselineReady() { return _baseC !== null && _baseV !== null; }
+function draftDirty() { return _dirty; }
+function refreshBaseline(force) {
+  if (_dirty && !force) return;
+  try {
+    _baseC = JSON.stringify(collections);
+    _baseV = JSON.stringify(ventaCols);
+  } catch (e) {}
+  updateDraftBar();
+}
+function armDraft() { if (draftBaselineReady()) _draftArmed = true; }
+function disarmDraft() { _draftArmed = false; }
+function stageChange() { _dirty = true; updateDraftBar(); }
+function updateDraftBar() {
+  var bar = document.getElementById("draftBar");
+  if (bar) bar.style.display = _dirty ? "flex" : "none";
+}
+function saveDraft() {
+  if (!_dirty || !currentTcg) return;
+  _draftArmed = false;
+  try { guardarCollections(); guardarVenta(); }
+  finally { if (draftBaselineReady()) _draftArmed = true; }
+  refreshBaseline(true);
+  _dirty = false;
+  updateDraftBar();
+}
+function discardDraft() {
+  if (_baseC) { try { collections = JSON.parse(_baseC); } catch (e) {} }
+  if (_baseV) { try { ventaCols = JSON.parse(_baseV); } catch (e) {} }
+  _dirty = false;
+  updateDraftBar();
+  rerenderVisibleView();
+}
+function rerenderVisibleView() {
+  var vis = function(id) { var el = document.getElementById(id); return el && el.style.display !== "none"; };
+  if (vis("catalogView") && typeof renderCards === "function") renderCards();
+  else if (vis("binderView") && typeof renderBinder === "function") renderBinder();
+  else if (vis("ventaView") && typeof renderVentaView === "function") renderVentaView();
+  else if (vis("collectionManager") && typeof renderCollectionList === "function") renderCollectionList();
+  else if (vis("ventaManager") && typeof renderVentaList === "function") renderVentaList();
+  else if (vis("exploreView") && typeof renderExploreView === "function") renderExploreView();
+}
+function requestStagedExit(kind, proceed) {
+  if (!_dirty || DRAFT_CTX[kind]) return true;
+  _pendingExit = (typeof proceed === "function") ? proceed : null;
+  var m = document.getElementById("draftModal");
+  if (m) m.style.display = "flex";
+  return false;
+}
+function closeDraftModal(run) {
+  var m = document.getElementById("draftModal");
+  if (m) m.style.display = "none";
+  var fn = _pendingExit; _pendingExit = null;
+  if (run && fn) fn();
+}
+// ─── Planes y tripulaciones (límites pool único) ───────────────────────────
+// ponytail: el trigger Postgres manda; esto es UX (pre-chequeo + mensajes). Números espejados de la migración.
+var PLAN_LIMITS = {
+  0: { spaces: 5, cards: 150 },
+  1: { spaces: 10, cards: 500 },
+  2: { spaces: 25, cards: null }
+};
+var CREWS = [
+  { id: "mugiwara", name: "Mugiwara", color: "#e63946" },
+  { id: "heart", name: "Heart Pirates", color: "#4cc9f0" },
+  { id: "kid", name: "Kid Pirates", color: "#f4a259" },
+  { id: "blackbeard", name: "BlackBeard Pirates", color: "#3a3a3c" },
+  { id: "beasts", name: "Beast Pirates", color: "#7b2cbf" },
+  { id: "redhair", name: "Red Hair Pirates", color: "#d00000" },
+  { id: "whitebeard", name: "Whitebeard Pirates", color: "#ffd166" },
+  { id: "roger", name: "Roger Pirates", color: "#06d6a0" },
+  { id: "bigmom", name: "Big Mom Pirates", color: "#ff70a6" },
+  { id: "crossguild", name: "Cross Guild Pirates", color: "#8ecae6" }
+];
+var _planCache = null;
+async function getMyPlan() {
+  if (_planCache && (Date.now() - _planCache.ts) < 60000) return _planCache.plan;
+  var plan = { level: 0, crew: null, isAdmin: false };
+  try {
+    if (typeof isAuthenticated === "function" && isAuthenticated() && authUser) {
+      const { data } = await supabaseClient.from("profiles").select("plan_level,crew,is_admin").eq("id", authUser.id).single();
+      if (data) plan = { level: data.plan_level || 0, crew: data.crew || null, isAdmin: !!data.is_admin };
+    }
+  } catch (e) {}
+  _planCache = { plan: plan, ts: Date.now() };
+  return plan;
+}
+function invalidatePlanCache() { _planCache = null; }
+function crewById(id) { return CREWS.find(function(c) { return c.id === id; }) || null; }
+function tierLabel(plan) {
+  if (!plan) return "Nakama";
+  if (plan.isAdmin && plan.crew) { var ac = crewById(plan.crew); return ac ? ac.name : "Nakama"; }
+  if (plan.level >= 1 && plan.crew) { var c = crewById(plan.crew); return c ? c.name : "Nv " + plan.level; }
+  if (plan.level >= 1) return "Nv " + plan.level;
+  return "Nakama";
+}
+async function getMySpaceUsage() {
+  try {
+    if (typeof isAuthenticated === "function" && isAuthenticated() && authUser) {
+      const { count } = await supabaseClient.from("binders").select("id", { count: "exact", head: true }).eq("user_id", authUser.id);
+      return count || 0;
+    }
+  } catch (e) {}
+  return 0;
+}
+function upsellMsg(kind, plan) {
+  var lvl = (plan && plan.level) || 0;
+  if (kind === "spaces") return "Llegaste al tope de " + (PLAN_LIMITS[lvl] || PLAN_LIMITS[0]).spaces + " espacios del plan " + tierLabel(plan) + ".";
+  return "Llegaste al tope de " + (PLAN_LIMITS[lvl] || PLAN_LIMITS[0]).cards + " cartas por binder del plan " + tierLabel(plan) + ".";
+}
+async function guardSpaceForNew() {
+  const plan = await getMyPlan();
+  if (plan.isAdmin) return true;
+  const limit = (PLAN_LIMITS[plan.level] || PLAN_LIMITS[0]).spaces;
+  const used = await getMySpaceUsage();
+  if (used >= limit) {
+    if (typeof showConfirmModal === "function") showConfirmModal(upsellMsg("spaces", plan) + " Pasate de nivel para crear más.", null);
+    else if (typeof showToast === "function") showToast(upsellMsg("spaces", plan), "error");
+    return false;
+  }
+  return true;
+}
+async function overCardCap(col, addN) {
+  if (!col || col.subtype === "tracking") return false;
+  const plan = await getMyPlan();
+  if (plan.isAdmin) return false;
+  const cap = (PLAN_LIMITS[plan.level] || PLAN_LIMITS[0]).cards;
+  if (cap == null) return false;
+  const cur = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
+  return cur + (addN || 1) > cap;
+}
+async function refreshTierLabel() {
+  const plan = await getMyPlan();
+  const label = tierLabel(plan);
+  ["sidebarUserPlan"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
+  return plan;
+}
+async function refreshSpaceCounters() {
+  const plan = await getMyPlan();
+  const limit = plan.isAdmin ? "∞" : String((PLAN_LIMITS[plan.level] || PLAN_LIMITS[0]).spaces);
+  const used = await getMySpaceUsage();
+  [["spaceCounterCol"], ["spaceCounterVenta"]].forEach(function(pair) {
+    var el = document.getElementById(pair[0]);
+    if (el) el.textContent = used + "/" + limit + " espacios";
+  });
+}
+// ponytail: traduce violaciones de triggers de plan a mensaje upsell
+function limitToast(msg, fallback) {
+  if (msg && /LIMIT_SPACES/i.test(msg)) { showToast("Llegaste al tope de espacios de tu plan.", "error"); return; }
+  if (msg && /LIMIT_CARDS/i.test(msg)) { showToast("Llegaste al tope de cartas de tu plan.", "error"); return; }
+  showToast(fallback, "error");
 }
 async function syncObjectToSupabase(obj, type) {
   if (!isAuthenticated()) return;
@@ -477,7 +630,7 @@ async function syncObjectToSupabase(obj, type) {
         target_cards: (binder.subtype === "tracking" && binder.cards) ? binder.cards : null,
         updated_at: new Date().toISOString()
       }, { onConflict: "id" });
-      if (upsertErr) { _DEBUG && console.error("Binder upsert error:", upsertErr); showToast("Error guardando colección en el servidor", "error"); continue; }
+      if (upsertErr) { _DEBUG && console.error("Binder upsert error:", upsertErr); limitToast(upsertErr.message, "Error guardando colección en el servidor"); continue; }
       const allCardRows = [];
       if (binder.subtype === "deck") {
         const deckTcg = config.tcg || "one-piece";
@@ -598,7 +751,7 @@ async function syncObjectToSupabase(obj, type) {
         const result = await response.json();
         if (!response.ok || result.error) {
           _DEBUG && console.error("Sync cards error:", result.error || response.statusText);
-          showToast("Error guardando cartas en el servidor", "error");
+          limitToast(result.error || response.statusText, "Error guardando cartas en el servidor");
           continue;
         }
       }
@@ -687,6 +840,7 @@ function rebuildLocalFallback() {
 }
 function _markCollectionsReady() {
   window._collectionsReady = true;
+  refreshBaseline();
   if (typeof refreshCatalogTargetSelect === 'function') refreshCatalogTargetSelect();
   const active = document.querySelector(".view-pane.active");
   if (!active) return;
@@ -695,6 +849,7 @@ function _markCollectionsReady() {
 }
 function _markVentaReady() {
   window._ventaReady = true;
+  refreshBaseline();
   if (typeof refreshCatalogTargetSelect === 'function') refreshCatalogTargetSelect();
   const active = document.querySelector(".view-pane.active");
   if (!active || Object.keys(cartasMap).length === 0) return;
@@ -835,6 +990,7 @@ async function reloadVentaFromDb() {
 }
 async function migrateLocalToSupabase() {
   if (!isAuthenticated()) return;
+  if (typeof draftDirty === "function" && draftDirty()) return; // ponytail: no pisar borrador con rebuild
   const now = Date.now();
   const lastMigration = parseInt(localStorage.getItem("tutcg_last_migration") || "0", 10);
   if ((now - lastMigration) < 60000) return;
@@ -946,7 +1102,7 @@ async function toggleBinderPublic(id) {
   const col = collections[id] || ventaCols[id];
   if (!col) return;
   col.is_public = !col.is_public;
-  if (isAuthenticated()) {
+  if (isAuthenticated() && !(_draftArmed && draftBaselineReady())) {
     const { error } = await supabaseClient.from("binders")
       .update({ is_public: col.is_public, updated_at: new Date().toISOString() })
       .eq("id", id);
@@ -1057,6 +1213,8 @@ async function selectTcg(tcgId) {
 }
 // ─── View System ──────────────────────────────────────────────────────────
 function mostrarVista(vista, navState) {
+  if (!requestStagedExit(vista, function() { mostrarVista(vista, navState); })) return;
+  if (DRAFT_CTX[vista]) armDraft(); else disarmDraft();
   if (vista !== "catalog") limpiarAddingState();
   if (navState && navState.currentTcg) {
     currentTcg = navState.currentTcg;
@@ -1167,6 +1325,7 @@ function mostrarVista(vista, navState) {
     }
     document.getElementById("collectionManager").classList.add("active");
     document.getElementById("collectionManager").style.display = "";
+    if (typeof refreshSpaceCounters === "function") refreshSpaceCounters();
     document.getElementById("sidebarColecciones")?.classList.add("active");
     document.getElementById("bottomColecciones")?.classList.add("active");
     if (!window._collectionsReady) {
@@ -1189,7 +1348,8 @@ function mostrarVista(vista, navState) {
       document.getElementById("bottomVenta")?.classList.add("active");
       return;
     }
-    document.getElementById("ventaManager").classList.add("active");
+      document.getElementById("ventaManager").classList.add("active");
+      if (typeof refreshSpaceCounters === "function") refreshSpaceCounters();
     document.getElementById("ventaManager").style.display = "";
     document.getElementById("sidebarVenta")?.classList.add("active");
     document.getElementById("bottomVenta")?.classList.add("active");
@@ -1326,7 +1486,7 @@ document.addEventListener("keydown", e => {
 // TCG Selector
 document.getElementById("tcgGrid").addEventListener("click", e => {
   const card = e.target.closest(".tcg-card");
-  if (card) selectTcg(card.dataset.tcg);
+  if (card) { if (!requestStagedExit("tcg", function() { selectTcg(card.dataset.tcg); })) return; selectTcg(card.dataset.tcg); }
 });
 // Welcome cards
 document.querySelectorAll(".welcome-card").forEach(card => {
@@ -1419,9 +1579,15 @@ document.querySelectorAll(".bottom-nav-item").forEach(btn => {
     }
   });
 });
-document.getElementById("binderBackBtn")?.addEventListener("click", () => { history.back(); });
+document.getElementById("binderBackBtn")?.addEventListener("click", () => {
+  if (!requestStagedExit("collections", function() { history.back(); })) return;
+  history.back();
+});
 document.getElementById("exploreDetailBackBtn")?.addEventListener("click", () => { history.back(); });
-document.getElementById("ventaBackBtn")?.addEventListener("click", () => { history.back(); });
+document.getElementById("ventaBackBtn")?.addEventListener("click", () => {
+  if (!requestStagedExit("ventaCols", function() { history.back(); })) return;
+  history.back();
+});
 // ─── Landing Page Buttons ────────────────────────────────────────────────
 document.getElementById("landingExploreBtn")?.addEventListener("click", () => {
   navigateToView("catalog", {}, {});
@@ -1562,6 +1728,16 @@ document.getElementById("confirmModal").addEventListener("click", e => {
     document.getElementById("confirmModal").style.display = "none";
     _confirmCallback = null;
   }
+});
+// ─── Staged draft bar + exit modal wiring ──────────────────────────────────
+document.getElementById("draftSaveBtn")?.addEventListener("click", () => { saveDraft(); });
+document.getElementById("draftDiscardBtn")?.addEventListener("click", () => { discardDraft(); });
+document.getElementById("draftModalSaveBtn")?.addEventListener("click", () => { saveDraft(); if (!_dirty) closeDraftModal(true); });
+document.getElementById("draftModalDiscardBtn")?.addEventListener("click", () => { discardDraft(); closeDraftModal(true); });
+document.getElementById("draftStayBtn")?.addEventListener("click", () => closeDraftModal(false));
+document.getElementById("draftModal")?.addEventListener("click", e => { if (e.target === e.currentTarget) closeDraftModal(false); });
+window.addEventListener("beforeunload", function(e) {
+  if (typeof _dirty !== "undefined" && _dirty) { e.preventDefault(); e.returnValue = ""; }
 });
 // ─── Router Integration ────────────────────────────────────────────────────
 async function navigateToView(route, params, filters) {

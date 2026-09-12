@@ -158,7 +158,7 @@ function renderCards() {
   });
   pageInfoBottom.textContent = "Página " + currentPage + " de " + totalPages;
   cardsContainer.querySelectorAll(".plus-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
+    btn.addEventListener("click", async e => {
       e.stopPropagation();
       const cardId = btn.getAttribute("data-cardid");
       const name = btn.getAttribute("data-name");
@@ -181,9 +181,9 @@ function renderCards() {
         return;
       }
       pendingCards[key] = makePendingCard(carta, 1);
-      addPendingCardsToCol(targetCol, catalogTargetType === "venta");
+      const added = await addPendingCardsToCol(targetCol, catalogTargetType === "venta");
       limpiarPendientes();
-      if (typeof showToast === "function") showToast('Añadida a "' + targetCol.name + '"', "success");
+      if (added > 0 && typeof showToast === "function") showToast('Añadida a "' + targetCol.name + '"', "success");
       actualizarBadgesEnPagina();
     });
   });
