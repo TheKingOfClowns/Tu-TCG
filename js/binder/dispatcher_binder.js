@@ -32,7 +32,7 @@ document.getElementById("binderClearPageBtn")?.addEventListener("click", () => {
   if (col.subtype === "deck") {
     if (!col.cards.length) return;
     const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-    if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
+    if (confirm(t("binder.clear_deck_confirm", { n: total }))) {
       col.cards = [];
       guardarCollections(); renderBinder();
     }
@@ -42,7 +42,7 @@ document.getElementById("binderClearPageBtn")?.addEventListener("click", () => {
   const start = (binderPage - 1) * _pgSize;
   const end = Math.min(start + _pgSize, col.cards.length);
   if (start >= col.cards.length) return;
-  if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
+  if (confirm(t("binder.clear_page_confirm", { n: end - start }))) {
     col.cards.splice(start, end - start);
     const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
     if (binderPage > totalPages) binderPage = totalPages;
@@ -55,13 +55,13 @@ document.getElementById("binderClearAllBtn")?.addEventListener("click", () => {
   if (col.subtype === "tracking") return;
   if (col.subtype === "deck") {
     if (!col.dons?.length) return;
-    if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
+    if (confirm(t("binder.clear_dons_confirm", { n: col.dons.length }))) {
       col.dons = [];
       guardarCollections(); renderBinder();
     }
     return;
   }
-  if (confirm('Vaciar la colección "' + col.name + '" por completo?')) {
+  if (confirm(t("binder.clear_all_confirm", { name: col.name }))) {
     col.cards = []; binderPage = 1; guardarCollections(); renderBinder();
   }
 });

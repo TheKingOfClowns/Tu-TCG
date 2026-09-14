@@ -37,6 +37,13 @@ function populateProfileForm(profile) {
   setVal("profileContactWsp", profile?.contact_wsp || "");
   setVal("profileLanguage", profile?.preferences?.language || "es");
   setVal("profileCurrency", profile?.preferences?.currency || "USD");
+  // ponytail: el select refleja el idioma efectivo y lo aplica al abrir el perfil
+  try {
+    const stored = localStorage.getItem("tutcg_lang");
+    const eff = stored || profile?.preferences?.language || "es";
+    if (stored) setVal("profileLanguage", stored);
+    if (typeof setLang === "function") setLang(eff);
+  } catch (e) {}
 
   const notifEl = document.getElementById("profileNotifications");
   if (notifEl) notifEl.checked = profile?.preferences?.notifications !== false;
@@ -59,6 +66,8 @@ function populateProfileForm(profile) {
   updateSidebarProfile(profile);
   renderPlanBlock(profile);
 }
+// ponytail: cambio de idioma instantáneo (Guardar lo persiste en Supabase)
+document.getElementById("profileLanguage")?.addEventListener("change", function(e) { if (typeof setLang === "function") setLang(e.target.value); });
 
 // ─── Subscription / crew ──────────────────────────────────────────────────
 
@@ -70,26 +79,24 @@ async function renderPlanBlock(profile) {
     crew: profile?.crew || null,
     isAdmin: !!profile?.is_admin
   };
-  const label = (typeof tierLabel === "function") ? tierLabel(plan) : "Nakama";
+  const label = (typeof tierLabel === "function") ? tierLabel(plan) : t("prof.tier_nakama");
   const lim = ((typeof PLAN_LIMITS !== "undefined" && PLAN_LIMITS[plan.level]) || { spaces: 5, cards: 150 });
   const crew = (typeof crewById === "function") ? crewById(plan.crew) : null;
-  let html = '<p style="font-size:var(--text-sm);margin-bottom:var(--space-2)">Plan: <strong style="color:' +
+  let html = '<p style="font-size:var(--text-sm);margin-bottom:var(--space-2)">' + t("prof.plan_label") + ' <strong style="color:' +
     (crew ? crew.color : "var(--accent)") + '">' + label + "</strong></p>";
   if (typeof getMySpaceUsage === "function") {
     const used = await getMySpaceUsage();
-    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + used + "/" +
-      (plan.isAdmin ? "∞" : lim.spaces) + " espacios · " +
-      (lim.cards == null ? "cartas ilimitadas" : "hasta " + lim.cards + " cartas por binder") + "</p>";
+    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + t("prof.usage", { used: used, spaces: (plan.isAdmin ? "∞" : lim.spaces), cards: (lim.cards == null ? t("prof.cards_unlimited") : t("prof.cards_upto", { n: lim.cards })) }) + "</p>";
   }
   if (plan.isAdmin || plan.level >= 1) {
     const crews = (typeof CREWS !== "undefined") ? CREWS : [];
-    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-2)">Tu tripulación:</p><div class="crew-grid">' +
+    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-2)">' + t("prof.crew_title") + '</p><div class="crew-grid">' +
       crews.map(function(c) {
         return '<button type="button" class="crew-btn' + (plan.crew === c.id ? " active" : "") + '" data-crew="' + c.id + '"' +
           ' style="--crew-color:' + c.color + '">' + c.name + "</button>";
       }).join("") + "</div>";
   } else {
-    html += '<p class="profile-field-hint">Subí de nivel para elegir tu tripulación. Próximamente.</p>';
+    html += '<p class="profile-field-hint">' + t("prof.crew_locked") + '</p>';
   }
   box.innerHTML = html;
   box.querySelectorAll(".crew-btn").forEach(function(btn) {
@@ -106,9 +113,9 @@ async function setCrew(crewId) {
     if (typeof refreshTierLabel === "function") refreshTierLabel();
     const p = await loadProfile();
     if (p) { renderPlanBlock(p); updateSidebarProfile(p); }
-    if (typeof showToast === "function") showToast("Tripulación actualizada", "success");
+    if (typeof showToast === "function") showToast(t("prof.crew_ok"), "success");
   } catch (e) {
-    if (typeof showToast === "function") showToast("No se pudo guardar la tripulación", "error");
+    if (typeof showToast === "function") showToast(t("prof.crew_error"), "error");
   }
 }
 
@@ -124,7 +131,7 @@ function renderSocialLinks(links) {
     tiktok: "TikTok",
     youtube: "YouTube",
     discord: "Discord",
-    other: "Otro"
+    other: t("prof.platform_other")
   };
 
   links.forEach((link, idx) => {
@@ -147,7 +154,7 @@ function addSocialLinkRow(selectedPlatform = "other", urlValue = "", index) {
     tiktok: "TikTok",
     youtube: "YouTube",
     discord: "Discord",
-    other: "Otro"
+    other: t("prof.platform_other")
   };
 
   const div = document.createElement("div");
@@ -219,11 +226,11 @@ function updateSidebarProfile(profile) {
   const sidebarUserName = document.getElementById("sidebarUserName");
   const sidebarUserPlan = document.getElementById("sidebarUserPlan");
   const sidebarUserAvatar = document.getElementById("sidebarUserAvatar");
-  if (sidebarUserName) sidebarUserName.textContent = profile?.display_name || profile?.username || (authUser?.email ? authUser.email.split("@")[0] : "Usuario");
+  if (sidebarUserName) sidebarUserName.textContent = profile?.display_name || profile?.username || (authUser?.email ? authUser.email.split("@")[0] : t("prof.fallback_user"));
   if (sidebarUserPlan) {
     sidebarUserPlan.textContent = (typeof tierLabel === "function")
       ? tierLabel({ level: profile?.plan_level || 0, crew: profile?.crew || null, isAdmin: !!profile?.is_admin })
-      : "Nakama";
+      : t("prof.tier_nakama");
   }
   if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
   if (sidebarUserAvatar && profile?.avatar_url) {
@@ -241,28 +248,28 @@ async function handleProfileSave(e) {
   const saveBtn = document.getElementById("profileSaveBtn");
 
   if (!isAuthenticated()) {
-    showMsg("Debes iniciar sesión para guardar", "error");
+    showMsg(t("prof.login_required"), "error");
     return false;
   }
 
   saveBtn.disabled = true;
-  saveBtn.textContent = "Guardando…";
+  saveBtn.textContent = t("prof.saving");
   hideMsg();
 
   const contactPhone = document.getElementById("profileContactPhone")?.value?.trim() || "";
   const contactWsp = document.getElementById("profileContactWsp")?.value?.trim() || "";
 
   if (contactPhone && !isValidPhone(contactPhone)) {
-    showMsg("El teléfono no es válido. Debe tener al menos 8 dígitos.", "error");
+    showMsg(t("prof.bad_phone"), "error");
     saveBtn.disabled = false;
-    saveBtn.textContent = "Guardar cambios";
+    saveBtn.textContent = t("prof.save");
     return false;
   }
 
   if (contactWsp && !isValidWspLink(contactWsp)) {
-    showMsg("El link de WhatsApp no es válido. Debe ser un link de wa.me, web.whatsapp.com o api.whatsapp.com", "error");
+    showMsg(t("prof.bad_wsp"), "error");
     saveBtn.disabled = false;
-    saveBtn.textContent = "Guardar cambios";
+    saveBtn.textContent = t("prof.save");
     return false;
   }
 
@@ -309,18 +316,19 @@ async function handleProfileSave(e) {
     currentProfile = result;
     updateSidebarProfile(result);
     updateAuthUI();
-    showMsg("Perfil actualizado correctamente", "success");
+    if (typeof setLang === "function") setLang(preferences.language);
+    showMsg(t("prof.updated"), "success");
   } catch (err) {
     console.error("Profile save error:", err);
     if (err.message?.includes("profiles_username_key") || err.message?.includes("duplicate key")) {
-      showMsg("Ese nombre de usuario ya está en uso. Elegí otro.", "error");
+      showMsg(t("prof.user_taken"), "error");
     } else {
-      showMsg(err.message || "Error al guardar el perfil", "error");
+      showMsg(err.message || t("prof.save_error"), "error");
     }
   }
 
   saveBtn.disabled = false;
-  saveBtn.textContent = "Guardar cambios";
+  saveBtn.textContent = t("prof.save");
   return false;
 }
 
@@ -340,14 +348,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!file || !isAuthenticated()) return;
 
       if (file.size > 5 * 1024 * 1024) {
-        showMsg("La imagen no debe superar 5 MB", "error");
+        showMsg(t("prof.img_too_big"), "error");
         return;
       }
 
       const ext = file.name.split(".").pop();
       const filePath = `${authUser.id}/${Date.now()}.${ext}`;
 
-      showMsg("Subiendo imagen…", "success");
+      showMsg(t("prof.uploading"), "success");
 
       try {
         const { error: uploadError } = await supabaseClient.storage
@@ -360,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .getPublicUrl(filePath);
 
         const avatarUrl = urlData?.publicUrl;
-        if (!avatarUrl) throw new Error("No se pudo obtener la URL pública");
+        if (!avatarUrl) throw new Error(t("prof.no_public_url"));
 
         const { error: updateError } = await supabaseClient
           .from("profiles")
@@ -375,10 +383,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (currentProfile) currentProfile.avatar_url = avatarUrl;
         updateSidebarProfile(currentProfile);
-        showMsg("Foto de perfil actualizada", "success");
+        showMsg(t("prof.avatar_ok"), "success");
       } catch (err) {
         console.error("Avatar upload error:", err);
-        showMsg(err.message || "Error al subir la imagen", "error");
+        showMsg(err.message || t("prof.upload_error"), "error");
       }
     });
   }
@@ -459,7 +467,7 @@ function applySize(v, save, cfg) {
   var slider = document.getElementById(cfg.sliderId);
   if (slider) slider.value = val;
   var hint = document.getElementById(cfg.hintId);
-  if (hint) hint.textContent = val + "% · ≈" + Math.max(2, Math.floor(1100 / px)) + "/fila";
+  if (hint) hint.textContent = t("prof.size_hint", { v: val, n: Math.max(2, Math.floor(1100 / px)) });
   if (save) { try { localStorage.setItem(cfg.storageKey, String(val)); } catch (e) {} }
   return val;
 }

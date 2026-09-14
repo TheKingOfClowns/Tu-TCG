@@ -148,8 +148,8 @@ function updateAuthUI() {
       if (span) span.textContent = email.split("@")[0];
       userBtn.title = email;
     }
-    if (sidebarUserName) sidebarUserName.textContent = (authUser.user_metadata?.username) || (authUser.email ? authUser.email.split("@")[0] : "Usuario");
-    if (sidebarUserPlan) sidebarUserPlan.textContent = "Nakama";
+    if (sidebarUserName) sidebarUserName.textContent = (authUser.user_metadata?.username) || (authUser.email ? authUser.email.split("@")[0] : t("authm.fallback_user"));
+    if (sidebarUserPlan) sidebarUserPlan.textContent = t("authm.plan_nakama");
     if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
     if (landingRegisterBtn2) landingRegisterBtn2.style.display = "none";
     if (landingLoginLink) landingLoginLink.style.display = "none";
@@ -157,8 +157,8 @@ function updateAuthUI() {
   } else {
     if (authBtn) authBtn.style.display = "inline-flex";
     if (userBtn) userBtn.style.display = "none";
-    if (sidebarUserName) sidebarUserName.textContent = "Invitado";
-    if (sidebarUserPlan) sidebarUserPlan.textContent = "Gratuito";
+    if (sidebarUserName) sidebarUserName.textContent = t("authm.guest");
+    if (sidebarUserPlan) sidebarUserPlan.textContent = t("authm.plan_free");
     if (sidebarUserAvatar) sidebarUserAvatar.classList.remove("logged-in");
     if (landingRegisterBtn2) landingRegisterBtn2.style.display = "";
     if (landingLoginLink) landingLoginLink.style.display = "";
@@ -184,33 +184,33 @@ function showAuthModal(mode) {
   overlay.style.display = "flex";
 
   if (mode === "login") {
-    title.textContent = "Iniciar sesión";
+    title.textContent = t("authm.login_title");
     fields.innerHTML = `
-      <input type="email" id="authEmail" placeholder="Email" required autocomplete="email">
-      <input type="password" id="authPassword" placeholder="Contraseña" required autocomplete="current-password">
+      <input type="email" id="authEmail" placeholder="${t("authm.ph_email")}" required autocomplete="email">
+      <input type="password" id="authPassword" placeholder="${t("authm.ph_password")}" required autocomplete="current-password">
     `;
-    submitBtn.textContent = "Ingresar";
-    toggleLink.innerHTML = '¿No tenés cuenta? <a href="#" id="authToggle">Registrate</a>';
+    submitBtn.textContent = t("authm.login_btn");
+    toggleLink.innerHTML = t("authm.no_account") + ' <a href="#" id="authToggle">' + t("authm.register_link") + '</a>';
   } else if (mode === "register") {
-    title.textContent = "Crear cuenta";
+    title.textContent = t("authm.register_title");
     fields.innerHTML = `
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px">
-        <input type="text" id="authFirstName" placeholder="Nombre" required autocomplete="given-name">
-        <input type="text" id="authLastName" placeholder="Apellido" required autocomplete="family-name">
+        <input type="text" id="authFirstName" placeholder="${t("authm.ph_first")}" required autocomplete="given-name">
+        <input type="text" id="authLastName" placeholder="${t("authm.ph_last")}" required autocomplete="family-name">
       </div>
-      <input type="text" id="authUsername" placeholder="Nombre de usuario" required autocomplete="username">
-      <input type="email" id="authEmail" placeholder="Email" required autocomplete="email">
-      <input type="password" id="authPassword" placeholder="Contraseña" required autocomplete="new-password" minlength="6">
+      <input type="text" id="authUsername" placeholder="${t("authm.ph_user")}" required autocomplete="username">
+      <input type="email" id="authEmail" placeholder="${t("authm.ph_email")}" required autocomplete="email">
+      <input type="password" id="authPassword" placeholder="${t("authm.ph_password")}" required autocomplete="new-password" minlength="6">
     `;
-    submitBtn.textContent = "Registrarse";
-    toggleLink.innerHTML = '¿Ya tenés cuenta? <a href="#" id="authToggle">Iniciá sesión</a>';
+    submitBtn.textContent = t("authm.register_btn");
+    toggleLink.innerHTML = t("authm.have_account") + ' <a href="#" id="authToggle">' + t("authm.login_link") + '</a>';
   } else if (mode === "forgot") {
-    title.textContent = "Recuperar contraseña";
+    title.textContent = t("authm.forgot_title");
     fields.innerHTML = `
-      <input type="email" id="authEmail" placeholder="Email" required autocomplete="email">
+      <input type="email" id="authEmail" placeholder="${t("authm.ph_email")}" required autocomplete="email">
     `;
-    submitBtn.textContent = "Enviar enlace";
-    toggleLink.innerHTML = '<a href="#" id="authToggle">Volver al inicio de sesión</a>';
+    submitBtn.textContent = t("authm.forgot_btn");
+    toggleLink.innerHTML = '<a href="#" id="authToggle">' + t("authm.back_login") + '</a>';
   }
 
   overlay._mode = mode;
@@ -229,14 +229,14 @@ function friendlyAuthError(err) {
   const code = err?.code || err?.status || "";
   const msg = (err?.message || "").toLowerCase();
   if (code === "23505" || (msg.includes("duplicate") && msg.includes("username")) || (msg.includes("already exists") && msg.includes("username")))
-    return "Ese nombre de usuario ya está en uso. Elegí otro.";
+    return t("authm.err_user_taken");
   if (code === "user_already_exists" || code === "email_exists" || msg.includes("already registered") || msg.includes("already exists") || msg.includes("already been registered"))
-    return "Ese email ya está registrado. Iniciá sesión o recuperá tu contraseña.";
+    return t("authm.err_email_taken");
   if (msg.includes("invalid login credentials"))
-    return "Email o contraseña incorrectos.";
+    return t("authm.err_bad_login");
   if (msg.includes("password should be at least") || msg.includes("password must be"))
-    return "La contraseña debe tener al menos 6 caracteres.";
-  return err?.message || "Error de autenticación";
+    return t("authm.err_short_pass");
+  return err?.message || t("authm.err_auth");
 }
 
 async function handleAuthSubmit(e) {
@@ -256,19 +256,19 @@ async function handleAuthSubmit(e) {
 
   try {
     if (mode === "login") {
-      if (!email || !password) throw new Error("Completá todos los campos");
+      if (!email || !password) throw new Error(t("authm.err_fill"));
       await signIn(email, password);
     } else if (mode === "register") {
-      if (!email || !password || !username || !firstName || !lastName) throw new Error("Completá todos los campos");
-      if (password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
+      if (!email || !password || !username || !firstName || !lastName) throw new Error(t("authm.err_fill"));
+      if (password.length < 6) throw new Error(t("authm.err_short_pass"));
       await signUp(email, password, username, firstName, lastName);
-      successEl.textContent = "Cuenta creada. Revisá tu email para verificarla.";
+      successEl.textContent = t("authm.register_ok");
       successEl.style.display = "block";
       return;
     } else if (mode === "forgot") {
-      if (!email) throw new Error("Ingresá tu email");
+      if (!email) throw new Error(t("authm.err_enter_email"));
       await resetPassword(email);
-      successEl.textContent = "Si el email existe, recibirás un enlace para restablecer tu contraseña.";
+      successEl.textContent = t("authm.reset_ok");
       successEl.style.display = "block";
       return;
     }
@@ -310,11 +310,11 @@ function showResetPasswordForm() {
   successEl.style.display = "none";
   overlay.style.display = "flex";
 
-  title.textContent = "Nueva contraseña";
+  title.textContent = t("authm.newpass_title");
   fields.innerHTML = `
-    <input type="password" id="authPassword" placeholder="Nueva contraseña" required minlength="6">
+    <input type="password" id="authPassword" placeholder="${t("authm.ph_newpass")}" required minlength="6">
   `;
-  submitBtn.textContent = "Actualizar contraseña";
+  submitBtn.textContent = t("authm.newpass_btn");
   toggleLink.innerHTML = "";
   overlay._mode = "reset";
 }
@@ -331,13 +331,13 @@ handleAuthSubmit = async function(e) {
     errorEl.style.display = "none";
     successEl.style.display = "none";
     try {
-      if (!password || password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
+      if (!password || password.length < 6) throw new Error(t("authm.err_short_pass"));
       await updatePassword(password);
-      successEl.textContent = "Contraseña actualizada correctamente.";
+      successEl.textContent = t("authm.pass_updated");
       successEl.style.display = "block";
       setTimeout(hideAuthModal, 2000);
     } catch (err) {
-      errorEl.textContent = err.message || "Error al actualizar contraseña";
+      errorEl.textContent = err.message || t("authm.err_update_pass");
       errorEl.style.display = "block";
     }
     return;

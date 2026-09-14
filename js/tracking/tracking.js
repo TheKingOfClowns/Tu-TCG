@@ -18,14 +18,14 @@ function pedirCrearTracking(preFillName) {
   const title = document.getElementById("trackingModalTitle");
   const confirmBtn = document.getElementById("trackingModalConfirm");
   if (_appendTo) {
-    title.textContent = "Agrega a tu coleccion";
-    confirmBtn.textContent = "Agregar";
+    title.textContent = t("track.append_title");
+    confirmBtn.textContent = t("track.add");
     nameInput.value = preFillName || "";
     nameInput.style.display = "none";
     nameInput.insertAdjacentHTML("afterend", `<span style="display:block;font-size:var(--text-sm);color:var(--text-muted);margin-bottom:var(--space-2)">${preFillName || ""}</span>`);
   } else {
-    title.textContent = "Crear binder de coleccion";
-    confirmBtn.textContent = "Crear";
+    title.textContent = t("track.create_title");
+    confirmBtn.textContent = t("track.create");
     nameInput.value = "";
     nameInput.style.display = "";
     const appendSpan = nameInput.nextElementSibling;
@@ -55,7 +55,7 @@ function renderTrackingExtra(type, panel) {
   if (type === "expansion") {
     const sets = getAvailableSets();
     const allSets = [...sets.booster, ...sets.starter, ...sets.promo];
-    const groupLabels = { booster: "Booster", starter: "Starter", promo: "Promo" };
+    const groupLabels = { booster: t("track.group_booster"), starter: t("track.group_starter"), promo: t("track.group_promo") };
     const checkboxesHTML = Object.entries(sets).map(([key, items]) => {
       if (!items.length) return "";
       return `<div style="margin-bottom:6px"><span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:2px">${groupLabels[key]}</span>` +
@@ -63,18 +63,18 @@ function renderTrackingExtra(type, panel) {
         `</div>`;
     }).join("");
     panel.innerHTML = `
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Expansiones (${allSets.length})</label>
+      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("track.expansions", { n: allSets.length })}</label>
       <div id="trackingSetCheckboxes" style="max-height:280px;overflow-y:auto;margin-bottom:var(--space-3)">
         ${checkboxesHTML}
       </div>
       <div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-2)">
-        <button class="btn-ghost btn-xs" id="trackingSelectAllSets" style="font-size:10px">Seleccionar todas</button>
-        <button class="btn-ghost btn-xs" id="trackingDeselectAllSets" style="font-size:10px">Ninguna</button>
+        <button class="btn-ghost btn-xs" id="trackingSelectAllSets" style="font-size:10px">${t("track.select_all")}</button>
+        <button class="btn-ghost btn-xs" id="trackingDeselectAllSets" style="font-size:10px">${t("track.none")}</button>
       </div>
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo de set</label>
+      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("track.set_type")}</label>
       <select id="trackingSetMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-        <option value="master">Master Set — Todas las cartas</option>
-        <option value="base">Base Set — Sin SP / AA / Manga</option>
+        <option value="master">${t("track.mode_master")}</option>
+        <option value="base">${t("track.mode_base")}</option>
       </select>`;
     document.getElementById("trackingSelectAllSets").addEventListener("click", () => {
       panel.querySelectorAll("#trackingSetCheckboxes input[type=checkbox]").forEach(cb => cb.checked = true);
@@ -84,10 +84,10 @@ function renderTrackingExtra(type, panel) {
     });
   } else if (type === "character") {
     panel.innerHTML = `
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Personaje</label>
-      <input type="text" id="trackingCharacterInput" placeholder="Escribí el nombre del personaje..." autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-      <div id="trackingCharSuggestions" style="max-height:150px;overflow-y:auto;margin-top:4px"></div>      ${buildTrackingToggle("trackingIncludeAA", "Arte Alternativo", true)}
-      ${buildTrackingToggle("trackingIncludePromo", "Promos", true)}`;
+      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("track.character")}</label>
+      <input type="text" id="trackingCharacterInput" placeholder="${t("track.character_ph")}" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+      <div id="trackingCharSuggestions" style="max-height:150px;overflow-y:auto;margin-top:4px"></div>      ${buildTrackingToggle("trackingIncludeAA", t("track.include_aa"), true)}
+      ${buildTrackingToggle("trackingIncludePromo", t("track.include_promo"), true)}`;
     const charInput = document.getElementById("trackingCharacterInput");
     charInput.addEventListener("input", () => {
       const query = charInput.value.trim();
@@ -106,16 +106,16 @@ function renderTrackingExtra(type, panel) {
   } else if (type === "rarity") {
     const rarities = ["L", "C", "UC", "R", "SR", "SEC", "SP", "AA"];
     panel.innerHTML = `
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Rarezas</label>
+      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("track.rarities")}</label>
       <div id="trackingRarityCheckboxes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--space-3)">
         ${rarities.map(r => `<label style="display:flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-secondary);cursor:pointer"><input type="checkbox" value="${r}" checked> ${r}</label>`).join("")}
       </div>
       <div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-2)">
-        <button class="btn-ghost btn-xs" id="trackingSelectAllRarities" style="font-size:10px">Todas</button>
-        <button class="btn-ghost btn-xs" id="trackingDeselectAllRarities" style="font-size:10px">Ninguna</button>
+        <button class="btn-ghost btn-xs" id="trackingSelectAllRarities" style="font-size:10px">${t("track.all")}</button>
+        <button class="btn-ghost btn-xs" id="trackingDeselectAllRarities" style="font-size:10px">${t("track.none")}</button>
       </div>
-      ${buildTrackingToggle("trackingIncludeAA", "Arte Alternativo", true)}
-      ${buildTrackingToggle("trackingIncludePromo", "Promos", true)}`;
+      ${buildTrackingToggle("trackingIncludeAA", t("track.include_aa"), true)}
+      ${buildTrackingToggle("trackingIncludePromo", t("track.include_promo"), true)}`;
     document.getElementById("trackingSelectAllRarities").addEventListener("click", () => {
       panel.querySelectorAll("#trackingRarityCheckboxes input[type=checkbox]").forEach(cb => cb.checked = true);
     });
@@ -124,8 +124,8 @@ function renderTrackingExtra(type, panel) {
     });
   } else if (type === "don") {
     const donCount = cartas.filter(c => c.category === "DON").length;
-    panel.innerHTML = `<p style="font-size:var(--text-sm);color:var(--text-muted)">Se incluirán todas las <strong>${donCount}</strong> cartas DON disponibles.</p>
-      ${buildTrackingToggle("trackingIncludeAA", "Gold", true)}`;
+    panel.innerHTML = `<p style="font-size:var(--text-sm);color:var(--text-muted)">${t("track.don_info", { n: `<strong>${donCount}</strong>` })}</p>
+      ${buildTrackingToggle("trackingIncludeAA", t("track.include_gold"), true)}`;
   }
 }
 
@@ -133,7 +133,7 @@ function buildTrackingToggle(id, label, defaultOn) {
   return `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-2);padding:var(--space-2) 0">
     <span style="font-size:var(--text-xs);color:var(--text-muted)">${label}</span>
     <div id="${id}" class="tracking-switch${defaultOn ? ' on' : ''}" onclick="this.classList.toggle('on')">
-      <span>Sin</span><span>Con</span>
+      <span>${t("track.without")}</span><span>${t("track.with")}</span>
     </div>
   </div>`;
 }
@@ -175,7 +175,7 @@ function getAvailableSets() {
       groups.starter.push({ id: sid, label: nombresExpansiones[sid] || sid });
       seen.add(sid);
     } else if ((cat === "PROMO" || cat === "OTHER") && !groups.promo.some(s => s.id === "PROMO")) {
-      groups.promo.push({ id: "PROMO", label: "Promo Cards" });
+      groups.promo.push({ id: "PROMO", label: t("track.promo_cards") });
       seen.add(sid);
     }
   });
@@ -256,17 +256,17 @@ async function confirmCreateTracking() {  const name = document.getElementById("
   if (type === "expansion") {
     const sets = [];
     document.querySelectorAll("#trackingSetCheckboxes input[type=checkbox]:checked").forEach(cb => sets.push(cb.value));
-    if (!sets.length) { showToast("Selecciona al menos una expansión", "error"); return; }
+    if (!sets.length) { showToast(t("track.err_need_expansion"), "error"); return; }
     config.sets = sets;
     config.mode = document.getElementById("trackingSetMode").value;
   } else if (type === "character") {
     const charName = document.getElementById("trackingCharacterInput").value.trim();
-    if (!charName) { showToast("Escribí el nombre del personaje", "error"); return; }
+    if (!charName) { showToast(t("track.err_need_character"), "error"); return; }
     config.character = charName;
   } else if (type === "rarity") {
     const rarities = [];
     document.querySelectorAll("#trackingRarityCheckboxes input[type=checkbox]:checked").forEach(cb => rarities.push(cb.value));
-    if (!rarities.length) { showToast("Selecciona al menos una rareza", "error"); return; }
+    if (!rarities.length) { showToast(t("track.err_need_rarity"), "error"); return; }
     config.rarities = rarities;
   }
   const newCards = buildTrackingCardList(type, config);
@@ -284,7 +284,7 @@ async function confirmCreateTracking() {  const name = document.getElementById("
     document.getElementById("trackingModalOverlay").style.display = "none";
     _appendTo = null;
     guardarCollections();
-    showToast(added + " carta(s) agregada(s)", "success");
+    showToast(t("track.added", { n: added }), "success");
     if (currentCollectionId === col.id) {
       const grid = document.getElementById("binderGrid");
       const title = document.getElementById("binderTitle");
@@ -293,7 +293,7 @@ async function confirmCreateTracking() {  const name = document.getElementById("
     return;
   }
   if (!name) return;
-  if (!newCards.length) { showToast("No se encontraron cartas con esos filtros", "error"); return; }
+  if (!newCards.length) { showToast(t("track.err_no_cards"), "error"); return; }
   if (typeof guardSpaceForNew === "function" && !(await guardSpaceForNew())) return;
   const id = generarId();
   collections[id] = {
@@ -307,7 +307,7 @@ async function confirmCreateTracking() {  const name = document.getElementById("
   document.getElementById("trackingModalOverlay").style.display = "none";
   guardarCollections();
   renderCollectionList();
-  showToast(`Binder creado con ${newCards.length} cartas`, "success");
+  showToast(t("track.created", { n: newCards.length }), "success");
 }
 
 // ─── Tracking Rendering ─────────────────────────────────────────────────
@@ -323,15 +323,15 @@ function renderTrackingBinder(col, grid, title) {
   document.getElementById("binderClearAllBtn").style.display = "none";
   if (toggleContainer) {
     toggleContainer.innerHTML = isAuthenticated() ? `
-      <label class="public-toggle"><span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
+      <label class="public-toggle"><span class="public-toggle-label ${!col.is_public ? "active" : ""}">${t("track.private")}</span>
       <input type="checkbox" id="binderPublicCheck" ${col.is_public ? "checked" : ""}>
       <span class="public-toggle-track"><span class="public-toggle-thumb"></span></span>
-      <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span></label>` : "";
+      <span class="public-toggle-label ${col.is_public ? "active" : ""}">${t("track.public")}</span></label>` : "";
     const chk = document.getElementById("binderPublicCheck");
     if (chk) chk.onchange = () => toggleBinderPublic(currentCollectionId);
   }
   if (col.tracking_type === "expansion" && col.tracking_config && col.tracking_config.mode === "base") {
-    title.innerHTML = col.name + ' <span class="tracking-mode-badge">Base Set</span>';
+    title.innerHTML = col.name + ' <span class="tracking-mode-badge">' + t("track.base_badge") + '</span>';
   } else {
     title.textContent = col.name;
   }
@@ -345,12 +345,12 @@ function renderTrackingBinder(col, grid, title) {
   if (col.checklist_mode) {
     grid.parentElement.classList.add("tracking-checklist");
     grid.style.display = "flex";
-    document.getElementById("trackingChecklistBtn").innerHTML = "&#9638; Grid";
+    document.getElementById("trackingChecklistBtn").innerHTML = "&#9638; " + t("track.grid");
     if (pagination) pagination.style.display = "none";
   } else {
     grid.parentElement.classList.remove("tracking-checklist");
     grid.style.display = "";
-    document.getElementById("trackingChecklistBtn").innerHTML = "&#9776; Lista";
+    document.getElementById("trackingChecklistBtn").innerHTML = "&#9776; " + t("track.list");
     if (pagination) pagination.style.display = "";
   }
 
@@ -366,7 +366,7 @@ function renderTrackingBinder(col, grid, title) {
     }
     document.getElementById("binderPrevBtn").disabled = binderPage <= 1;
     document.getElementById("binderNextBtn").disabled = binderPage >= totalPages;
-    document.getElementById("binderPageInfo").textContent = "Página " + binderPage + " de " + totalPages;
+    document.getElementById("binderPageInfo").textContent = t("track.page", { a: binderPage, b: totalPages });
   }
 
   grid.querySelectorAll(".tracking-card-overlay").forEach(ov => {
@@ -484,8 +484,8 @@ document.getElementById("trackingMarkAllBtn").addEventListener("click", () => {
   const col = collections[currentCollectionId];
   if (!col || col.subtype !== "tracking") return;
   const remaining = col.cards.filter(c => !c.owned).length;
-  if (remaining === 0) { showToast("Ya tenés todas las cartas marcadas", "info"); return; }
-  showConfirmModal("¿Marcar las " + remaining + " cartas faltantes como obtenidas?", () => {
+  if (remaining === 0) { showToast(t("track.already_all"), "info"); return; }
+  showConfirmModal(t("track.confirm_mark_all", { n: remaining }), () => {
     col.cards.forEach(c => c.owned = true);
     guardarCollections();
     const grid = document.getElementById("binderGrid");
@@ -497,8 +497,8 @@ document.getElementById("trackingUnmarkAllBtn").addEventListener("click", () => 
   const col = collections[currentCollectionId];
   if (!col || col.subtype !== "tracking") return;
   const owned = col.cards.filter(c => c.owned).length;
-  if (owned === 0) { showToast("No tenés ninguna carta marcada", "info"); return; }
-  showConfirmModal("¿Desmarcar las " + owned + " cartas obtenidas?", () => {
+  if (owned === 0) { showToast(t("track.none_marked"), "info"); return; }
+  showConfirmModal(t("track.confirm_unmark_all", { n: owned }), () => {
     col.cards.forEach(c => c.owned = false);
     guardarCollections();
     const grid = document.getElementById("binderGrid");
@@ -521,6 +521,7 @@ document.getElementById("trackingFilters").addEventListener("click", e => {
   const col = collections[currentCollectionId];
   if (!col || col.subtype !== "tracking") return;
   col._trackingFilter = btn.getAttribute("data-filter");
+  updateTrackingFilterButtons(col._trackingFilter);
   binderPage = 1;
   const grid = document.getElementById("binderGrid");
   const title = document.getElementById("binderTitle");
@@ -541,7 +542,7 @@ document.getElementById("binderGrid").addEventListener("click", e => {
     const card = col.cards[idx];
     const full = card._key ? cartasMap[card._key] : null;
     const name = full ? formatearNombre(full) : (card._key || "carta");
-    showConfirmModal("¿Eliminar \"" + name + "\" del tracking?", () => {
+    showConfirmModal(t("track.confirm_remove", { n: name }), () => {
       col.cards.splice(idx, 1);
       col.target = col.cards.length;
       guardarCollections();

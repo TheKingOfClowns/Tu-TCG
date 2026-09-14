@@ -8,8 +8,8 @@ function renderCollectionList_OP() {
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
-    const msg = currentTcg ? "No tienes colecciones para este TCG" : "No tienes colecciones";
-    container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstColBtn">Crear primera colección</button></div>`;
+    const msg = currentTcg ? t("binder.empty_tcg") : t("binder.empty");
+    container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstColBtn">${t("binder.create_first")}</button></div>`;
     const btn = document.getElementById("createFirstColBtn");
     if (btn) btn.addEventListener("click", pedirCrearColeccion);
     return;
@@ -23,17 +23,17 @@ function renderCollectionList_OP() {
     const deckCount = isDeck ? (col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0) : col.cards.length;
     let totalCards, badgeClass, badgeText;
     if (isDeck) {
-      totalCards = `${col.leader ? "1 líder · " : ""}${deckCount} cartas${col.dons?.length ? " · " + col.dons.length + " DON" : ""}`;
-      badgeClass = "deck"; badgeText = "Deck";
+      totalCards = `${col.leader ? t("binder.leader_prefix") : ""}${t("binder.count_cards", { n: deckCount })}${col.dons?.length ? " · " + col.dons.length + " DON" : ""}`;
+      badgeClass = "deck"; badgeText = t("binder.badge_deck");
     } else if (isTracking) {
       const owned = col.cards.filter(c => c.owned).length;
       const total = col.target || col.cards.length;
       const pct = total > 0 ? Math.round((owned / total) * 100) : 0;
       totalCards = `${owned} / ${total}`;
-      badgeClass = "collection"; badgeText = { expansion: "Expansiones", rarity: "Rarezas", character: "Personaje", don: "Don Cards" }[col.tracking_type] || "Tracking";
+      badgeClass = "collection"; badgeText = { expansion: t("binder.track_expansion"), rarity: t("binder.track_rarity"), character: t("binder.track_character"), don: t("binder.track_don") }[col.tracking_type] || t("binder.track_default");
     } else {
-      totalCards = `${col.cards.length} cartas`;
-      badgeClass = "collection"; badgeText = "Colección";
+      totalCards = `${t("binder.count_cards", { n: col.cards.length })}`;
+      badgeClass = "collection"; badgeText = t("binder.badge_collection");
     }
     const div = document.createElement("div");
     div.className = "binder-cover-card";
@@ -41,7 +41,7 @@ function renderCollectionList_OP() {
       const owned = col.cards.filter(c => c.owned).length;
       const total = col.target || col.cards.length;
       const pct = total > 0 ? Math.round((owned / total) * 100) : 0;
-      return `<div class="tracking-cover-progress"><div class="tracking-cover-progress-bar"><div class="tracking-cover-progress-fill" style="width:${pct}%"></div></div><span class="tracking-cover-progress-text">${pct}% — ${owned} de ${total}</span></div>`;
+      return `<div class="tracking-cover-progress"><div class="tracking-cover-progress-bar"><div class="tracking-cover-progress-fill" style="width:${pct}%"></div></div><span class="tracking-cover-progress-text">${t("binder.progress", { p: pct, o: owned, total: total })}</span></div>`;
     })() : "";
     div.innerHTML = `
       <div class="binder-cover-img" style="background-image:url(${coverImg ? escapeAttr(coverImg) : "'TUTCG.webp'"})">
@@ -55,9 +55,9 @@ function renderCollectionList_OP() {
         ${progressSection}
       </div>
       <div class="binder-cover-actions">
-        <button class="btn-ghost btn-xs" data-action="open" data-id="${id}">Abrir</button>
-        <button class="btn-ghost btn-xs" data-action="rename" data-id="${id}">Renombrar</button>
-        <button class="btn-danger btn-xs" data-action="delete" data-id="${id}">Eliminar</button>
+        <button class="btn-ghost btn-xs" data-action="open" data-id="${id}">${t("binder.open")}</button>
+        <button class="btn-ghost btn-xs" data-action="rename" data-id="${id}">${t("binder.rename")}</button>
+        <button class="btn-danger btn-xs" data-action="delete" data-id="${id}">${t("binder.delete")}</button>
       </div>`;
     container.appendChild(div);
   });
@@ -80,9 +80,9 @@ function renderCollectionList_OP() {
     b.addEventListener("click", () => {
       const id = b.getAttribute("data-id");
       showCreateModal({
-        title: "Renombrar colección",
-        confirmText: "Guardar",
-        placeholder: "Nuevo nombre",
+        title: t("binder.rename_title"),
+        confirmText: t("binder.save"),
+        placeholder: t("binder.new_name_ph"),
         initialValue: collections[id].name,
         onConfirm: (nombre) => { collections[id].name = nombre.trim(); guardarCollections(); renderCollectionList_OP(); }
       });
@@ -91,7 +91,7 @@ function renderCollectionList_OP() {
   container.querySelectorAll("[data-action='delete']").forEach(b => {
     b.addEventListener("click", () => {
       const idCol = b.getAttribute("data-id");
-      showConfirmModal('¿Eliminar la colección "' + collections[idCol].name + '"?', () => {
+      showConfirmModal(t("binder.delete_confirm", { name: collections[idCol].name }), () => {
         delete collections[idCol]; guardarCollections(); renderCollectionList_OP();
       });
     });
@@ -100,14 +100,14 @@ function renderCollectionList_OP() {
 function pedirCrearColeccion_OP() {
   if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
-    title: "Crear colección",
-    confirmText: "Crear",
-    placeholder: "Nombre de la colección",
+    title: t("binder.create_title"),
+    confirmText: t("binder.create"),
+    placeholder: t("binder.create_name_ph"),
     extraHTML: `
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);margin-top:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo</label>
+      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);margin-top:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("binder.type_label")}</label>
       <select id="createColSubtype" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-        <option value="binder">Binder — cartas libres</option>
-        <option value="deck">Deck — líder + 50 cartas + 10 DON!!</option>
+        <option value="binder">${t("binder.opt_binder")}</option>
+        <option value="deck">${t("binder.opt_deck_op")}</option>
       </select>`,
     onConfirm: (nombre) => {
       const subtype = document.getElementById("createColSubtype")?.value || "binder";
@@ -154,18 +154,18 @@ function renderBinder_OP() {
   if (pagination) pagination.style.display = "";
   const clearPB = document.getElementById("binderClearPageBtn");
   const clearAB = document.getElementById("binderClearAllBtn");
-  if (clearPB) clearPB.textContent = "Vaciar página";
-  if (clearAB) clearAB.textContent = "Vaciar todo";
+  if (clearPB) clearPB.textContent = t("binder.clear_page_btn");
+  if (clearAB) clearAB.textContent = t("binder.clear_all_btn");
   title.textContent = col.name;
   if (toggleContainer) {
     toggleContainer.innerHTML = isAuthenticated() ? `
       <label class="public-toggle">
-        <span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
+        <span class="public-toggle-label ${!col.is_public ? "active" : ""}">${t("binder.private")}</span>
         <input type="checkbox" id="binderPublicCheck" ${col.is_public ? "checked" : ""}>
         <span class="public-toggle-track">
           <span class="public-toggle-thumb"></span>
         </span>
-        <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
+        <span class="public-toggle-label ${col.is_public ? "active" : ""}">${t("binder.public")}</span>
       </label>
     ` : "";
     const chk = document.getElementById("binderPublicCheck");
@@ -238,16 +238,19 @@ function renderBinder_OP() {
   });
   document.getElementById("binderPrevBtn").disabled = binderPage <= 1;
   document.getElementById("binderNextBtn").disabled = binderPage >= totalPages;
-  document.getElementById("binderPageInfo").textContent = "Página " + binderPage + " de " + totalPages;
+  document.getElementById("binderPageInfo").textContent = t("binder.page", { a: binderPage, b: totalPages });
   setupBinderDragDrop();
   if (!grid.hasAttribute("data-empty-click")) {
     grid.setAttribute("data-empty-click", "1");
     grid.addEventListener("click", function(e) {
       if (e.target.closest(".binder-empty")) {
-        addingToBinderId = currentCollectionId;
-        addingToBinderName = collections[currentCollectionId] ? collections[currentCollectionId].name : "";
-        addingToBinderType = "collection";
-        if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
+        var _col = collections[currentCollectionId];
+        if (_col && _col.subtype === "deck") {
+          addingToBinderId = currentCollectionId;
+          addingToBinderName = _col.name || "";
+          addingToBinderType = "collection";
+          if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
+        } else if (typeof goToCatalogWithTarget === "function") goToCatalogWithTarget("collection", currentCollectionId);
       }
     });
   }

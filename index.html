@@ -7,7 +7,7 @@
   <title>TuTCG</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="design-system.css?v=3">
-<link rel="stylesheet" href="style.css?v=30">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
 
@@ -26,31 +26,31 @@
     </div>
 
     <nav class="sidebar-nav">
-      <div class="sidebar-nav-label">Explorar</div>
+      <div class="sidebar-nav-label" data-i18n="nav.explore">Explorar</div>
       <button class="sidebar-nav-item active" data-view="home" id="sidebarHome">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Inicio
+        <span data-i18n="nav.home">Inicio</span>
       </button>
       <button class="sidebar-nav-item" data-view="catalog" id="sidebarCatalog">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
-        Catálogo
+        <span data-i18n="nav.catalog">Catálogo</span>
       </button>
       <button class="sidebar-nav-item" data-view="collections" id="sidebarColecciones">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Colecciones
+        <span data-i18n="nav.collections">Colecciones</span>
       </button>
       <button class="sidebar-nav-item" data-view="ventaCols" id="sidebarVenta">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Venta
+        <span data-i18n="nav.sale">Venta</span>
       </button>
       <button class="sidebar-nav-item" data-view="explore" id="sidebarExplore">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-        Explorar
+        <span data-i18n="nav.explore_btn">Explorar</span>
       </button>
-      <div class="sidebar-nav-label">Cuenta</div>
+      <div class="sidebar-nav-label" data-i18n="nav.account">Cuenta</div>
       <button class="sidebar-nav-item" data-view="profile" id="sidebarProfile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Perfil
+        <span data-i18n="nav.profile">Perfil</span>
       </button>
     </nav>
 
@@ -83,11 +83,11 @@
       <div class="top-bar-right">
         <button class="top-bar-btn" id="authBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          <span>Ingresar</span>
+          <span data-i18n="nav.signin">Ingresar</span>
         </button>
         <button class="top-bar-btn" id="userBtn" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Mi Cuenta</span>
+          <span data-i18n="nav.account_btn">Mi Cuenta</span>
         </button>
       </div>
     </header>
@@ -105,13 +105,13 @@
               <div class="hero-bg-glow"></div>
               <div class="hero-content">
 
-                <h1 class="hero-title">Tu colección.<br><span>Tus cartas.</span> <span class="hero-accent">Tu espacio.</span></h1>
-                <p class="hero-subtitle">Organizá, explorá y gestioná toda tu colección de TCG en un solo lugar. Catálogo completo, binder virtual, deck builder y más.</p>
+                <h1 class="hero-title"><span data-i18n="land.hero_a">Tu colección.</span><br><span data-i18n="land.hero_b">Tus cartas.</span> <span class="hero-accent" data-i18n="land.hero_c">Tu espacio.</span></h1>
+                <p class="hero-subtitle" data-i18n="land.hero_sub">Organizá, explorá y gestioná toda tu colección de TCG en un solo lugar. Catálogo completo, binder virtual, deck builder y más.</p>
                 <div class="hero-buttons">
-                  <button class="btn-primary btn-lg" id="landingExploreBtn">Explorar catálogo</button>
-                  <button class="btn-ghost btn-lg" id="landingRegisterBtn2">Crear cuenta gratis</button>
+                  <button class="btn-primary btn-lg" id="landingExploreBtn" data-i18n="land.explore_btn">Explorar catálogo</button>
+                  <button class="btn-ghost btn-lg" id="landingRegisterBtn2" data-i18n="land.register_btn">Crear cuenta gratis</button>
                 </div>
-                <p class="hero-login-link">¿Ya tenés cuenta? <button class="landing-link-btn" id="landingLoginBtn2">Iniciá sesión</button></p>
+                <p class="hero-login-link"><span data-i18n="land.have_account">¿Ya tenés cuenta?</span> <button class="landing-link-btn" id="landingLoginBtn2" data-i18n="land.signin_link">Iniciá sesión</button></p>
               </div>
             </section>
 
@@ -124,32 +124,32 @@
                   <div class="how-step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                   </div>
-                  <h3>Buscá tus cartas</h3>
-                  <p>Encontrá cualquier carta por nombre, set, color o rareza al instante.</p>
+                  <h3 data-i18n="land.step1_t">Buscá tus cartas</h3>
+                  <p data-i18n="land.step1_d">Encontrá cualquier carta por nombre, set, color o rareza al instante.</p>
                 </div>
                 <div class="how-step">
                   <div class="how-step-number">2</div>
                   <div class="how-step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                   </div>
-                  <h3>Creá tu colección</h3>
-                  <p>Armá tu binder virtual con las cartas que tenés y marcá las que te faltan.</p>
+                  <h3 data-i18n="land.step2_t">Creá tu colección</h3>
+                  <p data-i18n="land.step2_d">Armá tu binder virtual con las cartas que tenés y marcá las que te faltan.</p>
                 </div>
                 <div class="how-step">
                   <div class="how-step-number">3</div>
                   <div class="how-step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                   </div>
-                  <h3>Organizá tus decks</h3>
-                  <p>Construí tus mazos y gestioná la venta de mazos también.</p>
+                  <h3 data-i18n="land.step3_t">Organizá tus decks</h3>
+                  <p data-i18n="land.step3_d">Construí tus mazos y gestioná la venta de mazos también.</p>
                 </div>
                 <div class="how-step">
                   <div class="how-step-number">4</div>
                   <div class="how-step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                   </div>
-                  <h3>Vende tus cartas</h3>
-                  <p>Publicá tus cartas y decks.</p>
+                  <h3 data-i18n="land.step4_t">Vende tus cartas</h3>
+                  <p data-i18n="land.step4_d">Publicá tus cartas y decks.</p>
                 </div>
               </div>
             </section>
@@ -162,52 +162,52 @@
                   <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
                   </div>
-                  <h3>Catálogo completo</h3>
-                  <p>Miles de cartas con imágenes, rarezas y precios actualizados.</p>
-                  <span class="feature-tag">Disponible</span>
+                  <h3 data-i18n="land.feat1_t">Catálogo completo</h3>
+                  <p data-i18n="land.feat1_d">Miles de cartas con imágenes, rarezas y precios actualizados.</p>
+                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                   </div>
-                  <h3>Búsqueda instantánea</h3>
-                  <p>Buscá por nombre, set o código de carta con resultados en tiempo real.</p>
-                  <span class="feature-tag">Disponible</span>
+                  <h3 data-i18n="land.feat2_t">Búsqueda instantánea</h3>
+                  <p data-i18n="land.feat2_d">Buscá por nombre, set o código de carta con resultados en tiempo real.</p>
+                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v7"/><circle cx="12" cy="7" r="4"/></svg>
                   </div>
-                  <h3>Binder virtual</h3>
-                  <p>Organizá tus cartas en colecciones personalizadas con drag & drop.</p>
-                  <span class="feature-tag">Disponible</span>
+                  <h3 data-i18n="land.feat3_t">Binder virtual</h3>
+                  <p data-i18n="land.feat3_d">Organizá tus cartas en colecciones personalizadas con drag & drop.</p>
+                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                   </div>
-                  <h3>Deck builder</h3>
-                  <p>Armá mazos con límites oficiales.</p>
-                  <span class="feature-tag">Disponible</span>
+                  <h3 data-i18n="land.feat4_t">Deck builder</h3>
+                  <p data-i18n="land.feat4_d">Armá mazos con límites oficiales.</p>
+                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                   </div>
-                  <h3>Vos ponés tus precios</h3>
-                  <p>Precios editables por el usuario.</p>
-                  <span class="feature-tag">Disponible</span>
+                  <h3 data-i18n="land.feat5_t">Vos ponés tus precios</h3>
+                  <p data-i18n="land.feat5_d">Precios editables por el usuario.</p>
+                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M12 9v6"/><path d="M20 12c0 5-8 8-8 8s-8-3-8-8a8 8 0 0 1 16 0z"/></svg>
                   </div>
-                  <h3>Lista de deseos</h3>
-                  <p>Marcá las cartas que te faltan y armá tu wishlist para completar colecciones.</p>
-                  <span class="feature-tag">Disponible</span>
+                  <h3 data-i18n="land.feat6_t">Lista de deseos</h3>
+                  <p data-i18n="land.feat6_d">Marcá las cartas que te faltan y armá tu wishlist para completar colecciones.</p>
+                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
               </div>
-              <p class="coming-soon-note">Próximamente: más TCG disponibles para explorar</p>
+              <p class="coming-soon-note" data-i18n="land.coming_note">Próximamente: más TCG disponibles para explorar</p>
             </section>
 
             <!-- ── STATS ── -->
@@ -216,7 +216,7 @@
               <div class="stats-grid">
                 <div class="stat-card">
                   <span class="stat-number" id="statCards">4.782</span>
-                  <span class="stat-label">Cartas registradas</span>
+                  <span class="stat-label" data-i18n="land.stat_cards">Cartas registradas</span>
                 </div>
 
               </div>
@@ -226,9 +226,9 @@
             <section class="cta-section" id="ctaSection">
               <div class="cta-glow"></div>
               <div class="cta-content">
-                <h2>Empezá a organizar tu colección hoy</h2>
-                <p>Creá tu cuenta gratis y accedé a todas las herramientas para coleccionistas de TCG.</p>
-                <button class="btn-primary btn-lg" id="landingCtaBtn">Crear cuenta gratis</button>
+                <h2 data-i18n="land.cta_t">Empezá a organizar tu colección hoy</h2>
+                <p data-i18n="land.cta_d">Creá tu cuenta gratis y accedé a todas las herramientas para coleccionistas de TCG.</p>
+                <button class="btn-primary btn-lg" id="landingCtaBtn" data-i18n="land.register_btn">Crear cuenta gratis</button>
               </div>
             </section>
 
@@ -240,35 +240,35 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L3 7l9 5 9-5-9-5z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg>
                   </div>
                   <span>TuTCG</span>
-                  <p>La plataforma para coleccionistas de TCG´s. Hecho por coleccionistas, para coleccionistas.</p>
+                  <p data-i18n="land.footer_tag">La plataforma para coleccionistas de TCG´s. Hecho por coleccionistas, para coleccionistas.</p>
                 </div>
                 <div class="footer-links">
-                  <h4>Producto</h4>
-                  <button class="footer-link" data-action="catalog">Catálogo</button>
-                  <button class="footer-link" data-action="features">Funciones</button>
-                  <button class="footer-link" data-action="stats">Estadísticas</button>
+                  <h4 data-i18n="land.footer_product">Producto</h4>
+                  <button class="footer-link" data-action="catalog" data-i18n="nav.catalog">Catálogo</button>
+                  <button class="footer-link" data-action="features" data-i18n="land.footer_features">Funciones</button>
+                  <button class="footer-link" data-action="stats" data-i18n="land.footer_stats">Estadísticas</button>
                 </div>
                 <div class="footer-links">
-                  <h4>Soporte</h4>
-                  <button class="footer-link" id="footerContact">Contacto</button>
-                  <button class="footer-link" id="footerPrivacy">Privacidad</button>
-                  <button class="footer-link" id="footerTerms">Términos</button>
+                  <h4 data-i18n="land.footer_support">Soporte</h4>
+                  <button class="footer-link" id="footerContact" data-i18n="land.footer_contact">Contacto</button>
+                  <button class="footer-link" id="footerPrivacy" data-i18n="land.footer_privacy">Privacidad</button>
+                  <button class="footer-link" id="footerTerms" data-i18n="land.footer_terms">Términos</button>
                 </div>
                 <div class="footer-links">
-                  <h4>Legal</h4>
-                  <button class="footer-link" id="footerPrivacyLegal">Política de privacidad</button>
-                  <button class="footer-link" id="footerTermsLegal">Términos de servicio</button>
+                  <h4 data-i18n="land.footer_legal">Legal</h4>
+                  <button class="footer-link" id="footerPrivacyLegal" data-i18n="land.footer_privacy_policy">Política de privacidad</button>
+                  <button class="footer-link" id="footerTermsLegal" data-i18n="land.footer_terms_service">Términos de servicio</button>
                 </div>
               </div>
               <div class="footer-bottom">
-                <p>&copy; 2026 TuTCG. Todos los derechos reservados.</p>
+                <p data-i18n="land.footer_rights">© 2026 TuTCG. Todos los derechos reservados.</p>
               </div>
             </footer>
 
           </div>
           <div class="tcg-selector-hero" id="tcgSelectorHero">
-            <h1 class="tcg-hero-title">Selecciona tu <span>TCG</span></h1>
-            <p class="tcg-hero-subtitle">Explora, colecciona y gestiona tus cartas favoritas</p>
+            <h1 class="tcg-hero-title"><span data-i18n="land.select_tcg">Selecciona tu</span> <span>TCG</span></h1>
+            <p class="tcg-hero-subtitle" data-i18n="core.hero_catalog">Explora, colecciona y gestiona tus cartas favoritas</p>
           </div>
           <div class="tcg-grid" id="tcgGrid"></div>
         </div>
@@ -280,7 +280,7 @@
           <div class="welcome-header-bar">
             <button class="btn-back" id="welcomeBackBtn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-              Volver
+              <span data-i18n="nav.back">Volver</span>
             </button>
             <h2 id="welcomeTcgName">TCG</h2>
           </div>
@@ -289,25 +289,25 @@
               <div class="welcome-card-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
               </div>
-              <h3>Cartas</h3>
-              <p>Explora todas las cartas del juego</p>
-              <span class="welcome-card-cta">Explorar <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
+              <h3 data-i18n="land.w_cards">Cartas</h3>
+              <p data-i18n="land.w_cards_d">Explora todas las cartas del juego</p>
+              <span class="welcome-card-cta"><span data-i18n="land.w_explore">Explorar</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
             </div>
             <div class="welcome-card" data-view="collections">
               <div class="welcome-card-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
               </div>
-              <h3>Binder</h3>
-              <p>Organiza tus cartas en un binder virtual</p>
-              <span class="welcome-card-cta">Abrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
+              <h3 data-i18n="land.w_binder">Binder</h3>
+              <p data-i18n="land.w_binder_d">Organiza tus cartas en un binder virtual</p>
+              <span class="welcome-card-cta"><span data-i18n="land.w_open">Abrir</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
             </div>
             <div class="welcome-card" data-view="ventaCols">
               <div class="welcome-card-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
               </div>
-              <h3>Venta</h3>
-              <p>Gestiona tus cartas a la venta con precios personalizados</p>
-              <span class="welcome-card-cta">Gestionar <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
+              <h3 data-i18n="land.w_sale">Venta</h3>
+              <p data-i18n="land.w_sale_d">Gestiona tus cartas a la venta con precios personalizados</p>
+              <span class="welcome-card-cta"><span data-i18n="land.w_manage">Gestionar</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></span>
             </div>
           </div>
         </div>
@@ -320,16 +320,16 @@
             <div class="catalog-toolbar-left">
             <div class="catalog-search-bar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input type="text" id="searchInput" placeholder="Buscar por nombre, set…">
+              <input type="text" id="searchInput" placeholder="Buscar por nombre, set…" data-i18n-ph="cat.search_ph">
               <button class="catalog-search-clear" id="searchClear" style="display:none">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
             </div>
           <div class="catalog-toolbar-right">
-            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
+            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista" data-i18n-title="view.opts">⚙</button>
             <label class="catalog-target-label" id="catalogTargetLabel" style="display:none">
-              <span>Agregando a:</span>
+              <span data-i18n="cat.adding_to">Agregando a:</span>
               <select id="catalogTargetSelect">
                 <option value="">Sin destino</option>
               </select>
@@ -343,7 +343,7 @@
           <select id="colorFilter"><option value="">Todos los colores</option></select>
           <select id="rarityFilter"><option value="">Todas las rarezas</option></select>
           <select id="typeFilter"><option value="">Todos los tipos</option></select>
-          <select id="sortFilter"><option value="">Orden colección</option><option value="name">Nombre A-Z</option><option value="name_desc">Nombre Z-A</option></select>
+          <select id="sortFilter"><option value="" data-i18n="cat.sort_collection">Orden colección</option><option value="name" data-i18n="cat.sort_az">Nombre A-Z</option><option value="name_desc" data-i18n="cat.sort_za">Nombre Z-A</option></select>
           <div class="catalog-lang-toggle" id="catalogLangToggle">
             <button class="lang-btn active" data-lang="en">EN</button>
             <button class="lang-btn" data-lang="ja">JA</button>
@@ -354,10 +354,10 @@
         <div class="catalog-results-bar" id="resultsCounter" style="display:none">Cargando cartas…</div>
 
         <div id="catalogAddBanner" style="display:none;align-items:center;justify-content:space-between;padding:var(--space-3);background:linear-gradient(135deg,rgba(0,240,255,0.1),rgba(99,102,241,0.1));border:1px solid rgba(0,240,255,0.2);border-radius:var(--radius-md);margin-bottom:var(--space-2)">
-          <span style="font-size:var(--text-sm);color:var(--text-secondary)">Agregando a: <strong id="catalogAddBinderName" style="color:var(--accent)"></strong></span>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary)"><span data-i18n="cat.adding_to">Agregando a:</span> <strong id="catalogAddBinderName" style="color:var(--accent)"></strong></span>
           <div style="display:flex;gap:var(--space-2)">
-            <button class="btn-primary btn-xs" id="catalogAddConfirm" style="font-size:10px;padding:4px 10px">Agregar</button>
-            <button class="btn-ghost btn-xs" id="catalogAddBack" style="font-size:10px">Volver al binder</button>
+            <button class="btn-primary btn-xs" id="catalogAddConfirm" style="font-size:10px;padding:4px 10px" data-i18n="modal.add">Agregar</button>
+            <button class="btn-ghost btn-xs" id="catalogAddBack" style="font-size:10px" data-i18n="modal.back_binder">Volver al binder</button>
             <button class="btn-ghost btn-xs" id="catalogAddCancel" style="font-size:10px;color:var(--text-muted)">✕</button>
           </div>
         </div>
@@ -365,9 +365,9 @@
         <div class="catalog-grid" id="cards-container" style="display:none"></div>
 
         <div class="catalog-pagination" id="catalogPagination" style="display:none">
-          <button class="btn-page" id="prevBtnBottom"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+          <button class="btn-page" id="prevBtnBottom"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> <span data-i18n="nav.prev">Anterior</span></button>
           <span class="page-info" id="pageInfoBottom">Página 1</span>
-          <button class="btn-page" id="nextBtnBottom">Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <button class="btn-page" id="nextBtnBottom"><span data-i18n="nav.next">Siguiente</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
       </div>
 
@@ -375,10 +375,10 @@
       <section class="view-pane" id="collectionManager" style="display:none">
         <div class="collection-inner">
           <div class="collection-header">
-            <h2>Mis Colecciones <span class="space-counter" id="spaceCounterCol"></span></h2>
+            <h2><span data-i18n="col.my_collections">Mis Colecciones</span> <span class="space-counter" id="spaceCounterCol"></span></h2>
             <div style="display:flex;gap:var(--space-2)">
-              <button class="btn-primary" id="createCollectionBtn">+ Nueva</button>
-              <button class="btn-primary" id="createTrackingBtn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">+ Tracking</button>
+              <button class="btn-primary" id="createCollectionBtn" data-i18n="col.new">+ Nueva</button>
+              <button class="btn-primary" id="createTrackingBtn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)" data-i18n="col.new_tracking">+ Tracking</button>
             </div>
           </div>
           <div class="collection-list" id="collectionList"></div>
@@ -391,14 +391,14 @@
           <div class="binder-header-bar">
             <button class="btn-back" id="binderBackBtn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-              Volver
+              <span data-i18n="nav.back">Volver</span>
             </button>
             <h2 id="binderTitle">Binder</h2>
             <div class="binder-header-actions" id="binderPublicToggleContainer"></div>
             <div class="binder-header-actions">
-              <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
-              <button class="btn-danger btn-sm" id="binderClearPageBtn">Vaciar página</button>
-              <button class="btn-danger btn-sm" id="binderClearAllBtn">Vaciar todo</button>
+              <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista" data-i18n-title="view.opts">⚙</button>
+              <button class="btn-danger btn-sm" id="binderClearPageBtn" data-i18n="binder.clear_page_btn">Vaciar página</button>
+              <button class="btn-danger btn-sm" id="binderClearAllBtn" data-i18n="binder.clear_all_btn">Vaciar todo</button>
             </div>
           </div>
           <div id="binderDeckContainer" style="display:none"></div>
@@ -408,22 +408,22 @@
               <span class="tracking-progress-text" id="trackingProgressText">0 / 0 — 0%</span>
             </div>
             <div class="tracking-actions">
-              <button class="btn-ghost btn-sm" id="trackingAddBtn" title="Agregar cartas al tracking">+ Agregar</button>
-              <button class="btn-ghost btn-sm" id="trackingMarkAllBtn" title="Marcar todo como obtenido">&check; Todo</button>
-              <button class="btn-ghost btn-sm" id="trackingUnmarkAllBtn" title="Desmarcar todo">&times; Todo</button>
-              <button class="btn-ghost btn-sm" id="trackingChecklistBtn" title="Modo checklist">&#9776; Lista</button>
+              <button class="btn-ghost btn-sm" id="trackingAddBtn" data-i18n-title="track.add_title" title="Agregar cartas al tracking" data-i18n="track.add_btn">+ Agregar</button>
+              <button class="btn-ghost btn-sm" id="trackingMarkAllBtn" data-i18n-title="track.mark_all_title" title="Marcar todo como obtenido" data-i18n="track.mark_all">✓ Todo</button>
+              <button class="btn-ghost btn-sm" id="trackingUnmarkAllBtn" data-i18n-title="track.unmark_all_title" title="Desmarcar todo" data-i18n="track.unmark_all">× Todo</button>
+              <button class="btn-ghost btn-sm" id="trackingChecklistBtn" data-i18n-title="track.checklist_title" title="Modo checklist" data-i18n="track.checklist">☰ Lista</button>
             </div>
             <div class="tracking-filters" id="trackingFilters">
-              <button class="tracking-filter-btn active" data-filter="all">Todas</button>
-              <button class="tracking-filter-btn" data-filter="missing">Faltantes</button>
-              <button class="tracking-filter-btn" data-filter="owned">Obtenidas</button>
+              <button class="tracking-filter-btn active" data-filter="all" data-i18n="expl.tab_all">Todas</button>
+              <button class="tracking-filter-btn" data-filter="missing" data-i18n="expl.filter_missing">Faltantes</button>
+              <button class="tracking-filter-btn" data-filter="owned" data-i18n="track.filter_owned">Obtenidas</button>
             </div>
           </div>
           <div class="binder-grid" id="binderGrid"></div>
           <div class="binder-pagination" id="binderPagination">
-            <button class="btn-page" id="binderPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+            <button class="btn-page" id="binderPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> <span data-i18n="nav.prev">Anterior</span></button>
             <span id="binderPageInfo">Página 1</span>
-            <button class="btn-page" id="binderNextBtn">Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="btn-page" id="binderNextBtn"><span data-i18n="nav.next">Siguiente</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
           </div>
         </div>
       </section>
@@ -432,8 +432,8 @@
       <section class="view-pane" id="ventaManager" style="display:none">
         <div class="collection-inner">
           <div class="collection-header">
-            <h2>Mis Ventas <span class="space-counter" id="spaceCounterVenta"></span></h2>
-            <button class="btn-primary" id="createVentaBtn">+ Nueva</button>
+            <h2><span data-i18n="col.my_sales">Mis Ventas</span> <span class="space-counter" id="spaceCounterVenta"></span></h2>
+            <button class="btn-primary" id="createVentaBtn" data-i18n="col.new">+ Nueva</button>
           </div>
           <div class="collection-list" id="ventaList"></div>
         </div>
@@ -445,23 +445,23 @@
           <div class="binder-header-bar">
             <button class="btn-back" id="ventaBackBtn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-              Volver
+              <span data-i18n="nav.back">Volver</span>
             </button>
             <h2 id="ventaTitle">Venta</h2>
             <div class="binder-header-actions" id="ventaPublicToggleContainer"></div>
             <div class="binder-header-actions" id="ventaModeContainer"></div>
             <div class="binder-header-actions">
-              <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
-              <button class="btn-danger btn-sm" id="ventaClearPageBtn">Vaciar página</button>
-              <button class="btn-danger btn-sm" id="ventaClearAllBtn">Vaciar todo</button>
+              <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista" data-i18n-title="view.opts">⚙</button>
+              <button class="btn-danger btn-sm" id="ventaClearPageBtn" data-i18n="venta.clear_page_btn">Vaciar página</button>
+              <button class="btn-danger btn-sm" id="ventaClearAllBtn" data-i18n="venta.clear_all_btn">Vaciar todo</button>
             </div>
           </div>
           <div id="ventaDeckContainer" style="display:none"></div>
           <div class="venta-grid" id="ventaGrid"></div>
           <div class="binder-pagination" id="ventaPagination">
-            <button class="btn-page" id="ventaPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+            <button class="btn-page" id="ventaPrevBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> <span data-i18n="nav.prev">Anterior</span></button>
             <span id="ventaPageInfo">Página 1</span>
-            <button class="btn-page" id="ventaNextBtn">Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="btn-page" id="ventaNextBtn"><span data-i18n="nav.next">Siguiente</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
           </div>
         </div>
       </section>
@@ -470,8 +470,8 @@
       <section class="view-pane" id="exploreView" style="display:none">
         <div class="collection-inner">
           <div class="collection-header">
-            <h2>Explorar Binders Públicos</h2>
-            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
+            <h2 data-i18n="expl.title">Explorar Binders Públicos</h2>
+            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista" data-i18n-title="view.opts">⚙</button>
           </div>
           <div id="exploreContainer"></div>
         </div>
@@ -483,10 +483,10 @@
           <div class="binder-header-bar">
             <button class="btn-back" id="exploreDetailBackBtn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-              Volver
+              <span data-i18n="nav.back">Volver</span>
             </button>
             <h2 id="exploreDetailTitle">Binder</h2>
-            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista">⚙</button>
+            <button class="btn-ghost btn-sm viewopts-gear" title="Opciones de vista" aria-label="Opciones de vista" data-i18n-title="view.opts">⚙</button>
           </div>
           <div id="exploreDetailContainer"></div>
         </div>
@@ -499,8 +499,8 @@
             <div class="profile-columns">
               <!-- Left Column: Private Info -->
               <div class="profile-column profile-column-private">
-                <h2 class="profile-column-title">Información Privada</h2>
-                <p class="profile-column-desc">Esta información no es visible para otros usuarios</p>
+                <h2 class="profile-column-title" data-i18n="prof.private_title">Información Privada</h2>
+                <p class="profile-column-desc" data-i18n="prof.private_desc">Esta información no es visible para otros usuarios</p>
 
                 <!-- Avatar Section -->
                 <div class="profile-avatar-section">
@@ -512,42 +512,42 @@
                     </div>
                   </div>
                   <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
-                  <button type="button" class="btn-ghost btn-sm" id="avatarUploadBtn">Cambiar foto</button>
+                  <button type="button" class="btn-ghost btn-sm" id="avatarUploadBtn" data-i18n="prof.change_photo">Cambiar foto</button>
                 </div>
 
                 <!-- Personal Info (Private) -->
                 <div class="profile-section">
-                  <h3 class="profile-section-title">Datos Personales</h3>
+                  <h3 class="profile-section-title" data-i18n="prof.personal_title">Datos Personales</h3>
                   <div class="profile-fields">
                     <div class="profile-field">
-                      <label for="profileFirstName">Nombre</label>
-                      <input type="text" id="profileFirstName" placeholder="Tu nombre">
+                      <label for="profileFirstName" data-i18n="prof.first_name">Nombre</label>
+                      <input type="text" id="profileFirstName" placeholder="Tu nombre" data-i18n-ph="prof.first_name_ph">
                     </div>
                     <div class="profile-field">
-                      <label for="profileLastName">Apellido</label>
-                      <input type="text" id="profileLastName" placeholder="Tu apellido">
+                      <label for="profileLastName" data-i18n="prof.last_name">Apellido</label>
+                      <input type="text" id="profileLastName" placeholder="Tu apellido" data-i18n-ph="prof.last_name_ph">
                     </div>
                     <div class="profile-field">
-                      <label for="profileEmail">Email</label>
+                      <label for="profileEmail" data-i18n="prof.email">Email</label>
                       <input type="email" id="profileEmail" disabled>
-                      <span class="profile-field-hint">Gestionado desde autenticación</span>
+                      <span class="profile-field-hint" data-i18n="prof.email_hint">Gestionado desde autenticación</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Preferences -->
                 <div class="profile-section">
-                  <h3 class="profile-section-title">Preferencias</h3>
+                  <h3 class="profile-section-title" data-i18n="prof.prefs_title">Preferencias</h3>
                   <div class="profile-fields">
                     <div class="profile-field">
-                      <label for="profileLanguage">Idioma</label>
+                      <label for="profileLanguage" data-i18n="prof.language">Idioma</label>
                       <select id="profileLanguage">
                         <option value="es">Español</option>
                         <option value="en">English</option>
                       </select>
                     </div>
                     <div class="profile-field">
-                      <label for="profileCurrency">Moneda</label>
+                      <label for="profileCurrency" data-i18n="prof.currency">Moneda</label>
                       <select id="profileCurrency">
                         <option value="USD">USD ($)</option>
                         <option value="ARS">ARS ($)</option>
@@ -559,7 +559,7 @@
                         <span class="profile-toggle-track">
                           <span class="profile-toggle-thumb"></span>
                         </span>
-                        <span>Notificaciones</span>
+                        <span data-i18n="prof.notifications">Notificaciones</span>
                       </label>
                     </div>
                   </div>
@@ -567,49 +567,49 @@
 
                 <!-- Subscription -->
                 <div class="profile-section">
-                  <h3 class="profile-section-title">Suscripción</h3>
+                  <h3 class="profile-section-title" data-i18n="prof.sub_title">Suscripción</h3>
                   <div id="planBlock"><p class="profile-field-hint">Cargando…</p></div>
                 </div>
               </div>
 
               <!-- Right Column: Public Info -->
               <div class="profile-column profile-column-public">
-                <h2 class="profile-column-title">Perfil Público</h2>
-                <p class="profile-column-desc">Información visible para todos los usuarios</p>
+                <h2 class="profile-column-title" data-i18n="prof.public_title">Perfil Público</h2>
+                <p class="profile-column-desc" data-i18n="prof.public_desc">Información visible para todos los usuarios</p>
 
                 <!-- Public Profile Info -->
                 <div class="profile-section">
-                  <h3 class="profile-section-title">Perfil</h3>
+                  <h3 class="profile-section-title" data-i18n="prof.profile_title">Perfil</h3>
                   <div class="profile-fields">
                     <div class="profile-field">
-                      <label for="profileUsername">Nombre de usuario</label>
+                      <label for="profileUsername" data-i18n="prof.username">Nombre de usuario</label>
                       <input type="text" id="profileUsername" placeholder="@usuario">
                     </div>
                     <div class="profile-field profile-field-full">
-                      <label for="profileBio">Bio <span style="font-weight:normal;font-size:11px">(máx 200 caracteres)</span></label>
-                      <textarea id="profileBio" rows="3" maxlength="200" placeholder="Cuéntanos sobre ti y lo que coleccionas…"></textarea>
+                      <label for="profileBio"><span data-i18n="prof.bio">Bio</span> <span style="font-weight:normal;font-size:11px" data-i18n="prof.bio_max">(máx 200 caracteres)</span></label>
+                      <textarea id="profileBio" rows="3" maxlength="200" placeholder="Cuéntanos sobre ti y lo que coleccionas…" data-i18n-ph="prof.bio_ph"></textarea>
                     </div>
                     <div class="profile-field">
-                      <label for="profileCity">Ciudad</label>
-                      <input type="text" id="profileCity" placeholder="Ciudad">
+                      <label for="profileCity" data-i18n="prof.city">Ciudad</label>
+                      <input type="text" id="profileCity" placeholder="Ciudad" data-i18n-ph="prof.city">
                     </div>
                     <div class="profile-field">
-                      <label for="profileCountry">País</label>
-                      <input type="text" id="profileCountry" placeholder="País">
+                      <label for="profileCountry" data-i18n="prof.country">País</label>
+                      <input type="text" id="profileCountry" placeholder="País" data-i18n-ph="prof.country">
                     </div>
                   </div>
                 </div>
 
                 <!-- Contact Info -->
                 <div class="profile-section">
-                  <h3 class="profile-section-title">Contacto <span style="font-weight:normal;font-size:11px">(obligatorio para vender)</span></h3>
+                  <h3 class="profile-section-title"><span data-i18n="prof.contact_title">Contacto</span> <span style="font-weight:normal;font-size:11px" data-i18n="prof.contact_req">(obligatorio para vender)</span></h3>
                   <div class="profile-fields">
                     <div class="profile-field">
-                      <label for="profileContactPhone">Teléfono</label>
+                      <label for="profileContactPhone" data-i18n="prof.phone">Teléfono</label>
                       <input type="tel" id="profileContactPhone" placeholder="+54 11 1234-5678">
                     </div>
                     <div class="profile-field">
-                      <label for="profileContactWsp">Link WhatsApp</label>
+                      <label for="profileContactWsp" data-i18n="prof.wsp">Link WhatsApp</label>
                       <input type="url" id="profileContactWsp" placeholder="https://wa.me/5491112345678">
                     </div>
                   </div>
@@ -617,17 +617,17 @@
 
                 <!-- Social Links -->
                 <div class="profile-section">
-                  <h3 class="profile-section-title">Redes Sociales</h3>
+                  <h3 class="profile-section-title" data-i18n="prof.socials_title">Redes Sociales</h3>
                   <div id="socialLinksContainer" class="social-links-container"></div>
-                  <button type="button" class="btn-ghost btn-sm" id="addSocialLinkBtn" onclick="addSocialLink()" style="margin-top:8px">+ Agregar link</button>
+                  <button type="button" class="btn-ghost btn-sm" id="addSocialLinkBtn" onclick="addSocialLink()" style="margin-top:8px" data-i18n="prof.add_link">+ Agregar link</button>
                 </div>
               </div>
             </div>
 
             <!-- Actions -->
             <div class="profile-actions">
-              <button type="button" class="btn-ghost" id="profileCancelBtn">Cancelar</button>
-              <button type="submit" class="btn-primary" id="profileSaveBtn">Guardar cambios</button>
+              <button type="button" class="btn-ghost" id="profileCancelBtn" data-i18n="prof.cancel">Cancelar</button>
+              <button type="submit" class="btn-primary" id="profileSaveBtn" data-i18n="prof.save">Guardar cambios</button>
             </div>
 
             <div class="profile-message" id="profileMessage" style="display:none"></div>
@@ -638,14 +638,29 @@
       <!-- ── Create / Rename Modal ── -->
       <div class="modal-overlay-dark" id="createModalOverlay" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:400px">
-          <h3 id="createModalTitle">Crear colección</h3>
+          <h3 id="createModalTitle" data-i18n="modal.create_title">Crear colección</h3>
           <div class="add-modal-body">
-            <input type="text" id="createModalInput" placeholder="Nombre de la colección" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
+            <input type="text" id="createModalInput" placeholder="Nombre de la colección" data-i18n-ph="modal.create_name_ph" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
             <div id="createModalExtra" style="margin-top:var(--space-3)"></div>
           </div>
           <div class="add-modal-actions">
-            <button class="btn-ghost" id="createModalCancel">Cancelar</button>
-            <button class="btn-primary" id="createModalConfirm">Crear</button>
+            <button class="btn-ghost" id="createModalCancel" data-i18n="modal.cancel">Cancelar</button>
+            <button class="btn-primary" id="createModalConfirm" data-i18n="modal.create">Crear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Importar lista al deck ── -->
+      <div class="modal-overlay-dark" id="pasteListModal" style="display:none">
+        <div class="add-modal-panel glass-panel" style="max-width:480px">
+          <h3 data-i18n="modal.import_title">Importar lista</h3>
+          <div class="add-modal-body">
+            <textarea id="pasteListInput" rows="8" placeholder="1 OP17-118 Rocks.D.Xebec&#10;4 OP17-056 Rocks Pirates" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);font-family:var(--font-mono);outline:none;resize:vertical"></textarea>
+            <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-2)" data-i18n="modal.import_hint">Una carta por línea: cantidad, ID y nombre (ej: 4 OP17-056 Rocks Pirates). El líder se detecta solo. Solo entran cartas de su color.</p>
+          </div>
+          <div class="add-modal-actions">
+            <button class="btn-ghost" id="pasteListCancel" data-i18n="modal.cancel">Cancelar</button>
+            <button class="btn-primary" id="pasteListConfirm" data-i18n="modal.add">Agregar</button>
           </div>
         </div>
       </div>
@@ -653,28 +668,28 @@
       <!-- ── Tracking Create Modal ── -->
       <div class="modal-overlay-dark" id="trackingModalOverlay" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:480px;max-height:80vh;overflow-y:auto">
-          <h3 id="trackingModalTitle">Crear binder de colección</h3>
+          <h3 id="trackingModalTitle" data-i18n="track.create_title">Crear binder de colección</h3>
           <div class="add-modal-body">
-            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Nombre</label>
-            <input type="text" id="trackingNameInput" placeholder="Nombre del binder" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
-            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">¿Qué vas a coleccionar?</label>
+            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em" data-i18n="track.name_label">Nombre</label>
+            <input type="text" id="trackingNameInput" placeholder="Nombre del binder" data-i18n-ph="track.name_ph" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
+            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em" data-i18n="track.collect_label">¿Qué vas a coleccionar?</label>
             <select id="trackingTypeSelect" style="width:100%;padding:var(--space-3);background-color:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-              <option value="expansion">Expansiones</option>
-              <option value="rarity">Rarezas</option>
-              <option value="character">Personaje/s</option>
-              <option value="don">Don Cards</option>
+              <option value="expansion" data-i18n="track.opt_expansion">Expansiones</option>
+              <option value="rarity" data-i18n="track.opt_rarity">Rarezas</option>
+              <option value="character" data-i18n="track.opt_character">Personaje/s</option>
+              <option value="don" data-i18n="track.opt_don">Don Cards</option>
             </select>
-            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Idioma</label>
+            <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em" data-i18n="track.lang_label">Idioma</label>
             <select id="trackingLangSelect" style="width:100%;padding:var(--space-3);background-color:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-              <option value="en">Solo EN</option>
-              <option value="ja">Solo JA</option>
-              <option value="all">Ambos</option>
+              <option value="en" data-i18n="track.opt_en">Solo EN</option>
+              <option value="ja" data-i18n="track.opt_ja">Solo JA</option>
+              <option value="all" data-i18n="track.opt_all">Ambos</option>
             </select>
             <div id="trackingExtraPanel" style="margin-top:var(--space-3)"></div>
           </div>
           <div class="add-modal-actions">
-            <button class="btn-ghost" id="trackingModalCancel">Cancelar</button>
-            <button class="btn-primary" id="trackingModalConfirm">Crear</button>
+            <button class="btn-ghost" id="trackingModalCancel" data-i18n="modal.cancel">Cancelar</button>
+            <button class="btn-primary" id="trackingModalConfirm" data-i18n="track.create">Crear</button>
           </div>
         </div>
       </div>
@@ -682,11 +697,11 @@
       <!-- ── Confirm Modal ── -->
       <div class="modal-overlay-dark" id="confirmModal" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:360px">
-          <h3 id="confirmModalTitle">Confirmar</h3>
+          <h3 id="confirmModalTitle" data-i18n="modal.confirm_title">Confirmar</h3>
           <p id="confirmModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0"></p>
           <div class="add-modal-actions">
-            <button class="btn-ghost" id="confirmModalCancel">Cancelar</button>
-            <button class="btn-primary" id="confirmModalOk">Confirmar</button>
+            <button class="btn-ghost" id="confirmModalCancel" data-i18n="modal.cancel">Cancelar</button>
+            <button class="btn-primary" id="confirmModalOk" data-i18n="modal.confirm">Confirmar</button>
           </div>
         </div>
       </div>
@@ -706,23 +721,23 @@
   <nav class="bottom-nav" id="bottomNav">
     <button class="bottom-nav-item active" data-view="home" id="bottomHome">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>Inicio</span>
+      <span data-i18n="nav.home">Inicio</span>
     </button>
     <button class="bottom-nav-item" data-view="catalog" id="bottomCatalog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
-      <span>Cartas</span>
+      <span data-i18n="nav.cards">Cartas</span>
     </button>
     <button class="bottom-nav-item" data-view="collections" id="bottomColecciones">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span>Colecciones</span>
+      <span data-i18n="nav.collections">Colecciones</span>
     </button>
     <button class="bottom-nav-item" data-view="ventaCols" id="bottomVenta">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      <span>Venta</span>
+      <span data-i18n="nav.sale">Venta</span>
     </button>
     <button class="bottom-nav-item" data-view="explore" id="bottomExplore">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-      <span>Explorar</span>
+      <span data-i18n="nav.explore_btn">Explorar</span>
     </button>
   </nav>
 
@@ -732,12 +747,12 @@
       <button class="modal-close-btn" onclick="hideAuthModal()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
-      <h2 id="authModalTitle">Iniciar sesión</h2>
+      <h2 id="authModalTitle" data-i18n="authm.login_title">Iniciar sesión</h2>
       <form id="authForm" onsubmit="handleAuthSubmit(event)">
         <div class="auth-fields" id="authFields"></div>
         <div class="auth-error" id="authError" style="display:none"></div>
         <div class="auth-success" id="authSuccess" style="display:none"></div>
-        <button type="submit" class="btn-primary auth-submit-btn" id="authSubmitBtn">Ingresar</button>
+        <button type="submit" class="btn-primary auth-submit-btn" id="authSubmitBtn" data-i18n="authm.login_btn">Ingresar</button>
       </form>
       <div class="auth-toggle" id="authToggleLink"></div>
     </div>
@@ -747,31 +762,31 @@
   <div class="modal-overlay-dark" id="deckPickerOverlay" style="display:none">
     <div class="deck-picker-panel glass-panel">
       <div class="deck-picker-header">
-        <h3 id="deckPickerTitle">Elegir carta</h3>
-        <input type="text" id="deckPickerSearch" placeholder="Buscar carta…" autocomplete="off">
+        <h3 id="deckPickerTitle" data-i18n="deck.pick_title">Elegir carta</h3>
+        <input type="text" id="deckPickerSearch" placeholder="Buscar carta…" data-i18n-ph="deck.pick_search_ph" autocomplete="off">
       </div>
       <div class="deck-picker-grid" id="deckPickerGrid"></div>
       <div class="deck-picker-footer">
         <span id="deckPickerInfo" class="deck-picker-info"></span>
-        <button class="btn-ghost" id="deckPickerCancel">Cancelar</button>
+        <button class="btn-ghost" id="deckPickerCancel" data-i18n="modal.cancel">Cancelar</button>
       </div>
     </div>
   </div>
 
   <!-- ═══ DRAFT BAR + EXIT MODAL ═══ -->
   <div id="draftBar" class="draft-bar glass-panel" style="display:none">
-    <span class="draft-dot">●</span><span>Cambios sin guardar</span>
-    <button class="btn-ghost btn-sm" id="draftDiscardBtn">Descartar</button>
-    <button class="btn-primary btn-sm" id="draftSaveBtn">Guardar</button>
+    <span class="draft-dot">●</span><span data-i18n="core.draft_bar">Cambios sin guardar</span>
+    <button class="btn-ghost btn-sm" id="draftDiscardBtn" data-i18n="core.draft_discard">Descartar</button>
+    <button class="btn-primary btn-sm" id="draftSaveBtn" data-i18n="core.draft_save">Guardar</button>
   </div>
   <div class="modal-overlay-dark" id="draftModal" style="display:none">
     <div class="add-modal-panel glass-panel" style="max-width:360px">
-      <h3>Cambios sin guardar</h3>
-      <p id="draftModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0">Tenés cambios sin guardar. ¿Qué querés hacer?</p>
+      <h3 data-i18n="core.draft_title">Cambios sin guardar</h3>
+      <p id="draftModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0" data-i18n="core.draft_msg">Tenés cambios sin guardar. ¿Qué querés hacer?</p>
       <div class="add-modal-actions">
-        <button class="btn-ghost" id="draftStayBtn">Seguir editando</button>
-        <button class="btn-ghost" id="draftModalDiscardBtn">Descartar</button>
-        <button class="btn-primary" id="draftModalSaveBtn">Guardar</button>
+        <button class="btn-ghost" id="draftStayBtn" data-i18n="core.draft_stay">Seguir editando</button>
+        <button class="btn-ghost" id="draftModalDiscardBtn" data-i18n="core.draft_discard">Descartar</button>
+        <button class="btn-primary" id="draftModalSaveBtn" data-i18n="core.draft_save">Guardar</button>
       </div>
     </div>
   </div>
@@ -780,46 +795,47 @@
   <div class="dropdown-menu glass-panel" id="userDropdown" style="display:none">
     <div class="dropdown-item" id="dropdownProfile">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Mi perfil
+      <span data-i18n="nav.my_profile">Mi perfil</span>
     </div>
     <div class="dropdown-divider"></div>
     <div class="dropdown-item danger" id="dropdownLogout">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Cerrar sesión
+      <span data-i18n="nav.logout">Cerrar sesión</span>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="supabase.js?v=2"></script>
-  <script src="auth.js?v=5"></script>
+  <script src="auth.js?v=6"></script>
   <script src="js/state.js?v=1"></script>
+  <script src="js/i18n.js?v=1"></script>
   <script src="js/tcg/onepiece/config.js?v=1"></script>
   <script src="js/tcg/riftbound/config.js?v=1"></script>
   <script src="js/tcg/pokemon/config.js?v=1"></script>
   <script src="js/registry.js?v=1"></script>
-  <script src="js/catalog/catalog.js?v=7"></script>
-  <script src="js/binder/binder.js?v=3"></script>
-  <script src="js/binder/binder_riftbound.js?v=2"></script>
-  <script src="js/binder/binder_pokemon.js?v=1"></script>
-  <script src="js/binder/dispatcher_binder.js?v=3"></script>
-  <script src="js/venta/venta.js?v=4"></script>
-  <script src="js/venta/venta_riftbound.js?v=4"></script>
-  <script src="js/venta/venta_pokemon.js?v=1"></script>
+  <script src="js/catalog/catalog.js?v=10"></script>
+  <script src="js/binder/binder.js?v=5"></script>
+  <script src="js/binder/binder_riftbound.js?v=4"></script>
+  <script src="js/binder/binder_pokemon.js?v=2"></script>
+  <script src="js/binder/dispatcher_binder.js?v=4"></script>
+  <script src="js/venta/venta.js?v=6"></script>
+  <script src="js/venta/venta_riftbound.js?v=5"></script>
+  <script src="js/venta/venta_pokemon.js?v=2"></script>
   <script src="js/venta/dispatcher_venta.js?v=3"></script>
-  <script src="js/explore/explore.js?v=6"></script>
-  <script src="js/deck/deck.js?v=1"></script>
-  <script src="js/deck/deck_riftbound.js?v=1"></script>
-  <script src="js/deck/deck_pokemon.js?v=1"></script>
+  <script src="js/explore/explore.js?v=9"></script>
+  <script src="js/deck/deck.js?v=4"></script>
+  <script src="js/deck/deck_riftbound.js?v=4"></script>
+  <script src="js/deck/deck_pokemon.js?v=4"></script>
   <script src="js/deck/dispatcher.js?v=2"></script>
-  <script src="js/tracking/tracking.js?v=2"></script>
-  <script src="js/tracking/tracking_riftbound.js?v=3"></script>
+  <script src="js/tracking/tracking.js?v=6"></script>
+  <script src="js/tracking/tracking_riftbound.js?v=4"></script>
   <script src="js/tracking/tracking_pokemon.js?v=1"></script>
-  <script src="js/tracking/dispatcher_tracking.js?v=1"></script>
-  <script src="js/modals/modals.js?v=3"></script>
+  <script src="js/tracking/dispatcher_tracking.js?v=2"></script>
+  <script src="js/modals/modals.js?v=7"></script>
   <script src="js/router.js?v=2"></script>
   <script src="js/skeleton.js?v=1"></script>
-  <script src="script.js?v=60"></script>
-  <script src="profile.js?v=2"></script>
-  <script src="js/viewOpts.js?v=1"></script>
+  <script src="script.js?v=63"></script>
+  <script src="profile.js?v=4"></script>
+  <script src="js/viewOpts.js?v=2"></script>
 </body>
 </html>

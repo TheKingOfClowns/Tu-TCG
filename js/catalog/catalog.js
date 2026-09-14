@@ -92,7 +92,7 @@ function renderCards() {
   var showActions = !!(addingToBinderId || catalogTargetId);
   var _pageSize = pageSizeFor(cardsContainer, 3).size; // ponytail: 3 filas exactas
   const totalPages = Math.max(1, Math.ceil(resultado.length / _pageSize));
-  resultsCounter.textContent = resultado.length.toLocaleString() + " cartas encontradas";
+  resultsCounter.textContent = t("cat.found", { n: resultado.length.toLocaleString() });
   if (currentPage > totalPages) currentPage = totalPages;
   const start = (currentPage - 1) * _pageSize;
   const end = start + _pageSize;
@@ -156,7 +156,7 @@ function renderCards() {
       </div>` : ""}`;
     cardsContainer.appendChild(div);
   });
-  pageInfoBottom.textContent = "Página " + currentPage + " de " + totalPages;
+  pageInfoBottom.textContent = t("cat.page", { a: currentPage, b: totalPages });
   cardsContainer.querySelectorAll(".plus-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
       e.stopPropagation();
@@ -177,13 +177,13 @@ function renderCards() {
       const max = getTargetMax(targetCol);
       const current = countInTarget(targetCol, key);
       if (max != null && current >= max) {
-        if (typeof showToast === "function") showToast('Límite de ' + max + ' alcanzado en "' + targetCol.name + '"', "info");
+        if (typeof showToast === "function") showToast(t("cat.limit_reached", { max: max, name: targetCol.name }), "info");
         return;
       }
       pendingCards[key] = makePendingCard(carta, 1);
       const added = await addPendingCardsToCol(targetCol, catalogTargetType === "venta");
       limpiarPendientes();
-      if (added > 0 && typeof showToast === "function") showToast('Añadida a "' + targetCol.name + '"', "success");
+      if (added > 0 && typeof showToast === "function") showToast(t("cat.added_to", { name: targetCol.name }), "success");
       actualizarBadgesEnPagina();
     });
   });
@@ -285,7 +285,7 @@ function actualizarBadgesEnPagina() {
 function cargarFiltros() {
   rebuildingFilters = true;
   var prevExpansion = expansionFilter.value;
-  expansionFilter.innerHTML = '<option value="">Todas las expansiones</option>';
+  expansionFilter.innerHTML = '<option value="">' + t("cat.all_expansions") + '</option>';
 
   var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) || null;
   var lang = state.catalog.catalogLanguage || "en";
@@ -327,7 +327,7 @@ function cargarFiltros() {
   var fragments = [];
   if (filteredBooster.length) {
     sortSets(filteredBooster);
-    var html = '<optgroup label="--- Booster ---">';
+    var html = '<optgroup label="' + t("cat.group_booster") + '">';
     filteredBooster.forEach(function(s) {
       html += '<option value="' + s + '">' + getSetName(s) + '</option>';
     });
@@ -336,7 +336,7 @@ function cargarFiltros() {
   }
   if (filteredStarter.length) {
     sortSets(filteredStarter);
-    var html = '<optgroup label="--- Starter ---">';
+    var html = '<optgroup label="' + t("cat.group_starter") + '">';
     filteredStarter.forEach(function(s) {
       html += '<option value="' + s + '">' + getSetName(s) + '</option>';
     });
@@ -344,18 +344,18 @@ function cargarFiltros() {
     fragments.push(html);
   }
   if (hasPromo) {
-    fragments.push('<optgroup label="--- Promo ---"><option value="PROMO">Promo Cards</option></optgroup>');
+    fragments.push('<optgroup label="' + t("cat.group_promo") + '"><option value="PROMO">' + t("cat.promo_cards") + '</option></optgroup>');
   }
   if (hasDon) {
-    fragments.push('<optgroup label="--- DON!! ---"><option value="DON!!">DON!! Cards</option></optgroup>');
+    fragments.push('<optgroup label="' + t("cat.group_don") + '"><option value="DON!!">' + t("cat.don_cards") + '</option></optgroup>');
   }
   expansionFilter.innerHTML += fragments.join("");
   if (prevExpansion) expansionFilter.value = prevExpansion;
 
   // ── Color / Rarity / Type filters (data-driven) ──
-  colorFilter.innerHTML = '<option value="">Todos los colores</option>';
-  rarityFilter.innerHTML = '<option value="">Todas las rarezas</option>';
-  typeFilter.innerHTML = '<option value="">Todos los tipos</option>';
+  colorFilter.innerHTML = '<option value="">' + t("cat.all_colors") + '</option>';
+  rarityFilter.innerHTML = '<option value="">' + t("cat.all_rarities") + '</option>';
+  typeFilter.innerHTML = '<option value="">' + t("cat.all_types") + '</option>';
 
   if (cfg) {
     (cfg.colors || []).forEach(function(color) {
@@ -394,15 +394,15 @@ function actualizarFiltrosPorExpansion() {
 
   if (esDon) {
     var donVars = (cfg && cfg.donVariants) || ["Gold", "DP"];
-    var html = '<option value="">Todas las variantes</option>';
+    var html = '<option value="">' + t("cat.all_variants") + '</option>';
     donVars.forEach(function(v) { html += '<option value="' + v + '">' + v + '</option>'; });
     rarityFilter.innerHTML = html;
   } else if (esPromo) {
-    rarityFilter.innerHTML = '<option value="">Todas las rarezas</option>';
+    rarityFilter.innerHTML = '<option value="">' + t("cat.all_rarities") + '</option>';
   } else {
-    colorFilter.innerHTML = '<option value="">Todos los colores</option>';
-    rarityFilter.innerHTML = '<option value="">Todas las rarezas</option>';
-    typeFilter.innerHTML = '<option value="">Todos los tipos</option>';
+    colorFilter.innerHTML = '<option value="">' + t("cat.all_colors") + '</option>';
+    rarityFilter.innerHTML = '<option value="">' + t("cat.all_rarities") + '</option>';
+    typeFilter.innerHTML = '<option value="">' + t("cat.all_types") + '</option>';
     if (cfg) {
       (cfg.colors || []).forEach(function(color) {
         var label = (cfg.colorNames && cfg.colorNames[color]) || color;
@@ -625,11 +625,11 @@ function refreshCatalogTargetSelect() {
     catalogTargetId = null;
     catalogTargetType = null;
   }
-  select.innerHTML = '<option value="">Sin destino</option>';
+  select.innerHTML = '<option value="">' + t("cat.no_target") + '</option>';
   targets.forEach(function(t) {
     var opt = document.createElement("option");
     opt.value = t.type + "|" + t.id;
-    opt.textContent = (t.type === "venta" ? "Venta: " : "Binder: ") + t.name;
+    opt.textContent = (t.type === "venta" ? t("cat.target_sale", { name: t.name }) : t("cat.target_binder", { name: t.name }));
     if (t.id === catalogTargetId && t.type === catalogTargetType) opt.selected = true;
     select.appendChild(opt);
   });

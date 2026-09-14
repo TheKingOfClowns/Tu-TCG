@@ -8,8 +8,8 @@ function renderVentaList_OP() {
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
-    const msg = currentTcg ? "No tienes colecciones de venta para este TCG" : "No tienes colecciones de venta";
-    container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstVentaBtn">Crear primera colección de venta</button></div>`;
+    const msg = currentTcg ? t("venta.empty_tcg") : t("venta.empty");
+    container.innerHTML = `<div class="collection-empty"><p>${msg}</p><button class="btn-primary" id="createFirstVentaBtn">${t("venta.create_first")}</button></div>`;
     const btn = document.getElementById("createFirstVentaBtn");
     if (btn) btn.addEventListener("click", pedirCrearVenta);
     return;
@@ -20,9 +20,9 @@ function renderVentaList_OP() {
     const coverImg = getFirstCardImage(col.cards, col);
     const isDeck = col.subtype === "deck";
     const totalStr = isDeck
-      ? `${col.leader ? "1 líder · " : ""}${(col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0)} cartas${col.dons?.length ? " · " + col.dons.length + " DON" : ""}`
-      : `${col.cards.reduce((s, c) => s + (c.quantity || 1), 0)} cartas`;
-    const badgeText = isDeck ? "Deck" : (col.display_mode === "playset" ? "Playset" : col.display_mode === "editable" ? "Editable" : "Individual");
+      ? `${col.leader ? t("venta.leader_prefix") : ""}${t("venta.count_cards", { n: (col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0) })}${col.dons?.length ? " · " + col.dons.length + " DON" : ""}`
+      : `${t("venta.count_cards", { n: col.cards.reduce((s, c) => s + (c.quantity || 1), 0) })}`;
+    const badgeText = isDeck ? t("venta.badge_deck") : (col.display_mode === "playset" ? t("venta.badge_playset") : col.display_mode === "editable" ? t("venta.badge_editable") : t("venta.badge_individual"));
     const div = document.createElement("div");
     div.className = "binder-cover-card";
     div.innerHTML = `
@@ -43,14 +43,14 @@ function renderVentaList_OP() {
               <button class="currency-btn ${tc === "USD" ? "active" : ""}" data-total-currency="USD" data-id="${id}">USD</button>
             </div>
             <span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$${dp.toFixed(2)}</span>
-            <button class="btn-ghost btn-xs" data-action="editprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">✎</button>
+            <button class="btn-ghost btn-xs" data-action="editprice" data-id="${id}" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="${t("venta.edit_price_title")}">✎</button>
           </div>`;
         })()}
       </div>
       <div class="binder-cover-actions">
-        <button class="btn-ghost btn-xs" data-action="open" data-id="${id}">Abrir</button>
-        <button class="btn-ghost btn-xs" data-action="rename" data-id="${id}">Renombrar</button>
-        <button class="btn-danger btn-xs" data-action="delete" data-id="${id}">Eliminar</button>
+        <button class="btn-ghost btn-xs" data-action="open" data-id="${id}">${t("venta.open")}</button>
+        <button class="btn-ghost btn-xs" data-action="rename" data-id="${id}">${t("venta.rename")}</button>
+        <button class="btn-danger btn-xs" data-action="delete" data-id="${id}">${t("venta.delete")}</button>
       </div>`;
     container.appendChild(div);
   });
@@ -69,9 +69,9 @@ function renderVentaList_OP() {
     b.addEventListener("click", () => {
       const id = b.getAttribute("data-id");
       showCreateModal({
-        title: "Renombrar colección de venta",
-        confirmText: "Guardar",
-        placeholder: "Nuevo nombre",
+        title: t("venta.rename_title"),
+        confirmText: t("venta.save"),
+        placeholder: t("venta.new_name_ph"),
         initialValue: ventaCols[id].name,
         onConfirm: (nombre) => { ventaCols[id].name = nombre.trim(); guardarVenta(); renderVentaList_OP(); }
       });
@@ -80,7 +80,7 @@ function renderVentaList_OP() {
   container.querySelectorAll("[data-action='delete']").forEach(b => {
     b.addEventListener("click", () => {
       const idVenta = b.getAttribute("data-id");
-      showConfirmModal('¿Eliminar la colección de venta "' + ventaCols[idVenta].name + '"?', () => {
+      showConfirmModal(t("venta.delete_confirm", { name: ventaCols[idVenta].name }), () => {
         delete ventaCols[idVenta]; guardarVenta(); renderVentaList_OP();
       });
     });
@@ -142,12 +142,12 @@ async function pedirCrearVenta_OP() {
   const hasContact = profile?.contact_phone || profile?.contact_wsp;
   if (!hasContact) {
     showCreateModal({
-      title: "Contacto requerido",
-      confirmText: "Ir a mi perfil",
+      title: t("venta.contact_title"),
+      confirmText: t("venta.contact_goto"),
       placeholder: "",
       extraHTML: `
         <p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">
-          Para crear una colección de venta necesitas agregar tu número de teléfono o WhatsApp en tu perfil.
+          ${t("venta.contact_body")}
         </p>
       `,
       onConfirm: () => {
@@ -158,21 +158,21 @@ async function pedirCrearVenta_OP() {
   }
 
   showCreateModal({
-    title: "Crear colección de venta",
-    confirmText: "Crear",
-    placeholder: "Nombre de la colección de venta",
+    title: t("venta.create_title"),
+    confirmText: t("venta.create"),
+    placeholder: t("venta.create_name_ph"),
     extraHTML: `
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo</label>
+      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("venta.type_label")}</label>
       <select id="createVentaSubtype" onchange="document.getElementById('createVentaModeRow').style.display=this.value==='binder'?'':'none'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-        <option value="binder">Binder — cartas libres</option>
-        <option value="deck">Deck — líder + 50 cartas + 10 DON!!</option>
+        <option value="binder">${t("venta.opt_binder")}</option>
+        <option value="deck">${t("venta.opt_deck_op")}</option>
       </select>
       <div id="createVentaModeRow">
-        <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Modo de visualización</label>
+        <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("venta.mode_label")}</label>
         <select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-          <option value="individual">Individual — una copia por slot</option>
-          <option value="playset">Playset — máximo 4 copias por carta</option>
-          <option value="editable">Editable — cantidad libre por carta</option>
+          <option value="individual">${t("venta.opt_individual")}</option>
+          <option value="playset">${t("venta.opt_playset_op")}</option>
+          <option value="editable">${t("venta.opt_editable")}</option>
         </select>
       </div>`,
     onConfirm: (nombre) => {
@@ -209,26 +209,26 @@ function renderVentaView() {
   if (pagination) pagination.style.display = "";
   const clearPB = document.getElementById("ventaClearPageBtn");
   const clearAB = document.getElementById("ventaClearAllBtn");
-  if (clearPB) clearPB.textContent = "Vaciar página";
-  if (clearAB) clearAB.textContent = "Vaciar todo";
+  if (clearPB) clearPB.textContent = t("venta.clear_page_btn");
+  if (clearAB) clearAB.textContent = t("venta.clear_all_btn");
   title.textContent = col.name;
   const mode = col.display_mode || "individual";
   if (toggleContainer) {
     toggleContainer.innerHTML = isAuthenticated() ? `
       <label class="public-toggle">
-        <span class="public-toggle-label ${!col.is_public ? "active" : ""}">Privado</span>
+        <span class="public-toggle-label ${!col.is_public ? "active" : ""}">${t("venta.private")}</span>
         <input type="checkbox" id="ventaPublicCheck" ${col.is_public ? "checked" : ""}>
         <span class="public-toggle-track">
           <span class="public-toggle-thumb"></span>
         </span>
-        <span class="public-toggle-label ${col.is_public ? "active" : ""}">Público</span>
+        <span class="public-toggle-label ${col.is_public ? "active" : ""}">${t("venta.public")}</span>
       </label>
     ` : "";
     const chk = document.getElementById("ventaPublicCheck");
     if (chk) chk.onchange = () => toggleBinderPublic(currentVentaId);
   }
   if (modeContainer) {
-    const labels = { individual: "Individual", playset: "Playset", editable: "Editable" };
+    const labels = { individual: t("venta.badge_individual"), playset: t("venta.badge_playset"), editable: t("venta.badge_editable") };
     modeContainer.innerHTML = `<span class="venta-mode-badge">${labels[mode] || mode}</span>`;
   }
   grid.innerHTML = "";
@@ -239,10 +239,13 @@ function renderVentaView() {
     grid.setAttribute("data-empty-click", "1");
     grid.addEventListener("click", function(e) {
       if (e.target.closest(".binder-empty")) {
-        addingToBinderId = currentVentaId;
-        addingToBinderName = ventaCols[currentVentaId] ? ventaCols[currentVentaId].name : "";
-        addingToBinderType = "venta";
-        if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
+        var _vcol = ventaCols[currentVentaId];
+        if (_vcol && _vcol.subtype === "deck") {
+          addingToBinderId = currentVentaId;
+          addingToBinderName = _vcol.name || "";
+          addingToBinderType = "venta";
+          if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
+        } else if (typeof goToCatalogWithTarget === "function") goToCatalogWithTarget("venta", currentVentaId);
       }
     });
   }
@@ -275,7 +278,7 @@ function buildVentaCardHTML_OP(c, globalIdx, mode) {
       <span class="card-set-id">${setId}</span>
       ${qtyHTML}
       <div class="venta-price-row">
-        <span class="venta-price-label">Precio:</span>
+        <span class="venta-price-label">${t("venta.price_label")}</span>
         <span class="venta-price-prefix">$</span>
         <input type="number" class="venta-price-input" step="0.5" min="0" value="${cp}" data-ventaidx="${globalIdx}">
         <span class="venta-currency-label ${c.priceCurrency === "USD" ? "usd" : ""}">${c.priceCurrency || "ARS"}</span>
@@ -445,7 +448,7 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
   });
   document.getElementById("ventaPrevBtn").disabled = ventaPage <= 1;
   document.getElementById("ventaNextBtn").disabled = ventaPage >= totalPages;
-  document.getElementById("ventaPageInfo").textContent = "Página " + ventaPage + " de " + totalPages;
+  document.getElementById("ventaPageInfo").textContent = t("venta.page", { a: ventaPage, b: totalPages });
 }
 
 // ─── Venta view events (bound here: renderVentaView is defined in this file) ──
@@ -457,7 +460,7 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
     if (col.subtype === "deck") {
       if (!col.cards.length) return;
       const total = col.cards.reduce((s, c) => s + (c.quantity || 1), 0);
-      if (confirm(`¿Vaciar las ${total} cartas del deck?`)) {
+      if (confirm(t("venta.clear_deck_confirm", { n: total }))) {
         col.cards = [];
         guardarVenta(); renderVentaView();
       }
@@ -467,7 +470,7 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
     const start = (ventaPage - 1) * _pgSize;
     const end = Math.min(start + _pgSize, col.cards.length);
     if (start >= col.cards.length) return;
-    if (confirm("Vaciar las " + (end - start) + " cartas de esta página?")) {
+    if (confirm(t("venta.clear_page_confirm", { n: end - start }))) {
       col.cards.splice(start, end - start);
       const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
       if (ventaPage > totalPages) ventaPage = totalPages;
@@ -479,13 +482,13 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
     if (!col) return;
     if (col.subtype === "deck") {
       if (!col.dons?.length) return;
-      if (confirm(`¿Vaciar los ${col.dons.length} DON!! del deck?`)) {
+      if (confirm(t("venta.clear_dons_confirm", { n: col.dons.length }))) {
         col.dons = [];
         guardarVenta(); renderVentaView();
       }
       return;
     }
-    if (confirm('Vaciar la colección "' + col.name + '" por completo?')) {
+    if (confirm(t("venta.clear_all_confirm", { name: col.name }))) {
       col.cards = []; ventaPage = 1; guardarVenta(); renderVentaView();
     }
   });

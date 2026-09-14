@@ -19,8 +19,8 @@ function showDeckPicker_PK(mode, leaderColor, existingKeys, leaderSetId, existin
       footer.innerHTML = `
         <span id="deckPickerInfo" class="deck-picker-info"></span>
         <div style="display:flex;gap:var(--space-2)">
-          <button class="btn-ghost" id="deckPickerCancel">Cancelar</button>
-          <button class="btn-primary btn-sm" id="deckPickerConfirm">Agregar seleccionadas</button>
+          <button class="btn-ghost" id="deckPickerCancel">${t("deck.picker_cancel")}</button>
+          <button class="btn-primary btn-sm" id="deckPickerConfirm">${t("deck.picker_add")}</button>
         </div>`;
       const confirmBtn = document.getElementById("deckPickerConfirm");
       const cancelBtn = document.getElementById("deckPickerCancel");
@@ -32,17 +32,17 @@ function showDeckPicker_PK(mode, leaderColor, existingKeys, leaderSetId, existin
         const deckCards = (cartas || []).filter(c => c.language === "en");
         return deckCards.filter(c => c.card_type === "Pokémon" || c.card_type === "Trainer" || c.card_type === "Energy");
       }
-      title.textContent = "Agregar cartas al deck (máx 60)";
+      title.textContent = t("deck.pk_picker_title");
       function updateInfo() {
         const total = Object.values(selectedCounts).reduce((s, c) => s + c, 0);
-        info.textContent = total + " seleccionadas · máx " + maxSlots;
+        info.textContent = t("deck.pk_picker_info", { total: total, max: maxSlots });
         if (confirmBtn) confirmBtn.disabled = total === 0;
       }
       function renderPicker(query) {
         const q = (query || "").toLowerCase().trim();
         let results = getFiltered();
         if (results.length === 0 && !q) {
-          grid.innerHTML = '<div class="deck-picker-empty">No hay cartas disponibles</div>';
+          grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_empty_plain") + '</div>';
           updateInfo();
           return;
         }
@@ -51,7 +51,7 @@ function showDeckPicker_PK(mode, leaderColor, existingKeys, leaderSetId, existin
         }
         grid.innerHTML = "";
         if (!results.length) {
-          grid.innerHTML = '<div class="deck-picker-empty">Sin resultados</div>';
+          grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_no_results") + '</div>';
           updateInfo();
           return;
         }
@@ -80,7 +80,7 @@ function showDeckPicker_PK(mode, leaderColor, existingKeys, leaderSetId, existin
             <div class="card-body">
               <h3>${formatearNombre(c)}</h3>
               <span class="card-set-id">${c.card_set_id || ""}</span>
-              ${existingQty > 0 ? `<div style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">${existingQty} en deck</div>` : ""}
+              ${existingQty > 0 ? `<div style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">${t("deck.picker_in_deck", { n: existingQty })}</div>` : ""}
               ${controlsHTML}
             </div>`;
           div.addEventListener("click", () => {
@@ -138,12 +138,12 @@ function showDeckPicker_PK(mode, leaderColor, existingKeys, leaderSetId, existin
         _deckPickerResolve = null;
       };
       if (!cartas || !cartas.length) {
-        if (typeof skeletonCardGrid === 'function') skeletonCardGrid(grid, 10); else grid.innerHTML = '<div class="deck-picker-empty">Cargando catálogo de cartas…</div>';
+        if (typeof skeletonCardGrid === 'function') skeletonCardGrid(grid, 10); else grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_loading") + '</div>';
         updateInfo();
         let retries = 0;
         const retry = setInterval(() => {
           if (cartas && cartas.length) { clearInterval(retry); _deckPickerInterval = null; renderPicker(""); }
-          else if (++retries > 20) { clearInterval(retry); _deckPickerInterval = null; grid.innerHTML = '<div class="deck-picker-empty">Error al cargar catálogo</div>'; }
+          else if (++retries > 20) { clearInterval(retry); _deckPickerInterval = null; grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_error") + '</div>'; }
         }, 500);
         _deckPickerInterval = retry;
       } else {
@@ -156,7 +156,7 @@ function showDeckPicker_PK(mode, leaderColor, existingKeys, leaderSetId, existin
 function _pkBuildDeckHTML(cards, isSale) {
   var html = "";
   var cardCount = (cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
-  html += '<div class="deck-section"><div class="deck-section-header"><span class="deck-section-title">Main Deck</span><span class="deck-section-count">' + cardCount + ' / 60</span></div><div class="deck-card-grid" id="deckMainGrid">';
+  html += '<div class="deck-section"><div class="deck-section-header"><span class="deck-section-title">' + t("deck.pk_main_title") + '</span><span class="deck-section-count">' + t("deck.count", { a: cardCount, b: 60 }) + '</span></div><div class="deck-card-grid" id="deckMainGrid">';
   (cards || []).forEach(function(c) {
     var full = c._key ? (cartasMap[c._key] || c) : c;
     var priceHTML = isSale ? '<div class="deck-card-price"><span>$</span><input type="number" class="deck-price-input" step="0.5" min="0" value="' + (c.customPrice != null ? c.customPrice : 0) + '" data-key="' + (c._key || "") + '"></div>' : "";
@@ -176,9 +176,11 @@ function renderDeckView_PK(type, col, grid, title, toggleContainer) {
   var isSale = type === "sale";
   var isCollection = type === "collection";
 
-  title.textContent = col.name || "Deck Pokémon";
+  title.textContent = col.name || t("deck.pk_default_title");
   if (toggleContainer) {
-    toggleContainer.innerHTML = typeof isAuthenticated === "function" && isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">Privado</span><input type="checkbox" id="deckPublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">Público</span></label>' : "";
+    toggleContainer.innerHTML = '<button class="deck-io-btn deck-io-export">' + t("deck.export") + '</button><button class="deck-io-btn deck-io-import">' + t("deck.import") + '</button>' + (typeof isAuthenticated === "function" && isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">' + t("deck.private") + '</span><input type="checkbox" id="deckPublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">' + t("deck.public") + '</span></label>' : "");
+    var deckExBtn = toggleContainer.querySelector(".deck-io-export");
+    if (deckExBtn) deckExBtn.onclick = function() { if (typeof exportDeckToClipboard === "function") exportDeckToClipboard(col); };
     var chk = document.getElementById("deckPublicCheck");
     if (chk) chk.onchange = function() { toggleBinderPublic(col.id); };
   }
@@ -186,10 +188,15 @@ function renderDeckView_PK(type, col, grid, title, toggleContainer) {
   col.cards = col.cards || [];
   grid.innerHTML = _pkBuildDeckHTML(col.cards, isSale);
 
-  _pkAttachDeckEvents(grid, col, isSale, function() {
+  var reRender = function() {
     saveDeck_PK(isSale);
     renderDeckView_PK(type, col, grid, title, toggleContainer);
-  });
+  };
+  _pkAttachDeckEvents(grid, col, isSale, reRender);
+  if (toggleContainer) {
+    var deckImBtn = toggleContainer.querySelector(".deck-io-import");
+    if (deckImBtn) deckImBtn.onclick = function() { if (typeof openPasteListModal === "function") openPasteListModal(col, isSale, reRender); };
+  }
 }
 
 function _pkAttachDeckEvents(grid, col, isSale, reRender) {
@@ -230,7 +237,7 @@ function _pkAttachDeckEvents(grid, col, isSale, reRender) {
     addBtn.addEventListener("click", function() {
       var mainTotal = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
       var remaining = 60 - mainTotal;
-      if (remaining <= 0) { alert("El deck ya tiene 60 cartas."); return; }
+      if (remaining <= 0) { alert(t("deck.pk_deck_full")); return; }
       var existingCounts = {};
       (col.cards || []).forEach(function(c) {
         if (c.card_name) existingCounts[c.card_name] = (existingCounts[c.card_name] || 0) + (c.quantity || 1);

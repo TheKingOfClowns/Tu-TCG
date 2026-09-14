@@ -60,14 +60,14 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
       footer.innerHTML = `
         <span id="deckPickerInfo" class="deck-picker-info"></span>
         <div style="display:flex;gap:var(--space-2)">
-          <button class="btn-ghost" id="deckPickerCancel">Cancelar</button>
-          <button class="btn-primary btn-sm" id="deckPickerConfirm">Agregar seleccionadas</button>
+          <button class="btn-ghost" id="deckPickerCancel">${t("deck.picker_cancel")}</button>
+          <button class="btn-primary btn-sm" id="deckPickerConfirm">${t("deck.picker_add")}</button>
         </div>`;
       confirmBtn = document.getElementById("deckPickerConfirm");
     } else {
       footer.innerHTML = `
         <span id="deckPickerInfo" class="deck-picker-info"></span>
-        <button class="btn-ghost" id="deckPickerCancel">Cancelar</button>`;
+        <button class="btn-ghost" id="deckPickerCancel">${t("deck.picker_cancel")}</button>`;
     }
     info = document.getElementById("deckPickerInfo");
     const cancelBtn = document.getElementById("deckPickerCancel");
@@ -147,14 +147,14 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
     }
 
     const modeTitles = {
-      legend: "Elegir Legend",
-      champion: "Elegir Champions (max 3)",
-      main: "Agregar cartas (max 40, 3 por nombre)",
-      runes: "Agregar Runes (max 12)",
-      battlefield: "Agregar Battlefields (max 3)",
-      sideboard: "Sideboard (max 8)"
+      legend: t("deck.rb_picker_legend"),
+      champion: t("deck.rb_picker_champion"),
+      main: t("deck.rb_picker_main"),
+      runes: t("deck.rb_picker_runes"),
+      battlefield: t("deck.rb_picker_battlefield"),
+      sideboard: t("deck.rb_picker_sideboard")
     };
-    title.textContent = modeTitles[mode] || "Seleccionar cartas";
+    title.textContent = modeTitles[mode] || t("deck.rb_picker_default");
 
     function updateInfo() {
       let total;
@@ -166,10 +166,10 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
       const max = mode === "main" ? 40 : mode === "runes" ? 12 : mode === "battlefield" ? 3 : mode === "champion" ? 3 : mode === "sideboard" ? 8 : 1;
       const avail = getFiltered().length;
       if (isMulti) {
-        info.textContent = total + " seleccionadas \u00b7 " + avail + " disponibles \u00b7 max " + max;
+        info.textContent = t("deck.picker_info_multi", { total: total, avail: avail, max: max });
         if (confirmBtn) confirmBtn.disabled = total === 0;
       } else {
-        info.textContent = avail + " disponibles";
+        info.textContent = t("deck.picker_info_avail", { avail: avail });
       }
     }
 
@@ -177,7 +177,7 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
       const q = (query || "").toLowerCase().trim();
       let results = getFiltered();
       if (results.length === 0 && !q) {
-        grid.innerHTML = '<div class="deck-picker-empty">No hay cartas disponibles (' + mode + ')' + (legendColor ? " para color " + legendColor : "") + '</div>';
+        grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_empty", { mode: mode }) + (legendColor ? t("deck.picker_empty_color", { color: legendColor }) : "") + '</div>';
         updateInfo();
         return;
       }
@@ -186,7 +186,7 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
       }
       grid.innerHTML = "";
       if (!results.length) {
-        grid.innerHTML = '<div class="deck-picker-empty">Sin resultados</div>';
+        grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_no_results") + '</div>';
         updateInfo();
         return;
       }
@@ -226,7 +226,7 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
           '<div class="card-body">' +
             '<h3>' + formatearNombre(c) + '</h3>' +
             '<span class="card-set-id">' + (c.card_set_id || "") + '</span>' +
-            (existingQty > 0 ? '<div style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">' + existingQty + ' en deck</div>' : "") +
+            (existingQty > 0 ? '<div style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)">' + t("deck.picker_in_deck", { n: existingQty }) + '</div>' : "") +
             controlsHTML +
           '</div>';
         div.addEventListener("click", () => {
@@ -322,12 +322,12 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
       };
     }
     if (!cartas || !cartas.length) {
-      if (typeof skeletonCardGrid === 'function') skeletonCardGrid(grid, 10); else grid.innerHTML = '<div class="deck-picker-empty">Cargando catalogo de cartas...</div>';
+      if (typeof skeletonCardGrid === 'function') skeletonCardGrid(grid, 10); else grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_loading") + '</div>';
       updateInfo();
       let retries = 0;
       const retry = setInterval(() => {
         if (cartas && cartas.length) { clearInterval(retry); _deckPickerInterval = null; renderPicker(""); }
-        else if (++retries > 20) { clearInterval(retry); _deckPickerInterval = null; grid.innerHTML = '<div class="deck-picker-empty">Error al cargar catalogo</div>'; }
+        else if (++retries > 20) { clearInterval(retry); _deckPickerInterval = null; grid.innerHTML = '<div class="deck-picker-empty">' + t("deck.picker_error") + '</div>'; }
       }, 500);
       _deckPickerInterval = retry;
     } else {
@@ -340,7 +340,7 @@ function showDeckPicker_RB(mode, legendColor, existingKeys, legendSetId, existin
 // ─── Deck View Helpers ─────────────────────────────────────────────────────
 
 function _rbBuildLegendHTML(legend, isSale) {
-  var html = '<div class="deck-section deck-leader-section"><h3 class="deck-section-title">Legend</h3><div class="deck-leader-slot">';
+  var html = '<div class="deck-section deck-leader-section"><h3 class="deck-section-title">' + t("deck.rb_legend_title") + '</h3><div class="deck-leader-slot">';
   if (legend) {
     const full = legend._key ? cartasMap[legend._key] : null;
     const img = legend.card_image || (full ? full.card_image : null) || "TUTCG.webp";
@@ -353,18 +353,19 @@ function _rbBuildLegendHTML(legend, isSale) {
       '<div class="card-body"><h3>' + name + '</h3>' +
       '<span class="card-set-id">' + (color || "") + (feature ? " \u00b7 " + feature : "") + '</span>';
     if (isSale) {
-      html += '<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-legendprice="1"></div>';
+      html += '<div class="venta-price-row"><span class="venta-price-label">' + t("deck.price_label") + '</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-legendprice="1"></div>';
     }
-    html += '</div></div><button class="btn-ghost btn-xs" id="deckChangeLegendBtn">Cambiar Legend</button>';
+    html += '</div></div><button class="btn-ghost btn-xs" id="deckChangeLegendBtn">' + t("deck.rb_change_legend") + '</button>';
   } else {
-    html += '<div class="deck-empty-slot deck-leader-placeholder deck-legend-placeholder">Elegi una Legend</div>';
+    html += '<div class="deck-empty-slot deck-leader-placeholder deck-legend-placeholder">' + t("deck.rb_choose_legend") + '</div>';
   }
   html += '</div></div>';
   return html;
 }
 
 function _rbBuildChampionHTML(champions, isSale) {
-  var html = '<div class="deck-section"><h3 class="deck-section-title">Chosen Champion' + (champions.length ? ' (' + champions.length + (champions.length >= 3 ? '/3' : '') + ')' : '') + '</h3><div class="deck-champion-slot">';
+  var champTitle = !champions.length ? t("deck.rb_champion_title") : (champions.length >= 3 ? t("deck.rb_champion_count_max", { n: champions.length }) : t("deck.rb_champion_count", { n: champions.length }));
+  var html = '<div class="deck-section"><h3 class="deck-section-title">' + champTitle + '</h3><div class="deck-champion-slot">';
   champions.forEach(function(champ, ci) {
     const full = champ._key ? cartasMap[champ._key] : null;
     const img = champ.card_image || (full ? full.card_image : null) || "TUTCG.webp";
@@ -376,15 +377,15 @@ function _rbBuildChampionHTML(champions, isSale) {
         (qty > 1 ? '<span class="deck-card-qty">&times;' + qty + '</span>' : '') +
       '</div>' +
       '<div class="card-body"><h3>' + name + '</h3><span class="card-set-id">' + (champ.card_set_id || "") + '</span>' +
-        (isSale ? '<div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + ccp + '" data-championprice="' + ci + '"></div>' : '') +
+        (isSale ? '<div class="venta-price-row"><span class="venta-price-label">' + t("deck.price_label") + '</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + ccp + '" data-championprice="' + ci + '"></div>' : '') +
       '</div>' +
       '<button class="binder-remove" data-championremove="' + ci + '">&times;</button>' +
     '</div>';
   });
   if (champions.length) {
-    html += '<button class="btn-ghost btn-xs" id="deckChangeChampionBtn" style="display:block;margin-top:var(--space-2)">Cambiar Champions</button>';
+    html += '<button class="btn-ghost btn-xs" id="deckChangeChampionBtn" style="display:block;margin-top:var(--space-2)">' + t("deck.rb_change_champions") + '</button>';
   } else {
-    html += '<div class="deck-empty-slot deck-champion-placeholder">Elegi Champions</div>';
+    html += '<div class="deck-empty-slot deck-champion-placeholder">' + t("deck.rb_choose_champions") + '</div>';
   }
   html += '</div></div>';
   return html;
@@ -392,7 +393,7 @@ function _rbBuildChampionHTML(champions, isSale) {
 
 function _rbBuildMainDeckHTML(mainCards, championsTotal, mainLimit, isSale) {
   var combinedTotal = championsTotal + mainCards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
-  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Main Deck</h3><span class="deck-count">' + combinedTotal + '/' + mainLimit + '</span></div><div class="deck-main-grid">';
+  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">' + t("deck.rb_main_title") + '</h3><span class="deck-count">' + t("deck.count", { a: combinedTotal, b: mainLimit }) + '</span></div><div class="deck-main-grid">';
   mainCards.forEach(function(c, i) {
     var qty = c.quantity || 1;
     var full = c._key ? cartasMap[c._key] : null;
@@ -400,7 +401,7 @@ function _rbBuildMainDeckHTML(mainCards, championsTotal, mainLimit, isSale) {
     var priceHTML = "";
     if (isSale) {
       var cp = c.customPrice != null ? c.customPrice : 0;
-      priceHTML = '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-mainprice="' + i + '"></div></div>';
+      priceHTML = '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">' + t("deck.price_label") + '</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + cp + '" data-mainprice="' + i + '"></div></div>';
     }
     html += '<div class="deck-card-slot" data-key="' + (c._key || "") + '" data-mainidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"><span class="deck-card-qty">&times;' + qty + '</span></div>' +
@@ -408,14 +409,14 @@ function _rbBuildMainDeckHTML(mainCards, championsTotal, mainLimit, isSale) {
       '<div style="display:flex;gap:4px;justify-content:center;margin-top:4px"><button class="binder-remove" data-mainremove="' + i + '">&times;</button></div></div>';
   });
   if (combinedTotal < mainLimit) {
-    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="main">+ Agregar (' + (mainLimit - combinedTotal) + ' libres)</div>';
+    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="main">' + t("deck.rb_add_free", { n: (mainLimit - combinedTotal) }) + '</div>';
   }
   html += '</div></div>';
   return html;
 }
 
 function _rbBuildRuneHTML(runes, runesTotal, runeLimit, isSale) {
-  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Rune Deck</h3><span class="deck-count">' + runesTotal + '/' + runeLimit + '</span></div><div class="deck-main-grid">';
+  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">' + t("deck.rb_runes_title") + '</h3><span class="deck-count">' + t("deck.count", { a: runesTotal, b: runeLimit }) + '</span></div><div class="deck-main-grid">';
   runes.forEach(function(c, i) {
     var qty = c.quantity || 1;
     var full = c._key ? cartasMap[c._key] : null;
@@ -423,49 +424,49 @@ function _rbBuildRuneHTML(runes, runesTotal, runeLimit, isSale) {
     var rcp = c.customPrice != null ? c.customPrice : 0;
     html += '<div class="deck-card-slot" data-key="' + (c._key || "") + '" data-runeidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"><span class="deck-card-qty">&times;' + qty + '</span></div>' +
-      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + rcp + '" data-runeprice="' + i + '"></div></div>' : '') +
+      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">' + t("deck.price_label") + '</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + rcp + '" data-runeprice="' + i + '"></div></div>' : '') +
       '<button class="binder-remove" data-runeremove="' + i + '">&times;</button></div>';
   });
   if (runesTotal < runeLimit) {
-    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="runes">+ Agregar (' + (runeLimit - runesTotal) + ' libres)</div>';
+    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="runes">' + t("deck.rb_add_free", { n: (runeLimit - runesTotal) }) + '</div>';
   }
   html += '</div></div>';
   return html;
 }
 
 function _rbBuildBattlefieldHTML(battlefields, bfLimit, isSale) {
-  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Battlefields</h3><span class="deck-count">' + battlefields.length + '/' + bfLimit + '</span></div><div class="deck-main-grid">';
+  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">' + t("deck.rb_battlefield_title") + '</h3><span class="deck-count">' + t("deck.count", { a: battlefields.length, b: bfLimit }) + '</span></div><div class="deck-main-grid">';
   battlefields.forEach(function(bf, i) {
     var full = bf._key ? cartasMap[bf._key] : null;
     var img = bf.card_image || (full ? full.card_image : null) || "TUTCG.webp";
     var bcp = bf.customPrice != null ? bf.customPrice : 0;
     html += '<div class="deck-card-slot" data-key="' + (bf._key || "") + '" data-bfidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>' +
-      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + bcp + '" data-bfprice="' + i + '"></div></div>' : '') +
+      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">' + t("deck.price_label") + '</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + bcp + '" data-bfprice="' + i + '"></div></div>' : '') +
       '<button class="binder-remove" data-bfremove="' + i + '">&times;</button></div>';
   });
   if (battlefields.length < bfLimit) {
-    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="battlefield">+ Agregar (' + (bfLimit - battlefields.length) + ' libres)</div>';
+    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="battlefield">' + t("deck.rb_add_free", { n: (bfLimit - battlefields.length) }) + '</div>';
   }
   html += '</div></div>';
   return html;
 }
 
 function _rbBuildSideboardHTML(sideboard, champions, sbLimit, isSale) {
-  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">Sideboard</h3><span class="deck-count">' + sideboard.length + '/' + sbLimit + ' <span class="deck-optional">opcional</span></span></div><div class="deck-main-grid">';
+  var html = '<div class="deck-section"><div class="deck-section-title-row"><h3 class="deck-section-title">' + t("deck.rb_sideboard_title") + '</h3><span class="deck-count">' + t("deck.count", { a: sideboard.length, b: sbLimit }) + ' <span class="deck-optional">' + t("deck.optional") + '</span></span></div><div class="deck-main-grid">';
   sideboard.forEach(function(sb, i) {
     var full = sb._key ? cartasMap[sb._key] : null;
     var img = sb.card_image || (full ? full.card_image : null) || "TUTCG.webp";
     var scp = sb.customPrice != null ? sb.customPrice : 0;
     html += '<div class="deck-card-slot" data-key="' + (sb._key || "") + '" data-sbidx="' + i + '">' +
       '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"></div>' +
-      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">Precio:</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + scp + '" data-sbprice="' + i + '"></div></div>' : '') +
+      (isSale ? '<div class="card-body" style="padding:var(--space-2)"><div class="venta-price-row"><span class="venta-price-label">' + t("deck.price_label") + '</span><span class="venta-price-prefix">$</span><input type="number" class="venta-price-input" step="0.5" min="0" value="' + scp + '" data-sbprice="' + i + '"></div></div>' : '') +
       '<button class="binder-remove" data-sbremove="' + i + '">&times;</button></div>';
   });
   if (champions.length > 0 && sideboard.length < sbLimit) {
-    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="sideboard">+ Agregar (' + (sbLimit - sideboard.length) + ' libres)</div>';
+    html += '<div class="deck-add-more-btn deck-empty-slot" data-add="sideboard">' + t("deck.rb_add_free", { n: (sbLimit - sideboard.length) }) + '</div>';
   } else if (champions.length === 0) {
-    html += '<div class="deck-empty-slot" style="grid-column:1/-1;text-align:center;padding:var(--space-6);color:var(--text-muted);font-size:var(--text-sm)">Elegi un Champion para habilitar el Sideboard</div>';
+    html += '<div class="deck-empty-slot" style="grid-column:1/-1;text-align:center;padding:var(--space-6);color:var(--text-muted);font-size:var(--text-sm)">' + t("deck.rb_sideboard_locked") + '</div>';
   }
   html += '</div></div>';
   return html;
@@ -574,7 +575,7 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
     if (changeLegendBtn) changeLegendBtn.addEventListener("click", pickLegend);
 
     function pickChampion() {
-      if (!col.legend) { alert("Primero elegi una Legend."); return; }
+      if (!col.legend) { alert(t("deck.rb_need_legend")); return; }
       var lColor = col.legend.card_color || "";
       var lFeature = col.legend.feature || "";
       showDeckPicker_RB("champion", lColor, [], "", null, 3, lFeature).then(function(picked) {
@@ -599,12 +600,12 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
 
     g.querySelectorAll("[data-add=\"main\"]").forEach(function(el) {
       el.addEventListener("click", async function() {
-        if (!col.legend) { alert("Primero elegi una Legend."); return; }
+        if (!col.legend) { alert(t("deck.rb_need_legend")); return; }
         var lColor = col.legend.card_color || "";
         var champsTotal = (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
         var mTotal = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
         var remaining = 40 - champsTotal - mTotal;
-        if (remaining <= 0) { alert("El Main Deck ya tiene 40 cartas."); return; }
+        if (remaining <= 0) { alert(t("deck.rb_main_full")); return; }
         var lSetId = col.legend.set_id || "";
         var existingCounts = countByName_RB(col.cards);
         var pickedArr = await showDeckPicker_RB("main", lColor, [], lSetId, existingCounts, remaining);
@@ -629,11 +630,11 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
 
     g.querySelectorAll("[data-add=\"runes\"]").forEach(function(el) {
       el.addEventListener("click", async function() {
-        if (!col.legend) { alert("Primero elegi una Legend."); return; }
+        if (!col.legend) { alert(t("deck.rb_need_legend")); return; }
         var lColor = col.legend.card_color || "";
         var runesTotal = (col.runes || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
         var remaining = 12 - runesTotal;
-        if (remaining <= 0) { alert("El Rune Deck ya tiene 12 cartas."); return; }
+        if (remaining <= 0) { alert(t("deck.rb_runes_full")); return; }
         var pickedArr = await showDeckPicker_RB("runes", lColor, [], "", null, remaining);
         if (pickedArr && pickedArr.length) {
           pickedArr.forEach(function(c) {
@@ -654,7 +655,7 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
       el.addEventListener("click", async function() {
         var bfNames = new Set((col.battlefields || []).map(function(b) { return b.card_name; }));
         var remaining = 3 - (col.battlefields || []).length;
-        if (remaining <= 0) { alert("Ya tenes 3 Battlefields."); return; }
+        if (remaining <= 0) { alert(t("deck.rb_battlefield_full")); return; }
         var existingKeys = (col.battlefields || []).map(function(b) { return b._key; }).filter(Boolean);
         var pickedArr = await showDeckPicker_RB("battlefield", "", existingKeys, "", null, remaining);
         if (pickedArr && pickedArr.length) {
@@ -674,7 +675,7 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
     g.querySelectorAll("[data-add=\"sideboard\"]").forEach(function(el) {
       el.addEventListener("click", async function() {
         var remaining = 8 - (col.sideboard || []).length;
-        if (remaining <= 0) { alert("El Sideboard ya tiene 8 cartas."); return; }
+        if (remaining <= 0) { alert(t("deck.rb_sideboard_full")); return; }
         var existingKeys = (col.sideboard || []).map(function(s) { return s._key; }).filter(Boolean);
         var pickedArr = await showDeckPicker_RB("sideboard", "", existingKeys, "", null, remaining);
         if (pickedArr && pickedArr.length) {
@@ -696,20 +697,20 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
   var clearPageBtn = document.getElementById(isSale ? "ventaClearPageBtn" : "binderClearPageBtn");
   var clearAllBtn = document.getElementById(isSale ? "ventaClearAllBtn" : "binderClearAllBtn");
   if (clearPageBtn) {
-    clearPageBtn.textContent = "Vaciar Main Deck";
+    clearPageBtn.textContent = t("deck.rb_clear_main");
     clearPageBtn.onclick = function() {
       var chTotal = (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
       var mainTot = (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
       if (!chTotal && !mainTot) return;
-      if (confirm("Vacia las " + (chTotal + mainTot) + " cartas del Main Deck (incluyendo Champions)?")) { col.cards = []; col.champions = []; reRender(); }
+      if (confirm(t("deck.rb_clear_main_confirm", { n: (chTotal + mainTot) }))) { col.cards = []; col.champions = []; reRender(); }
     };
   }
   if (clearAllBtn) {
-    clearAllBtn.textContent = "Vaciar Runes";
+    clearAllBtn.textContent = t("deck.rb_clear_runes");
     clearAllBtn.onclick = function() {
       if (!(col.runes || []).length) return;
       var total = (col.runes || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
-      if (confirm("Vacia las " + total + " Runes?")) { col.runes = []; reRender(); }
+      if (confirm(t("deck.rb_clear_runes_confirm", { n: total }))) { col.runes = []; reRender(); }
     };
   }
 }
@@ -719,7 +720,9 @@ function _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, 
 function renderDeckView_RB(type, col, grid, title, toggleContainer) {
   var isSale = type === "sale";
   if (toggleContainer) {
-    toggleContainer.innerHTML = isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">Privado</span><input type="checkbox" id="' + (isSale ? "venta" : "binder") + 'PublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">Publico</span></label>' : "";
+    toggleContainer.innerHTML = '<button class="deck-io-btn deck-io-export">' + t("deck.export") + '</button><button class="deck-io-btn deck-io-import">' + t("deck.import") + '</button>' + (isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">' + t("deck.private") + '</span><input type="checkbox" id="' + (isSale ? "venta" : "binder") + 'PublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">' + t("deck.public") + '</span></label>' : "");
+    var deckExBtn = toggleContainer.querySelector(".deck-io-export");
+    if (deckExBtn) deckExBtn.onclick = function() { if (typeof exportDeckToClipboard === "function") exportDeckToClipboard(col); };
     var chk = document.getElementById(isSale ? "ventaPublicCheck" : "binderPublicCheck");
     if (chk) chk.onchange = function() { toggleBinderPublic(isSale ? currentVentaId : currentCollectionId); };
   }
@@ -739,7 +742,7 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
   var runesTotal = runes.reduce(function(s, c) { return s + (c.quantity || 1); }, 0);
   var totalCards = (legend ? 1 : 0) + championsTotal + mainTotal + runesTotal + battlefields.length + sideboard.length;
 
-  title.textContent = col.name + " (" + totalCards + " cartas)";
+  title.textContent = t("deck.title_count", { name: col.name, count: totalCards });
 
   var mainLimit = 40, runeLimit = 12, bfLimit = 3, sbLimit = 8;
 
@@ -754,6 +757,10 @@ function renderDeckView_RB(type, col, grid, title, toggleContainer) {
 
   var reRender = function() { saveDeck_RB(isSale); renderDeckView_RB(type, col, grid, title, toggleContainer); };
   _rbAttachDeckEvents(grid, col, isSale, reRender, champions, mainCards, runes, battlefields, sideboard);
+  if (toggleContainer) {
+    var deckImBtn = toggleContainer.querySelector(".deck-io-import");
+    if (deckImBtn) deckImBtn.onclick = function() { if (typeof openPasteListModal === "function") openPasteListModal(col, isSale, reRender); };
+  }
 }
 
 function saveDeck_RB(isSale) {

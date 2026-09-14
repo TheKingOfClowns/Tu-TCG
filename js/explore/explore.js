@@ -1,5 +1,5 @@
 ﻿// ─── Explore / Public Binders ─────────────────────────────────────────────
-let exploreDetailOwner = { username: "Usuario", avatar_url: "" };
+let exploreDetailOwner = { username: "", avatar_url: "" };
 let exploreFilterMode = "all";
 let exploreSearchQuery = "";
 let exploreTabFilter = "todas";
@@ -12,7 +12,7 @@ let _exploreCache = { data: null, ts: 0 };
 const EXPLORE_CACHE_TTL = 30000;
 window.invalidateExploreCache = function () { _exploreCache = { data: null, ts: 0 }; };
 function setExploreDetailOwner(username, avatarUrl) {
-  exploreDetailOwner = { username: username || "Usuario", avatar_url: avatarUrl || "" };
+  exploreDetailOwner = { username: username || t("expl.fallback_user"), avatar_url: avatarUrl || "" };
 }
 function escapeHtml(s) {
   return String(s == null ? "" : s)
@@ -32,7 +32,7 @@ function sanitizeWspUrl(url) {
 }
 const SOCIAL_PLATFORM_LABELS = {
   instagram: "Instagram", twitter: "X (Twitter)", tiktok: "TikTok",
-  youtube: "YouTube", discord: "Discord", other: "Otro"
+  youtube: "YouTube", discord: "Discord"
 };
 async function verPerfilPublico(userId) {
   if (!userId) return;
@@ -43,7 +43,7 @@ async function verPerfilPublico(userId) {
       .select("username, display_name, avatar_url, bio, city, country, contact_phone, contact_wsp, social_links")
       .eq("id", userId)
       .single();
-    const username = escapeHtml(profile?.username || profile?.display_name || "Usuario");
+    const username = escapeHtml(profile?.username || profile?.display_name || t("expl.fallback_user"));
     const avatarUrl = profile?.avatar_url || "";
     const bio = escapeHtml(profile?.bio || "");
     const locationParts = [escapeHtml(profile?.city || ""), escapeHtml(profile?.country || "")].filter(Boolean);
@@ -54,7 +54,7 @@ async function verPerfilPublico(userId) {
         const url = (l && typeof l === "object" && l.url) ? String(l.url).trim() : "";
         if (!/^https?:\/\//i.test(url)) return null;
         const platform = (l && l.platform) ? l.platform : "other";
-        return { label: escapeHtml(SOCIAL_PLATFORM_LABELS[platform] || "Otro"), url: escapeHtml(url) };
+        return { label: escapeHtml(SOCIAL_PLATFORM_LABELS[platform] || t("expl.platform_other")), url: escapeHtml(url) };
       })
       .filter(Boolean);
 
@@ -66,24 +66,24 @@ async function verPerfilPublico(userId) {
       <div class="pp-card">
         <img src="${escapeHtml(avatarUrl) || "TUTCG.webp"}" class="pp-avatar" onerror="this.src='TUTCG.webp'">
         <h2 class="pp-name">${username}</h2>
-        <p class="pp-member">Miembro de TuTCG</p>
+        <p class="pp-member">${t("expl.member")}</p>
         ${bio ? `<p class="pp-bio">${bio}</p>` : ""}
         ${locationParts.length ? `<p class="pp-location">${locationParts.join(", ")}</p>` : ""}
         ${wspUrl || phone ? `
         <div class="pp-section">
-          <h3 class="pp-section-title">Contacto</h3>
+          <h3 class="pp-section-title">${t("expl.contact")}</h3>
           ${wspUrl ? `<a href="${wspUrl}" target="_blank" rel="noopener" class="pp-contact-btn pp-wsp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WhatsApp</a>` : ""}
           ${phone ? `<a href="tel:${phone.replace(/[^\d+]/g, "")}" class="pp-contact-btn pp-phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${escapeHtml(phone)}</a>` : ""}
         </div>` : `
         <div class="pp-section">
-          <p class="pp-empty-contact">Este usuario no compartió información de contacto</p>
+          <p class="pp-empty-contact">${t("expl.no_contact")}</p>
         </div>`}
         ${socials.length ? `
         <div class="pp-section">
-          <h3 class="pp-section-title">Redes sociales</h3>
+          <h3 class="pp-section-title">${t("expl.socials")}</h3>
           ${socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener" class="pp-social-link"><span>${s.label}</span><span aria-hidden="true">→</span></a>`).join("")}
         </div>` : ""}
-        <button onclick="cerrarModalPerfilPublico()" class="pp-close">Cerrar</button>
+        <button onclick="cerrarModalPerfilPublico()" class="pp-close">${t("expl.close")}</button>
       </div>
     `;
     modal.addEventListener("click", (e) => { if (e.target === modal) cerrarModalPerfilPublico(); });
@@ -108,7 +108,7 @@ function cerrarModalPerfilPublico() {
 function renderExploreDetailCards(cards, grid, b, navList, base) {
   grid.innerHTML = "";
   if (!cards || !cards.length) {
-    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary)">No hay cartas para mostrar</div>';
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary)">' + t("expl.empty_cards") + '</div>';
     return;
   }
   const _base = base || 0;
@@ -168,7 +168,7 @@ function updateExploreProgress() {
   const pct = total > 0 ? Math.round((has / total) * 100) : 0;
   const progressText = document.getElementById("exploreProgressText");
   const progressFill = document.getElementById("exploreProgressFill");
-  if (progressText) progressText.textContent = `${has} / ${total} cartas (${pct}%)`;
+  if (progressText) progressText.textContent = t("expl.progress", { has: has, total: total, pct: pct });
   if (progressFill) progressFill.style.width = pct + "%";
 }
 function filterExploreCards() {
@@ -194,7 +194,7 @@ function filterExploreCards() {
     pager = document.createElement("div");
     pager.id = "exploreDetailPager";
     pager.className = "binder-pagination";
-    pager.innerHTML = '<button class="btn-page" id="exploreDetailPrevBtn">‹ Anterior</button><span>Página ' + exploreDetailPage + ' de ' + _totalPages + '</span><button class="btn-page" id="exploreDetailNextBtn">Siguiente ›</button>';
+    pager.innerHTML = '<button class="btn-page" id="exploreDetailPrevBtn">' + t("expl.prev") + '</button><span>' + t("expl.page", { a: exploreDetailPage, b: _totalPages }) + '</span><button class="btn-page" id="exploreDetailNextBtn">' + t("expl.next") + '</button>';
     grid.after(pager);
     const prevB = pager.querySelector("#exploreDetailPrevBtn"), nextB = pager.querySelector("#exploreDetailNextBtn");
     if (prevB) { prevB.disabled = exploreDetailPage <= 1; prevB.addEventListener("click", () => { if (exploreDetailPage > 1) { exploreDetailPage--; filterExploreCards(); } }); }
@@ -256,23 +256,25 @@ function buildExploreFiltersHTML() {
   return `
     <div class="explore-filters">
       <div class="explore-tabs">
-        <button class="explore-tab ${exploreTabFilter === 'colecciones' ? 'active' : ''}" data-tab="colecciones">Colecciones</button>
-        <button class="explore-tab ${exploreTabFilter === 'ventas' ? 'active' : ''}" data-tab="ventas">Ventas</button>
-        <button class="explore-tab ${exploreTabFilter === 'todas' ? 'active' : ''}" data-tab="todas">Todas</button>
+        <button class="explore-tab ${exploreTabFilter === 'colecciones' ? 'active' : ''}" data-tab="colecciones">${t("expl.tab_collections")}</button>
+        <button class="explore-tab ${exploreTabFilter === 'ventas' ? 'active' : ''}" data-tab="ventas">${t("expl.tab_sales")}</button>
+        <button class="explore-tab ${exploreTabFilter === 'todas' ? 'active' : ''}" data-tab="todas">${t("expl.tab_all")}</button>
       </div>
       <div class="explore-search">
         <div style="position:relative">
           <svg class="explore-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="exploreSearchInput" placeholder="Buscar por nombre, cartas..." value="${exploreExploreSearchQuery || ''}">
+          <input type="text" id="exploreSearchInput" placeholder="${t("expl.search_ph")}" value="${exploreExploreSearchQuery || ''}">
         </div>
       </div>
     </div>
   `;
 }
 function attachExploreListeners() {
-  document.querySelectorAll('.explore-tab').forEach(btn => {
+  var scope = document.getElementById("exploreContainer") || document;
+  scope.querySelectorAll('.explore-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       exploreTabFilter = btn.dataset.tab;
+      scope.querySelectorAll('.explore-tab').forEach(b => b.classList.toggle('active', b === btn));
       explorePage = 1;
       renderExploreView();
     });
@@ -298,7 +300,7 @@ async function renderExploreView() {
   if (typeof skeletonCoverGrid === 'function') skeletonCoverGrid(document.getElementById("exploreSkeletonWrap"), 10);
   attachExploreListeners();
   if (!isAuthenticated()) {
-    container.innerHTML = '<div class="collection-empty"><p>Inicia sesión para explorar binders públicos</p></div>';
+    container.innerHTML = '<div class="collection-empty"><p>' + t("expl.login_required") + '</p></div>';
     return;
   }
   try {
@@ -336,7 +338,7 @@ async function renderExploreView() {
       filteredBinders = filteredBinders.filter(b => b.type === "sale");
     }
     if (filteredBinders.length === 0 || !filteredBinders) {
-      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>No hay binders' + (tcgName ? " para " + tcgName : "") + '</p><p style="font-size:var(--text-sm);color:var(--text-muted)">Los usuarios pueden publicar sus colecciones y ventas desde la vista de Colecciones o Venta</p></div>';
+      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>' + t("expl.empty_title", { tcg: (tcgName ? t("expl.empty_title_tcg", { name: tcgName }) : "") }) + '</p><p style="font-size:var(--text-sm);color:var(--text-muted)">' + t("expl.empty_hint") + '</p></div>';
       attachExploreListeners();
       return;
     }
@@ -354,7 +356,7 @@ async function renderExploreView() {
       }
     }
     if (!filteredBinders || !filteredBinders.length) {
-      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>No se encontraron resultados para "' + escapeHtml(exploreExploreSearchQuery) + '"</p></div>';
+      container.innerHTML = buildExploreFiltersHTML() + '<div class="collection-empty"><p>' + t("expl.no_results", { q: escapeHtml(exploreExploreSearchQuery) }) + '</p></div>';
       attachExploreListeners();
       return;
     }
@@ -380,11 +382,11 @@ async function renderExploreView() {
     }
     for (const b of _pageBinders) {
       const prof = profileMap[b.user_id];
-      const username = escapeHtml(prof?.username || "Usuario");
+      const username = escapeHtml(prof?.username || t("expl.fallback_user"));
       const rawAvatar = prof?.avatar_url || "";
       const avatarUrl = /^https?:\/\//i.test(rawAvatar) ? escapeHtml(rawAvatar) : "TUTCG.webp";
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
-      const typeLabel = b.type === "sale" ? "Venta" : "Colección";
+      const typeLabel = b.type === "sale" ? t("expl.type_sale") : t("expl.type_collection");
       const isOwner = authUser && b.user_id === authUser.id;
       let coverImg = null;
       if (b.binder_cards?.length) {
@@ -420,7 +422,7 @@ async function renderExploreView() {
       div.innerHTML = `
         <div class="binder-cover-img" style="background-image:url(${coverImg ? coverImg : 'TUTCG.webp'})">
           <div class="binder-cover-overlay">
-            <span class="binder-cover-count">${cardCount} cartas</span>
+            <span class="binder-cover-count">${t("expl.card_count", { n: cardCount })}</span>
           </div>
         </div>
         <div class="binder-cover-meta">
@@ -434,7 +436,7 @@ async function renderExploreView() {
           </div>
           ${isTracking ? `<div class="binder-cover-tracking">
             <span class="tracking-pct">${trackingPct}%</span>
-            <span class="tracking-count">(${trackingHas} / ${trackingTotal} cartas)</span>
+            <span class="tracking-count">${t("expl.tracking_count", { has: trackingHas, total: trackingTotal })}</span>
           </div>` : ""}
           ${b.type === "sale" && (hasArs || hasUsd) ? `<div style="margin-top:4px;display:flex;flex-direction:column;gap:1px">${hasArs ? `<span style="font-size:10px;font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${hasUsd ? `<span style="font-size:10px;font-family:var(--font-mono);color:#ffd700;font-weight:var(--weight-bold)">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
@@ -445,7 +447,7 @@ async function renderExploreView() {
     if (_totalPages > 1) {
       const pager = document.createElement("div");
       pager.className = "binder-pagination";
-      pager.innerHTML = '<button class="btn-page" id="explorePrevBtn">‹ Anterior</button><span id="explorePageInfo">Página ' + explorePage + ' de ' + _totalPages + '</span><button class="btn-page" id="exploreNextBtn">Siguiente ›</button>';
+      pager.innerHTML = '<button class="btn-page" id="explorePrevBtn">' + t("expl.prev") + '</button><span id="explorePageInfo">' + t("expl.page", { a: explorePage, b: _totalPages }) + '</span><button class="btn-page" id="exploreNextBtn">' + t("expl.next") + '</button>';
       container.appendChild(pager);
       const prevB = pager.querySelector("#explorePrevBtn"), nextB = pager.querySelector("#exploreNextBtn");
       if (prevB) { prevB.disabled = explorePage <= 1; prevB.addEventListener("click", () => { if (explorePage > 1) { explorePage--; renderExploreView(); } }); }
@@ -455,7 +457,7 @@ async function renderExploreView() {
     const isAbort = e.name === 'AbortError' || e.message?.toLowerCase().includes('abort');
     if (isAbort) return;
     console.error("Explore error:", e);
-    container.innerHTML = '<div class="collection-empty"><p>Error al cargar binders públicos</p></div>';
+    container.innerHTML = '<div class="collection-empty"><p>' + t("expl.load_error") + '</p></div>';
   }
 }
 function openExploreDetail(binder) {
@@ -463,7 +465,7 @@ function openExploreDetail(binder) {
   exploreFilterMode = "all";
   exploreSearchQuery = "";
   exploreDetailPage = 1;
-  exploreDetailOwner = { username: "Usuario", avatar_url: "" };
+  exploreDetailOwner = { username: "", avatar_url: "" };
   (async () => {
     try {
       const { data: prof } = await supabaseClient
@@ -473,7 +475,7 @@ function openExploreDetail(binder) {
         .single();
       if (prof) {
         exploreDetailOwner = {
-          username: prof.username || "Usuario",
+          username: prof.username || t("expl.fallback_user"),
           avatar_url: prof.avatar_url || ""
         };
       }
@@ -488,7 +490,7 @@ function renderExploreDetail() {
   const b = exploreDetailBinder;
   title.textContent = b.name;
   const cards = b.binder_cards || [];
-  const typeLabel = b.type === "sale" ? "Venta" : "Colección";
+  const typeLabel = b.type === "sale" ? t("expl.type_sale") : t("expl.type_collection");
   const subtype = (b.config && b.config.subtype) || "binder";
   const isTracking = subtype === "tracking";
   const totalCards = cards.reduce((s, c) => s + c.quantity, 0);
@@ -515,7 +517,7 @@ function renderExploreDetail() {
     const pct = total > 0 ? Math.round((has / total) * 100) : 0;
     progressHTML = `
       <div class="explore-progress" style="margin:var(--space-3) 0">
-        <span id="exploreProgressText" style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:6px;display:block">${has} / ${total} cartas (${pct}%)</span>
+        <span id="exploreProgressText" style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:6px;display:block">${t("expl.progress", { has: has, total: total, pct: pct })}</span>
         <div style="height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden">
           <div id="exploreProgressFill" style="height:100%;width:${pct}%;background:var(--accent);transition:width 0.3s"></div>
         </div>
@@ -524,7 +526,7 @@ function renderExploreDetail() {
   }
 
   const ownerAvatar = exploreDetailOwner.avatar_url || "";
-  const ownerName = exploreDetailOwner.username || "Usuario";
+  const ownerName = exploreDetailOwner.username || t("expl.fallback_user");
 
   if (subtype === "deck") {
     const deck = expandDbDeck(cards);
@@ -543,24 +545,24 @@ function renderExploreDetail() {
         <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
           <img src="${ownerAvatar || "TUTCG.webp"}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
           <span style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
-          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">Ver Perfil</button>
+          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">${t("expl.view_profile")}</button>
         </div>
         <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
           <span class="explore-badge ${b.type}">${typeLabel}</span>
-          <span style="font-size:var(--text-sm);color:var(--text-secondary)">Deck · ${totalCards} cartas</span>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary)">${t("expl.deck_cards", { n: totalCards })}</span>
           ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
       </div>
       <div class="deck-container">
         <div class="deck-section deck-leader-section">
-          <h3 class="deck-section-title">Líder</h3>
+          <h3 class="deck-section-title">${t("expl.leader")}</h3>
           <div class="deck-leader-slot" id="exploreDeckLeaderSlot">
-            ${leader ? '<div class="deck-leader-card" id="exploreLeaderCard"></div>' : '<div class="deck-empty-slot deck-leader-placeholder">Sin líder</div>'}
+            ${leader ? '<div class="deck-leader-card" id="exploreLeaderCard"></div>' : '<div class="deck-empty-slot deck-leader-placeholder">' + t("expl.no_leader") + '</div>'}
           </div>
         </div>
         <div class="deck-section">
           <div class="deck-section-title-row">
-            <h3 class="deck-section-title">Cartas</h3>
+            <h3 class="deck-section-title">${t("expl.cards")}</h3>
             <span class="deck-count">${mainTotal}/50</span>
           </div>
           <div class="deck-main-grid" id="exploreDeckMainGrid"></div>
@@ -568,7 +570,7 @@ function renderExploreDetail() {
         <div class="deck-section">
           <div class="deck-section-title-row">
             <h3 class="deck-section-title">DON!!</h3>
-            <span class="deck-count">${dons.length}/10 <span class="deck-optional">opcional</span></span>
+            <span class="deck-count">${dons.length}/10 <span class="deck-optional">${t("expl.optional")}</span></span>
           </div>
           <div class="deck-don-row" id="exploreDeckDonRow"></div>
         </div>
@@ -638,19 +640,19 @@ function renderExploreDetail() {
         <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
           <img src="${ownerAvatar || "TUTCG.webp"}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
           <span style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
-          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">Ver Perfil</button>
+          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">${t("expl.view_profile")}</button>
         </div>
         <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
           <span class="explore-badge ${b.type}">${typeLabel}</span>
-          <span style="font-size:var(--text-sm);color:var(--text-secondary)">${totalCards} cartas</span>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary)">${t("expl.card_count", { n: totalCards })}</span>
           ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
         ${progressHTML}
         ${isTracking ? `
         <div style="display:flex;gap:var(--space-2);margin-top:var(--space-3);flex-wrap:wrap">
-          <input type="text" id="exploreSearchInput" placeholder="Buscar (ej: GoldRoger OP09)..." style="flex:1;min-width:150px;padding:var(--space-2);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-          <button class="explore-filter-btn active" data-filter="all" style="padding:6px 14px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">Todas</button>
-          <button class="explore-filter-btn" data-filter="faltantes" style="padding:6px 14px;background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border-default);border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs)">Faltantes</button>
+          <input type="text" id="exploreSearchInput" placeholder="${t("expl.search_tracking_ph")}" style="flex:1;min-width:150px;padding:var(--space-2);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
+          <button class="explore-filter-btn active" data-filter="all">${t("expl.tab_all")}</button>
+          <button class="explore-filter-btn" data-filter="faltantes">${t("expl.filter_missing")}</button>
         </div>
         ` : ""}
       </div>

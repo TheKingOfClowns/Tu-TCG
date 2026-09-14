@@ -8,10 +8,10 @@ async function pedirCrearVenta_PK() {
   const hasContact = profile?.contact_phone || profile?.contact_wsp;
   if (!hasContact) {
     showCreateModal({
-      title: "Contacto requerido",
-      confirmText: "Ir a mi perfil",
+      title: t("venta.contact_title"),
+      confirmText: t("venta.contact_goto"),
       placeholder: "",
-      extraHTML: '<p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">Para crear una colección de venta necesitas agregar tu número de teléfono o WhatsApp en tu perfil.</p>',
+      extraHTML: '<p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">' + t("venta.contact_body") + '</p>',
       onConfirm: function() {
         if (typeof openProfile === "function") openProfile();
       }
@@ -20,10 +20,10 @@ async function pedirCrearVenta_PK() {
   }
 
   showCreateModal({
-    title: "Crear colección de venta",
-    confirmText: "Crear",
-    placeholder: "Nombre de la colección de venta",
-    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo</label><select id="createVentaSubtype" onchange="document.getElementById(\'createVentaModeRow\').style.display=this.value===\'binder\'?\'\':\'none\'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none"><option value="binder">Binder — cartas libres</option><option value="deck">Deck — 60 cartas</option></select><div id="createVentaModeRow"><label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Modo de visualización</label><select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none"><option value="individual">Individual</option><option value="playset">Playset — máx 4 copias</option><option value="editable">Editable — cantidad libre</option></select></div>',
+    title: t("venta.create_title"),
+    confirmText: t("venta.create"),
+    placeholder: t("venta.create_name_ph"),
+    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("venta.type_label") + '</label><select id="createVentaSubtype" onchange="document.getElementById(\'createVentaModeRow\').style.display=this.value===\'binder\'?\'\':\'none\'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none"><option value="binder">' + t("venta.opt_binder") + '</option><option value="deck">' + t("venta.opt_deck_pk") + '</option></select><div id="createVentaModeRow"><label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("venta.mode_label") + '</label><select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none"><option value="individual">' + t("venta.badge_individual") + '</option><option value="playset">' + t("venta.opt_playset_pk") + '</option><option value="editable">' + t("venta.opt_editable_pk") + '</option></select></div>',
     onConfirm: function(nombre) {
       var subtype = (document.getElementById("createVentaSubtype") && document.getElementById("createVentaSubtype").value) || "binder";
       var mode = (document.getElementById("createVentaMode") && document.getElementById("createVentaMode").value) || "individual";
@@ -44,8 +44,8 @@ function renderVentaList_PK() {
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
-    var msg = currentTcg ? "No tienes colecciones de venta para este TCG" : "No tienes colecciones de venta";
-    container.innerHTML = '<div class="collection-empty"><p>' + msg + '</p><button class="btn-primary" id="createFirstVentaBtn">Crear primera colección de venta</button></div>';
+    var msg = currentTcg ? t("venta.empty_tcg") : t("venta.empty");
+    container.innerHTML = '<div class="collection-empty"><p>' + msg + '</p><button class="btn-primary" id="createFirstVentaBtn">' + t("venta.create_first") + '</button></div>';
     var btn = document.getElementById("createFirstVentaBtn");
     if (btn) btn.addEventListener("click", pedirCrearVenta);
     return;
@@ -55,14 +55,14 @@ function renderVentaList_PK() {
     var col = ventaCols[id];
     var coverImg = getFirstCardImage(col.cards, col);
     var isDeck = col.subtype === "deck";
-    var totalStr = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + " cartas" : col.cards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + " cartas";
-    var badgeText = isDeck ? "Deck" : (col.display_mode === "playset" ? "Playset" : col.display_mode === "editable" ? "Editable" : "Individual");
+    var totalStr = isDeck ? t("venta.count_cards", { n: (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) }) : t("venta.count_cards", { n: col.cards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0) });
+    var badgeText = isDeck ? t("venta.badge_deck") : (col.display_mode === "playset" ? t("venta.badge_playset") : col.display_mode === "editable" ? t("venta.badge_editable") : t("venta.badge_individual"));
     var div = document.createElement("div");
     div.className = "binder-cover-card";
     var tp = getTotalPrice(col);
     var dp = col.customTotalPrice != null ? Number(col.customTotalPrice) : tp;
     var isCustom = col.customTotalPrice != null;
-    div.innerHTML = '<div class="binder-cover-img" style="background-image:url(' + (coverImg ? escapeAttr(coverImg) : "'TUTCG.webp'") + ')"><div class="binder-cover-overlay"><span class="binder-cover-count">' + totalStr + '</span></div></div><div class="binder-cover-meta"><span class="binder-cover-name-badge">' + col.name + '</span><span class="binder-cover-badge sale">' + badgeText + '</span><div style="display:flex;align-items:center;gap:6px;margin-top:var(--space-1)"><span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$' + dp.toFixed(2) + '</span><button class="btn-ghost btn-xs" data-action="editprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">✎</button>' + (isCustom ? '<button class="btn-ghost btn-xs" data-action="resetprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="Restaurar precio calculado">↺</button>' : "") + '</div></div><div class="binder-cover-actions"><button class="btn-ghost btn-xs" data-action="open" data-id="' + id + '">Abrir</button><button class="btn-ghost btn-xs" data-action="rename" data-id="' + id + '">Renombrar</button><button class="btn-danger btn-xs" data-action="delete" data-id="' + id + '">Eliminar</button></div>';
+    div.innerHTML = '<div class="binder-cover-img" style="background-image:url(' + (coverImg ? escapeAttr(coverImg) : "'TUTCG.webp'") + ')"><div class="binder-cover-overlay"><span class="binder-cover-count">' + totalStr + '</span></div></div><div class="binder-cover-meta"><span class="binder-cover-name-badge">' + col.name + '</span><span class="binder-cover-badge sale">' + badgeText + '</span><div style="display:flex;align-items:center;gap:6px;margin-top:var(--space-1)"><span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$' + dp.toFixed(2) + '</span><button class="btn-ghost btn-xs" data-action="editprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="' + t("venta.edit_price_title") + '">✎</button>' + (isCustom ? '<button class="btn-ghost btn-xs" data-action="resetprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="' + t("venta.reset_price_title") + '">↺</button>' : "") + '</div></div><div class="binder-cover-actions"><button class="btn-ghost btn-xs" data-action="open" data-id="' + id + '">' + t("venta.open") + '</button><button class="btn-ghost btn-xs" data-action="rename" data-id="' + id + '">' + t("venta.rename") + '</button><button class="btn-danger btn-xs" data-action="delete" data-id="' + id + '">' + t("venta.delete") + '</button></div>';
     container.appendChild(div);
   });
   container.querySelectorAll(".binder-cover-card").forEach(function(card) {
@@ -77,13 +77,13 @@ function renderVentaList_PK() {
   container.querySelectorAll("[data-action='rename']").forEach(function(b) {
     b.addEventListener("click", function() {
       var id = b.getAttribute("data-id");
-      showCreateModal({ title: "Renombrar colección de venta", confirmText: "Guardar", placeholder: "Nuevo nombre", initialValue: ventaCols[id].name, onConfirm: function(nombre) { ventaCols[id].name = nombre.trim(); guardarVenta(); renderVentaList(); } });
+      showCreateModal({ title: t("venta.rename_title"), confirmText: t("venta.save"), placeholder: t("venta.new_name_ph"), initialValue: ventaCols[id].name, onConfirm: function(nombre) { ventaCols[id].name = nombre.trim(); guardarVenta(); renderVentaList(); } });
     });
   });
   container.querySelectorAll("[data-action='delete']").forEach(function(b) {
     b.addEventListener("click", function() {
       var idVenta = b.getAttribute("data-id");
-      showConfirmModal('¿Eliminar la colección de venta "' + ventaCols[idVenta].name + '"?', function() { delete ventaCols[idVenta]; guardarVenta(); renderVentaList(); });
+      showConfirmModal(t("venta.delete_confirm", { name: ventaCols[idVenta].name }), function() { delete ventaCols[idVenta]; guardarVenta(); renderVentaList(); });
     });
   });
   // Price edit/reset — delegate to OP implementation since the edit mechanism is TCG-agnostic

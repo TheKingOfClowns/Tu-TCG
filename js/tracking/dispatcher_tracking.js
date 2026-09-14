@@ -34,9 +34,9 @@
       typeSelect.appendChild(window._donOption);
     }
     if (window._donOption) window._donOption.style.display = "";
-    if (charOption) charOption.textContent = "Personaje/s";
+    if (charOption) charOption.textContent = t("track.character_plural");
     if (window._langSelect) window._langSelect.style.display = "";
-    if (langLabel && langLabel.tagName === "LABEL" && langLabel.textContent.toLowerCase().includes("idioma")) {
+    if (langLabel && langLabel.tagName === "LABEL" && /idioma|language/i.test(langLabel.textContent)) {
       langLabel.style.display = "";
     }
 

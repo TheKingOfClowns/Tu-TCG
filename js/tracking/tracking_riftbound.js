@@ -32,7 +32,7 @@ function getAvailableSets_RB() {
       groups.starter.push({ id: sid, label: c.set_name || sid });
       seen.add(sid);
     } else if ((cat === "PROMO" || cat === "OTHER") && !groups.promo.length) {
-      groups.promo.push({ id: "PROMO", label: "Promo Cards" });
+      groups.promo.push({ id: "PROMO", label: t("track.promo_cards") });
       seen.add(sid);
     }
   });
@@ -105,22 +105,22 @@ function pedirCrearTracking_RB(preFillName) {
 
   if (window._donOption) window._donOption.style.display = "none";
   var charOption = typeSelect.querySelector('option[value="character"]');
-  if (charOption) charOption.textContent = "Champions";
+  if (charOption) charOption.textContent = t("track.champions");
   if (window._langSelect) window._langSelect.style.display = "none";
   var langLabel = window._langSelect ? window._langSelect.previousElementSibling : null;
-  if (langLabel && langLabel.tagName === "LABEL" && langLabel.textContent.toLowerCase().includes("idioma")) {
+  if (langLabel && langLabel.tagName === "LABEL" && /idioma|language/i.test(langLabel.textContent)) {
     langLabel.style.display = "none";
   }
 
   if (_appendTo) {
-    title.textContent = "Agrega a tu coleccion";
-    confirmBtn.textContent = "Agregar";
+    title.textContent = t("track.append_title");
+    confirmBtn.textContent = t("track.add");
     nameInput.value = preFillName || "";
     nameInput.style.display = "none";
     nameInput.insertAdjacentHTML("afterend", `<span style="display:block;font-size:var(--text-sm);color:var(--text-muted);margin-bottom:var(--space-2)">${preFillName || ""}</span>`);
   } else {
-    title.textContent = "Crear binder de coleccion";
-    confirmBtn.textContent = "Crear";
+    title.textContent = t("track.create_title");
+    confirmBtn.textContent = t("track.create");
     nameInput.value = "";
     nameInput.style.display = "";
     const appendSpan = nameInput.nextElementSibling;
@@ -150,7 +150,7 @@ function renderTrackingExtra_RB(type, panel) {
   if (type === "expansion") {
     var sets = getAvailableSets_RB();
     var allSets = sets.booster.concat(sets.starter, sets.promo);
-    var groupLabels = { booster: "Booster", starter: "Starter", promo: "Promo" };
+    var groupLabels = { booster: t("track.group_booster"), starter: t("track.group_starter"), promo: t("track.group_promo") };
     var checkboxesHTML = Object.keys(sets).map(function(groupKey) {
       var items = sets[groupKey];
       if (!items.length) return "";
@@ -161,18 +161,18 @@ function renderTrackingExtra_RB(type, panel) {
         '</div>';
     }).join("");
     panel.innerHTML =
-      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Expansiones (' + allSets.length + ')</label>' +
+      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("track.expansions", { n: allSets.length }) + '</label>' +
       '<div id="trackingSetCheckboxes" style="max-height:280px;overflow-y:auto;margin-bottom:var(--space-3)">' +
         checkboxesHTML +
       '</div>' +
       '<div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-2)">' +
-        '<button class="btn-ghost btn-xs" id="trackingSelectAllSets" style="font-size:10px">Seleccionar todas</button>' +
-        '<button class="btn-ghost btn-xs" id="trackingDeselectAllSets" style="font-size:10px">Ninguna</button>' +
+        '<button class="btn-ghost btn-xs" id="trackingSelectAllSets" style="font-size:10px">' + t("track.select_all") + '</button>' +
+        '<button class="btn-ghost btn-xs" id="trackingDeselectAllSets" style="font-size:10px">' + t("track.none") + '</button>' +
       '</div>' +
-      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo de set</label>' +
+      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("track.set_type") + '</label>' +
       '<select id="trackingSetMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
-        '<option value="master">Master Set — Todas las cartas</option>' +
-        '<option value="base">Base Set — Sin AA / Alt Art</option>' +
+        '<option value="master">' + t("track.mode_master") + '</option>' +
+        '<option value="base">' + t("track.mode_base_rb") + '</option>' +
       '</select>';
     document.getElementById("trackingSelectAllSets").addEventListener("click", function() {
       panel.querySelectorAll("#trackingSetCheckboxes input[type=checkbox]").forEach(function(cb) { cb.checked = true; });
@@ -182,11 +182,11 @@ function renderTrackingExtra_RB(type, panel) {
     });
   } else if (type === "character") {
     panel.innerHTML =
-      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Champion</label>' +
-      '<input type="text" id="trackingCharacterInput" placeholder="Escribí el nombre del champion..." autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
+      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("track.champion") + '</label>' +
+      '<input type="text" id="trackingCharacterInput" placeholder="' + t("track.champion_ph") + '" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
       '<div id="trackingCharSuggestions" style="max-height:150px;overflow-y:auto;margin-top:4px"></div>' +
-      buildTrackingToggle("trackingIncludeAA", "Arte Alternativo", true) +
-      buildTrackingToggle("trackingIncludePromo", "Promos", true);
+      buildTrackingToggle("trackingIncludeAA", t("track.include_aa"), true) +
+      buildTrackingToggle("trackingIncludePromo", t("track.include_promo"), true);
     var charInput = document.getElementById("trackingCharacterInput");
     charInput.addEventListener("input", function() {
       var query = charInput.value.trim();
@@ -207,18 +207,18 @@ function renderTrackingExtra_RB(type, panel) {
   } else if (type === "rarity") {
     var rarities = ["Common","Uncommon","Rare","Epic","Promo","Showcase","AA"];
     panel.innerHTML =
-      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Rarezas</label>' +
+      '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("track.rarities") + '</label>' +
       '<div id="trackingRarityCheckboxes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--space-3)">' +
         rarities.map(function(r) {
           return '<label style="display:flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-secondary);cursor:pointer"><input type="checkbox" value="' + r + '" checked> ' + r + '</label>';
         }).join("") +
       '</div>' +
       '<div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-2)">' +
-        '<button class="btn-ghost btn-xs" id="trackingSelectAllRarities" style="font-size:10px">Todas</button>' +
-        '<button class="btn-ghost btn-xs" id="trackingDeselectAllRarities" style="font-size:10px">Ninguna</button>' +
+        '<button class="btn-ghost btn-xs" id="trackingSelectAllRarities" style="font-size:10px">' + t("track.all") + '</button>' +
+        '<button class="btn-ghost btn-xs" id="trackingDeselectAllRarities" style="font-size:10px">' + t("track.none") + '</button>' +
       '</div>' +
-      buildTrackingToggle("trackingIncludeAA", "Arte Alternativo AA", true) +
-      buildTrackingToggle("trackingIncludePromo", "Promos", true);
+      buildTrackingToggle("trackingIncludeAA", t("track.include_aa_rb"), true) +
+      buildTrackingToggle("trackingIncludePromo", t("track.include_promo"), true);
     document.getElementById("trackingSelectAllRarities").addEventListener("click", function() {
       panel.querySelectorAll("#trackingRarityCheckboxes input[type=checkbox]").forEach(function(cb) { cb.checked = true; });
     });
@@ -239,17 +239,17 @@ async function confirmCreateTracking_RB() {  var name = document.getElementById(
   if (type === "expansion") {
     var sets = [];
     document.querySelectorAll("#trackingSetCheckboxes input[type=checkbox]:checked").forEach(function(cb) { sets.push(cb.value); });
-    if (!sets.length) { showToast("Selecciona al menos una expansión", "error"); return; }
+    if (!sets.length) { showToast(t("track.err_need_expansion"), "error"); return; }
     config.sets = sets;
     config.mode = document.getElementById("trackingSetMode").value;
   } else if (type === "character") {
     var charName = document.getElementById("trackingCharacterInput").value.trim();
-    if (!charName) { showToast("Escribí el nombre del personaje", "error"); return; }
+    if (!charName) { showToast(t("track.err_need_character"), "error"); return; }
     config.character = charName;
   } else if (type === "rarity") {
     var rarities = [];
     document.querySelectorAll("#trackingRarityCheckboxes input[type=checkbox]:checked").forEach(function(cb) { rarities.push(cb.value); });
-    if (!rarities.length) { showToast("Selecciona al menos una rareza", "error"); return; }
+    if (!rarities.length) { showToast(t("track.err_need_rarity"), "error"); return; }
     config.rarities = rarities;
   }
   var newCards = buildTrackingCardList_RB(type, config);
@@ -267,7 +267,7 @@ async function confirmCreateTracking_RB() {  var name = document.getElementById(
     document.getElementById("trackingModalOverlay").style.display = "none";
     _appendTo = null;
     guardarCollections();
-    showToast(added + " carta(s) agregada(s)", "success");
+    showToast(t("track.added", { n: added }), "success");
     if (currentCollectionId === col.id) {
       var grid = document.getElementById("binderGrid");
       var t = document.getElementById("binderTitle");
@@ -276,7 +276,7 @@ async function confirmCreateTracking_RB() {  var name = document.getElementById(
     return;
   }
   if (!name) return;
-  if (!newCards.length) { showToast("No se encontraron cartas con esos filtros", "error"); return; }
+  if (!newCards.length) { showToast(t("track.err_no_cards"), "error"); return; }
   if (typeof guardSpaceForNew === "function" && !(await guardSpaceForNew())) return;
   var id = generarId();
   collections[id] = {
@@ -286,7 +286,7 @@ async function confirmCreateTracking_RB() {  var name = document.getElementById(
   collections[id].target = newCards.length;
   document.getElementById("trackingModalOverlay").style.display = "none";
   guardarCollections();
-  showToast("Colección creada con " + newCards.length + " cartas", "success");
+  showToast(t("track.created_rb", { n: newCards.length }), "success");
   renderCollectionList();
 }
 

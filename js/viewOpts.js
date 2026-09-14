@@ -31,7 +31,7 @@
 
   function sizeHint(val) {
     var px = (typeof sizePx === "function") ? sizePx(val) : Math.round(120 + val * 1.6);
-    return val + "% · ≈" + Math.max(2, Math.floor(1100 / px)) + "/fila";
+    return t("view.size_hint", { v: val, n: Math.max(2, Math.floor(1100 / px)) });
   }
 
   function buildPanel() {
@@ -40,17 +40,17 @@
     p.className = "viewopts-panel glass-panel";
     p.style.display = "none";
     p.innerHTML =
-      '<label class="viewopts-row"><span>Tamaño cartas <em id="viewOptsSizeVal"></em></span>' +
+      '<label class="viewopts-row"><span>' + t("view.card_size") + ' <em id="viewOptsSizeVal"></em></span>' +
       '<input type="range" id="viewOptsSize" min="0" max="100" step="1"></label>' +
-      '<label class="viewopts-row"><span>Tamaño deck <em id="viewOptsDeckVal"></em></span>' +
+      '<label class="viewopts-row"><span>' + t("view.deck_size") + ' <em id="viewOptsDeckVal"></em></span>' +
       '<input type="range" id="viewOptsDeck" min="0" max="100" step="1"></label>' +
-      '<label class="viewopts-row"><span>Filas por página</span>' +
+      '<label class="viewopts-row"><span>' + t("view.rows") + '</span>' +
       '<select id="viewOptsRows">' +
       [2, 3, 4, 5, 6].map(function (r) { return '<option value="' + r + '">' + r + "</option>"; }).join("") +
       "</select></label>" +
-      '<label class="viewopts-row"><span>Cartas por página</span>' +
+      '<label class="viewopts-row"><span>' + t("view.per_page") + '</span>' +
       '<select id="viewOptsSize2">' +
-      '<option value="">Auto (filas)</option>' +
+      '<option value="">' + t("view.auto_rows") + '</option>' +
       [10, 20, 30, 40].map(function (n) { return '<option value="' + n + '">' + n + "</option>"; }).join("") +
       "</select></label>";
     document.body.appendChild(p);

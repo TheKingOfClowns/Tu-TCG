@@ -7,10 +7,10 @@ async function pedirCrearVenta_RB() {
   const hasContact = profile?.contact_phone || profile?.contact_wsp;
   if (!hasContact) {
     showCreateModal({
-      title: "Contacto requerido",
-      confirmText: "Ir a mi perfil",
+      title: t("venta.contact_title"),
+      confirmText: t("venta.contact_goto"),
       placeholder: "",
-      extraHTML: '<p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">Para crear una colección de venta necesitas agregar tu número de teléfono o WhatsApp en tu perfil.</p>',
+      extraHTML: '<p style="color:var(--text-secondary);font-size:var(--text-sm);margin:0">' + t("venta.contact_body") + '</p>',
       onConfirm: function() {
         if (typeof openProfile === "function") openProfile();
       }
@@ -19,20 +19,20 @@ async function pedirCrearVenta_RB() {
   }
 
   showCreateModal({
-    title: "Crear colección de venta",
-    confirmText: "Crear",
-    placeholder: "Nombre de la colección de venta",
-    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo</label>' +
+    title: t("venta.create_title"),
+    confirmText: t("venta.create"),
+    placeholder: t("venta.create_name_ph"),
+    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("venta.type_label") + '</label>' +
       '<select id="createVentaSubtype" onchange="document.getElementById(\'createVentaModeRow\').style.display=this.value===\'binder\'?\'\':\'none\'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
-        '<option value="binder">Binder — cartas libres</option>' +
-        '<option value="deck">Deck</option>' +
+        '<option value="binder">' + t("venta.opt_binder") + '</option>' +
+        '<option value="deck">' + t("venta.badge_deck") + '</option>' +
       '</select>' +
       '<div id="createVentaModeRow">' +
-        '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Modo de visualización</label>' +
+        '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("venta.mode_label") + '</label>' +
         '<select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
-          '<option value="individual">Individual — una copia por slot</option>' +
-          '<option value="playset">Playset — máximo ' + _getPlaysetMax() + ' copias por carta</option>' +
-          '<option value="editable">Editable — cantidad libre por carta</option>' +
+          '<option value="individual">' + t("venta.opt_individual") + '</option>' +
+          '<option value="playset">' + t("venta.opt_playset_max", { n: _getPlaysetMax() }) + '</option>' +
+          '<option value="editable">' + t("venta.opt_editable") + '</option>' +
         '</select>' +
       '</div>',
     onConfirm: function(nombre) {
@@ -62,7 +62,7 @@ function renderVentaList_RB() {
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
-    container.innerHTML = '<div class="collection-empty"><p>No tenés colecciones de venta para este TCG</p><button class="btn-primary" id="createFirstVentaBtnRB">Crear primera colección</button></div>';
+    container.innerHTML = '<div class="collection-empty"><p>' + t("venta.empty_tcg") + '</p><button class="btn-primary" id="createFirstVentaBtnRB">' + t("venta.create_first_short") + '</button></div>';
     var b = document.getElementById("createFirstVentaBtnRB");
     if (b) b.addEventListener("click", pedirCrearVenta);
     return;
@@ -75,11 +75,11 @@ function renderVentaList_RB() {
     var deckCount = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) : col.cards.length;
     var totalCards, badgeClass, badgeText;
     if (isDeck) {
-      totalCards = deckCount + " cartas";
-      badgeClass = "deck"; badgeText = "Deck";
+      totalCards = t("venta.count_cards", { n: deckCount });
+      badgeClass = "deck"; badgeText = t("venta.badge_deck");
     } else {
-      totalCards = col.cards.length + " cartas";
-      badgeClass = "collection"; badgeText = col.display_mode === "playset" ? "Playset" : col.display_mode === "editable" ? "Editable" : "Individual";
+      totalCards = t("venta.count_cards", { n: col.cards.length });
+      badgeClass = "collection"; badgeText = col.display_mode === "playset" ? t("venta.badge_playset") : col.display_mode === "editable" ? t("venta.badge_editable") : t("venta.badge_individual");
     }
     var tp = getTotalPrice(col);
     var dp = col.customTotalPrice != null ? Number(col.customTotalPrice) : tp;
@@ -93,14 +93,14 @@ function renderVentaList_RB() {
         '<span class="binder-cover-badge ' + badgeClass + '">' + badgeText + '</span>' +
         '<div style="display:flex;align-items:center;gap:6px;margin-top:var(--space-1)">' +
           '<span data-totalprice="1" style="font-size:var(--text-sm);font-family:var(--font-mono);color:var(--accent);font-weight:var(--weight-bold)">$' + dp.toFixed(2) + '</span>' +
-          '<button class="btn-ghost btn-xs" data-action="editprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="Editar precio total">✎</button>' +
-          (isCustom ? '<button class="btn-ghost btn-xs" data-action="resetprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="Restaurar precio calculado">↺</button>' : '') +
+          '<button class="btn-ghost btn-xs" data-action="editprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0" title="' + t("venta.edit_price_title") + '">✎</button>' +
+          (isCustom ? '<button class="btn-ghost btn-xs" data-action="resetprice" data-id="' + id + '" style="padding:2px 6px;font-size:10px;border-radius:var(--radius-sm);flex-shrink:0;color:var(--text-muted)" title="' + t("venta.reset_price_title") + '">↺</button>' : '') +
         '</div>' +
       '</div>' +
       '<div class="binder-cover-actions">' +
-        '<button class="btn-ghost btn-xs" data-action="open" data-id="' + id + '">Abrir</button>' +
-        '<button class="btn-ghost btn-xs" data-action="rename" data-id="' + id + '">Renombrar</button>' +
-        '<button class="btn-danger btn-xs" data-action="delete" data-id="' + id + '">Eliminar</button>' +
+        '<button class="btn-ghost btn-xs" data-action="open" data-id="' + id + '">' + t("venta.open") + '</button>' +
+        '<button class="btn-ghost btn-xs" data-action="rename" data-id="' + id + '">' + t("venta.rename") + '</button>' +
+        '<button class="btn-danger btn-xs" data-action="delete" data-id="' + id + '">' + t("venta.delete") + '</button>' +
       '</div>';
     container.appendChild(div);
   });
@@ -111,9 +111,9 @@ function renderVentaList_RB() {
     b.addEventListener("click", function() {
       var id = b.getAttribute("data-id");
       showCreateModal({
-        title: "Renombrar colección de venta",
-        confirmText: "Guardar",
-        placeholder: "Nuevo nombre",
+        title: t("venta.rename_title"),
+        confirmText: t("venta.save"),
+        placeholder: t("venta.new_name_ph"),
         initialValue: ventaCols[id].name,
         onConfirm: function(nombre) { ventaCols[id].name = nombre.trim(); guardarVenta(); renderVentaList(); }
       });
@@ -122,7 +122,7 @@ function renderVentaList_RB() {
   container.querySelectorAll("[data-action='delete']").forEach(function(b) {
     b.addEventListener("click", function() {
       var idCol = b.getAttribute("data-id");
-      showConfirmModal('¿Eliminar la colección de venta "' + ventaCols[idCol].name + '"?', function() {
+      showConfirmModal(t("venta.delete_confirm", { name: ventaCols[idCol].name }), function() {
         delete ventaCols[idCol]; guardarVenta(); renderVentaList();
       });
     });

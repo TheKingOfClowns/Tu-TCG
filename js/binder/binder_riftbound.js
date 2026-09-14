@@ -3,13 +3,13 @@
 function pedirCrearColeccion_RB() {
   if (!isAuthenticated()) { showAuthModal(); return; }
   showCreateModal({
-    title: "Crear colección",
-    confirmText: "Crear",
-    placeholder: "Nombre de la colección",
-    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);margin-top:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">Tipo</label>' +
+    title: t("binder.create_title"),
+    confirmText: t("binder.create"),
+    placeholder: t("binder.create_name_ph"),
+    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);margin-top:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("binder.type_label") + '</label>' +
       '<select id="createColSubtype" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
-        '<option value="binder">Binder — cartas libres</option>' +
-        '<option value="deck">Deck</option>' +
+        '<option value="binder">' + t("binder.opt_binder") + '</option>' +
+        '<option value="deck">' + t("binder.badge_deck") + '</option>' +
       '</select>',
     onConfirm: function(nombre) {
       var subtype = document.getElementById("createColSubtype") ? document.getElementById("createColSubtype").value : "binder";
@@ -37,7 +37,7 @@ function renderCollectionList_RB() {
     return !currentTcg || tcg === currentTcg;
   });
   if (!ids.length) {
-    container.innerHTML = '<div class="collection-empty"><p>No tienes colecciones para este TCG</p><button class="btn-primary" id="createFirstColBtn">Crear primera colección</button></div>';
+    container.innerHTML = '<div class="collection-empty"><p>' + t("binder.empty_tcg") + '</p><button class="btn-primary" id="createFirstColBtn">' + t("binder.create_first") + '</button></div>';
     var btn = document.getElementById("createFirstColBtn");
     if (btn) btn.addEventListener("click", pedirCrearColeccion);
     return;
@@ -51,17 +51,17 @@ function renderCollectionList_RB() {
     var deckCount = isDeck ? (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) + (col.champions || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) : (col.cards || []).length;
     var totalCards, badgeClass, badgeText;
     if (isDeck) {
-      totalCards = deckCount + " cartas";
-      badgeClass = "deck"; badgeText = "Deck";
+      totalCards = t("binder.count_cards", { n: deckCount });
+      badgeClass = "deck"; badgeText = t("binder.badge_deck");
     } else if (isTracking) {
       var owned = col.cards.filter(function(c) { return c.owned; }).length;
       var total = col.target || col.cards.length;
       var pct = total > 0 ? Math.round((owned / total) * 100) : 0;
       totalCards = owned + " / " + total;
-      badgeClass = "collection"; badgeText = "Tracking";
+      badgeClass = "collection"; badgeText = t("binder.track_default");
     } else {
-      totalCards = (col.cards || []).length + " cartas";
-      badgeClass = "collection"; badgeText = "Colección";
+      totalCards = t("binder.count_cards", { n: (col.cards || []).length });
+      badgeClass = "collection"; badgeText = t("binder.badge_collection");
     }
     var div = document.createElement("div");
     div.className = "binder-cover-card";
@@ -69,7 +69,7 @@ function renderCollectionList_RB() {
       var o = (col.cards || []).filter(function(c) { return c.owned; }).length;
       var t = col.target || (col.cards || []).length;
       var p = t > 0 ? Math.round((o / t) * 100) : 0;
-      return '<div class="tracking-cover-progress"><div class="tracking-cover-progress-bar"><div class="tracking-cover-progress-fill" style="width:' + p + '%"></div></div><span class="tracking-cover-progress-text">' + p + '% — ' + o + ' de ' + t + '</span></div>';
+      return '<div class="tracking-cover-progress"><div class="tracking-cover-progress-bar"><div class="tracking-cover-progress-fill" style="width:' + p + '%"></div></div><span class="tracking-cover-progress-text">' + window.t("binder.progress", { p: p, o: o, total: t }) + '</span></div>';
     })() : "";
     div.innerHTML = '<div class="binder-cover-img" style="background-image:url(' + (coverImg ? escapeAttr(coverImg) : "'TUTCG.webp'") + ')">' +
       '<div class="binder-cover-overlay"><span class="binder-cover-count">' + totalCards + '</span></div></div>' +
@@ -79,9 +79,9 @@ function renderCollectionList_RB() {
         progressSection +
       '</div>' +
       '<div class="binder-cover-actions">' +
-        '<button class="btn-ghost btn-xs" data-action="open" data-id="' + id + '">Abrir</button>' +
-        '<button class="btn-ghost btn-xs" data-action="rename" data-id="' + id + '">Renombrar</button>' +
-        '<button class="btn-danger btn-xs" data-action="delete" data-id="' + id + '">Eliminar</button>' +
+        '<button class="btn-ghost btn-xs" data-action="open" data-id="' + id + '">' + t("binder.open") + '</button>' +
+        '<button class="btn-ghost btn-xs" data-action="rename" data-id="' + id + '">' + t("binder.rename") + '</button>' +
+        '<button class="btn-danger btn-xs" data-action="delete" data-id="' + id + '">' + t("binder.delete") + '</button>' +
       '</div>';
     container.appendChild(div);
   });
@@ -104,9 +104,9 @@ function renderCollectionList_RB() {
     b.addEventListener("click", function() {
       var cid = b.getAttribute("data-id");
       showCreateModal({
-        title: "Renombrar colección",
-        confirmText: "Guardar",
-        placeholder: "Nuevo nombre",
+        title: t("binder.rename_title"),
+        confirmText: t("binder.save"),
+        placeholder: t("binder.new_name_ph"),
         initialValue: collections[cid].name,
         onConfirm: function(n) { collections[cid].name = n.trim(); guardarCollections(); renderCollectionList(); }
       });
@@ -115,7 +115,7 @@ function renderCollectionList_RB() {
   container.querySelectorAll("[data-action='delete']").forEach(function(b) {
     b.addEventListener("click", function() {
       var idCol = b.getAttribute("data-id");
-      showConfirmModal('¿Eliminar la colección "' + collections[idCol].name + '"?', function() {
+      showConfirmModal(t("binder.delete_confirm", { name: collections[idCol].name }), function() {
         delete collections[idCol]; guardarCollections(); renderCollectionList();
       });
     });
@@ -156,11 +156,11 @@ function renderBinder_RB() {
   if (pagination) pagination.style.display = "";
   var clearPB = document.getElementById("binderClearPageBtn");
   var clearAB = document.getElementById("binderClearAllBtn");
-  if (clearPB) clearPB.textContent = "Vaciar página";
-  if (clearAB) clearAB.textContent = "Vaciar todo";
+  if (clearPB) clearPB.textContent = t("binder.clear_page_btn");
+  if (clearAB) clearAB.textContent = t("binder.clear_all_btn");
   title.textContent = col.name;
   if (toggleContainer) {
-    toggleContainer.innerHTML = isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">Privado</span><input type="checkbox" id="binderPublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">Público</span></label>' : "";
+    toggleContainer.innerHTML = isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">' + t("binder.private") + '</span><input type="checkbox" id="binderPublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">' + t("binder.public") + '</span></label>' : "";
     var chk = document.getElementById("binderPublicCheck");
     if (chk) {
       chk.onchange = function() { toggleBinderPublic(currentCollectionId); };
@@ -229,16 +229,19 @@ function renderBinder_RB() {
   });
   document.getElementById("binderPrevBtn").disabled = binderPage <= 1;
   document.getElementById("binderNextBtn").disabled = binderPage >= totalPages;
-  document.getElementById("binderPageInfo").textContent = "Página " + binderPage + " de " + totalPages;
+  document.getElementById("binderPageInfo").textContent = t("binder.page", { a: binderPage, b: totalPages });
   setupBinderDragDrop();
   if (!grid.hasAttribute("data-empty-click")) {
     grid.setAttribute("data-empty-click", "1");
     grid.addEventListener("click", function(e) {
       if (e.target.closest(".binder-empty")) {
-        addingToBinderId = currentCollectionId;
-        addingToBinderName = collections[currentCollectionId] ? collections[currentCollectionId].name : "";
-        addingToBinderType = "collection";
-        if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
+        var _col = collections[currentCollectionId];
+        if (_col && _col.subtype === "deck") {
+          addingToBinderId = currentCollectionId;
+          addingToBinderName = _col.name || "";
+          addingToBinderType = "collection";
+          if (typeof navigateToView === 'function') navigateToView("catalog", {}, {}); else mostrarVista("catalog");
+        } else if (typeof goToCatalogWithTarget === "function") goToCatalogWithTarget("collection", currentCollectionId);
       }
     });
   }
