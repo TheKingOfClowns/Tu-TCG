@@ -621,16 +621,16 @@ function refreshCatalogTargetSelect() {
   var label = document.getElementById("catalogTargetLabel");
   if (!select || !label) return;
   var targets = getCatalogTargets();
-  if (catalogTargetId && !targets.some(function(t) { return t.id === catalogTargetId && t.type === catalogTargetType; })) {
+  if (catalogTargetId && !targets.some(function(tgt) { return tgt.id === catalogTargetId && tgt.type === catalogTargetType; })) {
     catalogTargetId = null;
     catalogTargetType = null;
   }
   select.innerHTML = '<option value="">' + t("cat.no_target") + '</option>';
-  targets.forEach(function(t) {
+  targets.forEach(function(tgt) {
     var opt = document.createElement("option");
-    opt.value = t.type + "|" + t.id;
-    opt.textContent = (t.type === "venta" ? t("cat.target_sale", { name: t.name }) : t("cat.target_binder", { name: t.name }));
-    if (t.id === catalogTargetId && t.type === catalogTargetType) opt.selected = true;
+    opt.value = tgt.type + "|" + tgt.id;
+    opt.textContent = (tgt.type === "venta" ? t("cat.target_sale", { name: tgt.name }) : t("cat.target_binder", { name: tgt.name }));
+    if (tgt.id === catalogTargetId && tgt.type === catalogTargetType) opt.selected = true;
     select.appendChild(opt);
   });
   if (addingToBinderId) {
