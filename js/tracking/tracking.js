@@ -337,7 +337,11 @@ function renderTrackingBinder(col, grid, title) {
   }
   grid.innerHTML = "";
 
-  const currentFilter = col._trackingFilter || "all";
+  // ponytail: filtro sobrevive rebuild/F5 (memoria > localStorage > all)
+  var _tf = "all";
+  try { _tf = col._trackingFilter || localStorage.getItem("tutcg_tracking_filter_" + col.id) || "all"; } catch (e) { _tf = col._trackingFilter || "all"; }
+  col._trackingFilter = _tf;
+  const currentFilter = _tf;
   let displayCards = col.cards;
   if (currentFilter === "owned") displayCards = col.cards.filter(c => c.owned);
   else if (currentFilter === "missing") displayCards = col.cards.filter(c => !c.owned);
@@ -521,6 +525,8 @@ document.getElementById("trackingFilters").addEventListener("click", e => {
   const col = collections[currentCollectionId];
   if (!col || col.subtype !== "tracking") return;
   col._trackingFilter = btn.getAttribute("data-filter");
+  try { localStorage.setItem("tutcg_tracking_filter_" + col.id, col._trackingFilter); } catch (e) {}
+  if (typeof snapshotUiState === "function") snapshotUiState();
   updateTrackingFilterButtons(col._trackingFilter);
   binderPage = 1;
   const grid = document.getElementById("binderGrid");

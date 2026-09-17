@@ -118,6 +118,8 @@ function onSignIn() {
 
 function onSignOut() {
   updateAuthUI();
+  try { sessionStorage.removeItem("tutcg_ui_state"); } catch (e) {}
+  if (typeof window !== "undefined") { window._lastRoute = "home"; window._lastRouteId = null; }
   if (typeof invalidatePlanCache === "function") invalidatePlanCache();
   if (typeof rebuildLocalFallback === "function") rebuildLocalFallback();
   if (typeof router !== "undefined" && router.navigateToRoute) {

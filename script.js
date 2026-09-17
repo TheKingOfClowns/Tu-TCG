@@ -861,18 +861,22 @@ function rebuildLocalFallback() {
   localStorage.setItem(key, JSON.stringify(collections));
 }
 function _markCollectionsReady() {
+  var wasReady = !!window._collectionsReady;
   window._collectionsReady = true;
   refreshBaseline();
   if (typeof refreshCatalogTargetSelect === 'function') refreshCatalogTargetSelect();
+  if (wasReady) return; // ponytail: nunca re-render al volver; solo pinta tras carga real (skeleton)
   const active = document.querySelector(".view-pane.active");
   if (!active) return;
   if (active.id === "collectionManager" && typeof renderCollectionList === 'function') renderCollectionList();
   else if (active.id === "binderView" && currentCollectionId && Object.keys(cartasMap).length > 0 && typeof renderBinder === 'function') renderBinder();
 }
 function _markVentaReady() {
+  var wasReady = !!window._ventaReady;
   window._ventaReady = true;
   refreshBaseline();
   if (typeof refreshCatalogTargetSelect === 'function') refreshCatalogTargetSelect();
+  if (wasReady) return; // ponytail: nunca re-render al volver; solo pinta tras carga real
   const active = document.querySelector(".view-pane.active");
   if (!active || Object.keys(cartasMap).length === 0) return;
   if (active.id === "ventaManager" && typeof renderVentaList === 'function') renderVentaList();
@@ -882,6 +886,7 @@ async function initCollections() {
   if (isAuthenticated()) {
     const dbBinders = await loadBindersFromDb();
     if (dbBinders && dbBinders.length) {
+      var _prevCols = collections || {};
       collections = {};
       const activeTcg = currentTcg || "one-piece";
       dbBinders.filter(b => (b.type === "collection" || !b.type) && ((b.config && b.config.tcg) || "one-piece") === activeTcg).forEach(b => {
@@ -917,12 +922,17 @@ async function initCollections() {
           }
           const ownedKeys = new Set((b.binder_cards || []).map(c => c.card_id));
           cards.forEach(c => { if (ownedKeys.has(c._key)) c.owned = true; });
+          // ponytail: filtro tracking sobrevive rebuild (memoria > localStorage > all)
+          var _savedTf = null;
+          try { _savedTf = localStorage.getItem("tutcg_tracking_filter_" + b.id); } catch (e) {}
+          var _prevTf = _prevCols && _prevCols[b.id] && _prevCols[b.id]._trackingFilter;
           collections[b.id] = {
             id: b.id, name: b.name, subtype: "tracking",
             tracking_type: trackingType, tracking_config: trackingConfig,
             target: cards.length, cards: cards,
             is_public: b.is_public || false, checklist_mode: cfg.checklist_mode || false,
-            tcg: cfg.tcg || "one-piece", _synced: true
+            tcg: cfg.tcg || "one-piece", _synced: true,
+            _trackingFilter: _prevTf || _savedTf || "all"
           };
         } else {
           collections[b.id] = {
@@ -1655,6 +1665,20 @@ document.querySelectorAll("#footerContact, #footerPrivacy, #footerTerms, #footer
 })();
 (async () => {
   const parsed = router.initRouter();
+  // ponytail: F5 vuelve a última vista (deep-link manda sobre snapshot)
+  if ((parsed.route === "home" || !parsed.route) && !(parsed.params && parsed.params.id)) {
+    var _rs = (typeof restoreUiState === "function") ? restoreUiState() : null;
+    if (_rs) {
+      if ((_rs.view === "binder" || _rs.view === "venta" || _rs.view === "exploreDetail") && _rs.id) {
+        await navigateToView(_rs.view, { id: _rs.id }, {});
+        return;
+      }
+      if (["collections", "ventaCols", "catalog", "explore", "tcgHome"].indexOf(_rs.view) !== -1) {
+        await navigateToView(_rs.view, {}, {});
+        return;
+      }
+    }
+  }
   if (parsed.route === 'binder' && parsed.params.id) {
     currentCollectionId = parsed.params.id;
     mostrarVista("binder");
@@ -1722,8 +1746,14 @@ document.querySelectorAll(".sidebar-nav-item, .sidebar-footer button").forEach(e
   el.addEventListener("click", () => { if (window.innerWidth < 768) toggleSidebar(false); });
 });
 // Update auth UI after init and sync data
+var _lastAuthUid = null;
 onAuthChange(async (user) => {
   updateAuthUI();
+  var uid = user ? user.id : null;
+  // ponytail: nunca reload al volver — SIGNED_IN se re-emite al reenfocar pestaña.
+  // Solo init real en primer load o cambio de usuario. Save manual o F5 trae datos.
+  if (uid && uid === _lastAuthUid && window._collectionsReady && window._ventaReady) return;
+  _lastAuthUid = uid;
   if (user && currentTcg) {
     if (typeof draftDirty === "function" && draftDirty()) return; // ponytail: no pisar borrador con rebuild al reenfocar
     await initCollections();
@@ -1772,10 +1802,47 @@ document.getElementById("draftModalDiscardBtn")?.addEventListener("click", () =>
 document.getElementById("draftStayBtn")?.addEventListener("click", () => closeDraftModal(false));
 document.getElementById("draftModal")?.addEventListener("click", e => { if (e.target === e.currentTarget) closeDraftModal(false); });
 window.addEventListener("beforeunload", function(e) {
+  if (typeof snapshotUiState === "function") snapshotUiState(); // ponytail: última vista/página sobrevive F5
   if (typeof _dirty !== "undefined" && _dirty) { e.preventDefault(); e.returnValue = ""; }
 });
+// ─── UI snapshot — nunca reload al volver (solo save manual o F5 trae datos) ──
+var _lastRoute = "home";
+var _lastRouteId = null;
+function snapshotUiState() {
+  try {
+    sessionStorage.setItem("tutcg_ui_state", JSON.stringify({
+      view: window._lastRoute || "home",
+      id: window._lastRouteId || null,
+      currentTcg: (typeof currentTcg !== "undefined" ? currentTcg : null),
+      currentCollectionId: (typeof currentCollectionId !== "undefined" ? currentCollectionId : null),
+      currentVentaId: (typeof currentVentaId !== "undefined" ? currentVentaId : null),
+      binderPage: (typeof binderPage !== "undefined" ? binderPage : 1),
+      ventaPage: (typeof ventaPage !== "undefined" ? ventaPage : 1)
+    }));
+  } catch (e) {}
+}
+function restoreUiState() {
+  try {
+    var raw = sessionStorage.getItem("tutcg_ui_state");
+    if (!raw) return null;
+    var s = JSON.parse(raw);
+    if (!s || !s.view || s.view === "home") return null;
+    if (s.currentTcg) currentTcg = s.currentTcg;
+    if (s.currentCollectionId !== undefined) currentCollectionId = s.currentCollectionId;
+    if (s.currentVentaId !== undefined) currentVentaId = s.currentVentaId;
+    if (s.binderPage) binderPage = s.binderPage;
+    if (s.ventaPage) ventaPage = s.ventaPage;
+    window._lastRoute = s.view;
+    window._lastRouteId = s.id || null;
+    return s;
+  } catch (e) { return null; }
+}
+document.addEventListener("visibilitychange", function() { if (document.hidden) snapshotUiState(); });
 // ─── Router Integration ────────────────────────────────────────────────────
 async function navigateToView(route, params, filters) {
+  window._lastRoute = route;
+  window._lastRouteId = (params && params.id) || null;
+  // ponytail: snapshot real ocurre en visibilitychange/beforeunload (globales ya actualizados)
   var navState = {
     view: route,
     currentTcg: currentTcg,
