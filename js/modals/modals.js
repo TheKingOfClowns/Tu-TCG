@@ -34,6 +34,8 @@ function showCreateModal(opts) {
   extra.innerHTML = opts.extraHTML || "";
   _createCallback = opts.onConfirm || null;
   overlay.style.display = "flex";
+  // ponytail: guía crear (solo creación, no rename con initialValue)
+  if (!opts.initialValue && typeof tourModalEnter === "function") { try { setTimeout(function() { tourModalEnter("create"); }, 50); } catch (e) {} }
   setTimeout(() => input.focus(), 100);
   input.select();
 }

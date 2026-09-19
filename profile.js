@@ -48,6 +48,13 @@ function populateProfileForm(profile) {
   const notifEl = document.getElementById("profileNotifications");
   if (notifEl) notifEl.checked = profile?.preferences?.notifications !== false;
 
+  const tutEl = document.getElementById("profileShowTutorial");
+  if (tutEl) {
+    // ponytail: legacy checkbox booleano migra a modo (false = off)
+    var prefs = profile?.preferences || {};
+    tutEl.value = prefs.tutorial_mode || (prefs.show_tutorial === false ? "off" : "once");
+  }
+
   // Avatar
   const avatarImg = document.getElementById("profileAvatarImg");
   const avatarPlaceholder = document.getElementById("profileAvatarPlaceholder");
@@ -77,6 +84,7 @@ async function renderPlanBlock(profile) {
   const plan = {
     level: profile?.plan_level || 0,
     crew: profile?.crew || null,
+    crew_custom: profile?.preferences?.crew_custom || null,
     isAdmin: !!profile?.is_admin
   };
   const label = (typeof tierLabel === "function") ? tierLabel(plan) : t("prof.tier_nakama");
@@ -88,26 +96,56 @@ async function renderPlanBlock(profile) {
     const used = await getMySpaceUsage();
     html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + t("prof.usage", { used: used, spaces: (plan.isAdmin ? "∞" : lim.spaces), cards: (lim.cards == null ? t("prof.cards_unlimited") : t("prof.cards_upto", { n: lim.cards })) }) + "</p>";
   }
-  if (plan.isAdmin || plan.level >= 1) {
-    const crews = (typeof CREWS !== "undefined") ? CREWS : [];
-    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-2)">' + t("prof.crew_title") + '</p><div class="crew-grid">' +
-      crews.map(function(c) {
-        return '<button type="button" class="crew-btn' + (plan.crew === c.id ? " active" : "") + '" data-crew="' + c.id + '"' +
-          ' style="--crew-color:' + c.color + '">' + c.name + "</button>";
-      }).join("") + "</div>";
-  } else {
-    html += '<p class="profile-field-hint">' + t("prof.crew_locked") + '</p>';
-  }
+  // ponytail: todos eligen (10 + custom); límites de plan intactos
+  const crews = (typeof CREWS !== "undefined") ? CREWS : [];
+  html += '<p class="profile-field-hint" style="margin-bottom:var(--space-2)">' + t("prof.crew_title") + '</p><div class="crew-grid" id="crewGrid">' +
+    crews.map(function(c) {
+      return '<button type="button" class="crew-btn' + (plan.crew === c.id ? " active" : "") + '" data-crew="' + c.id + '"' +
+        ' style="--crew-color:' + c.color + '">' + c.name + "</button>";
+    }).join("") +
+    '<button type="button" class="crew-btn' + (plan.crew === "custom" ? " active" : "") + '" data-crew="custom"' +
+    ' style="--crew-color:var(--accent)">✏️ ' + t("prof.crew_custom") + "</button></div>" +
+    '<div style="display:flex;gap:var(--space-2);margin-top:var(--space-2)">' +
+    '<input type="text" id="crewCustomInput" maxlength="24" placeholder="' + t("prof.crew_custom_ph") + '" value="' + (plan.crew === "custom" && plan.crew_custom ? plan.crew_custom : "") + '"' +
+    ' style="flex:1;padding:var(--space-2);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">' +
+    '<button type="button" class="btn-ghost btn-sm" id="crewCustomSave">' + t("prof.save") + "</button></div>";
   box.innerHTML = html;
   box.querySelectorAll(".crew-btn").forEach(function(btn) {
     btn.addEventListener("click", function() { setCrew(btn.getAttribute("data-crew")); });
   });
+  document.getElementById("crewCustomSave")?.addEventListener("click", function() { setCrew("custom"); });
+}
+
+// ponytail: filtro cliente (servidor queda abierto por API directa; trigger después si hace falta)
+var CREW_BLOCKLIST = ["puta","puto","mierda","carajo","pelotudo","pelotuda","boludo","boluda","forro","forra","choto","chota","verga","pija","concha","teta","teto","culo","orto","cagar","cagon","cagona","garca","mogolico","mogolica","retrasado","retrasada","negro de mierda","villero","villera","trola","trolita","gato","gata","putita","zorra","perra","cabrón","cabron","hijo de puta","la concha","fuck","shit","bitch","whore","slut","bastard","asshole","dick","pussy","cunt","faggot","nigger","nigga","retard","idiot","hitler","nazi","porno","xxx","viagra","casino"];
+function isValidCrewName(name) {
+  if (!name) return false;
+  var n = String(name).trim().replace(/\s+/g, " ");
+  if (n.length < 2 || n.length > 24) return false;
+  if (!/^[a-záéíóúñü0-9 ]+$/i.test(n)) return false;
+  var low = " " + n.toLowerCase() + " ";
+  for (var i = 0; i < CREW_BLOCKLIST.length; i++) {
+    if (low.indexOf(CREW_BLOCKLIST[i]) !== -1) return false;
+  }
+  return true;
 }
 
 async function setCrew(crewId) {
   if (!isAuthenticated()) return;
+  var updates = { crew: crewId };
+  if (crewId === "custom") {
+    var raw = "";
+    try { raw = document.getElementById("crewCustomInput")?.value || ""; } catch (e) {}
+    var name = String(raw).trim().replace(/\s+/g, " ");
+    if (!isValidCrewName(name)) {
+      if (typeof showToast === "function") showToast(t("prof.crew_bad"), "error");
+      try { document.getElementById("crewCustomInput").style.borderColor = "var(--danger)"; setTimeout(function() { document.getElementById("crewCustomInput").style.borderColor = ""; }, 1500); } catch (e) {}
+      return;
+    }
+    updates.preferences = Object.assign({}, (currentProfile?.preferences || {}), { crew_custom: name });
+  }
   try {
-    const { error } = await supabaseClient.from("profiles").update({ crew: crewId }).eq("id", authUser.id);
+    const { error } = await supabaseClient.from("profiles").update(updates).eq("id", authUser.id);
     if (error) throw error;
     if (typeof invalidatePlanCache === "function") invalidatePlanCache();
     if (typeof refreshTierLabel === "function") refreshTierLabel();
@@ -229,7 +267,7 @@ function updateSidebarProfile(profile) {
   if (sidebarUserName) sidebarUserName.textContent = profile?.display_name || profile?.username || (authUser?.email ? authUser.email.split("@")[0] : t("prof.fallback_user"));
   if (sidebarUserPlan) {
     sidebarUserPlan.textContent = (typeof tierLabel === "function")
-      ? tierLabel({ level: profile?.plan_level || 0, crew: profile?.crew || null, isAdmin: !!profile?.is_admin })
+      ? tierLabel({ level: profile?.plan_level || 0, crew: profile?.crew || null, crew_custom: profile?.preferences?.crew_custom || null, isAdmin: !!profile?.is_admin })
       : t("prof.tier_nakama");
   }
   if (sidebarUserAvatar) sidebarUserAvatar.classList.add("logged-in");
@@ -276,7 +314,8 @@ async function handleProfileSave(e) {
   const preferences = {
     language: document.getElementById("profileLanguage")?.value || "es",
     currency: document.getElementById("profileCurrency")?.value || "USD",
-    notifications: document.getElementById("profileNotifications")?.checked
+    notifications: document.getElementById("profileNotifications")?.checked,
+    tutorial_mode: document.getElementById("profileShowTutorial")?.value || "once"
   };
 
   const updates = {

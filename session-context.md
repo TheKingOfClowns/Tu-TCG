@@ -682,6 +682,73 @@ Instalados a nivel **global** (`C:\Users\buron\.config\opencode`, vía `opencode
 - Rollback: quitar del array `plugin` en opencode.json global + desinstalar el paquete.
 - ⚠️ Si el gasto sube en vez de bajar, el primer sospechoso es Caveman (benchmark externo lo muestra >100% en algunos modelos).
 
+## Sesión 2026-09-14 — Quick-add unificado, import/export deck, dorados, draft persistente, dev SPA, i18n ES/EN
+
+Commit `4525a34` (push a `master`, auto-deploy). Todo verificado con `node --check` + harnesses temporales (borrados tras correr).
+
+### Quick-add unificado binder/venta → catálogo
+- `+` en binder/venta lleva al catálogo con destino preseleccionado (`goToCatalogWithTarget`, `script.js`), mismo quick-add que elegir en el select (`+`/`−` inmediato, `n/max`, modal normal). Deck conserva buffer viejo con banner (idea separada pendiente).
+- Tracking NO entra al dropdown (rara vez se usa; default ya ubica todo): su `+` navega plano al catálogo.
+- Archivos: `script.js`, `catalog.js`, `binder.js`, `binder_riftbound.js`, `venta.js`, `tracking.js` (+ `?v=`).
+
+### Deck import/export (formato página tierlist)
+- Botones `Exportar`/`Importar` dorados arriba a la izquierda del Privado/Público (clase propia `deck-io-btn`; la anterior reuseaba `.deck-add-more-btn` y el picker la enganchaba → falso "Primero debes elegir un lider").
+- Parser tolerante primario `CANT SET-NUM Nombre` (`1 OP17-039 Rocks.D.Xebec`), compactos gratis, ambiguo sin guion → reporte. Líder pre-pass (primero gana), color estricto sin confirm, topes 4/50 con recorte, base no-parallel, DON excluido.
+- Export espejo (`1 ID Nombre` líder + main en orden del deck) a clipboard con fallback + toast. Roundtrip verificado.
+- Bug real cazado por consola: `modals.js` pasaba `limpiarAddingState` pelado al cargar (script.js carga después) → `ReferenceError` abortaba cableado de `Agregar`/`Cancelar` (+ banner catálogo). Fix: closure con guard. Harness `loadorder` simula orden real.
+- Archivos: `modals.js`, `deck.js`, `deck_riftbound.js`, `deck_pokemon.js`, `index.html` (modal), `style.css`.
+
+### Filtros dorado sutil + toggles optimistas
+- Tracking (`Todas/Faltantes/Obtenidas`), tabs Explore, detalle Explore: `active` dorado `rgba(255,215,0,.15)`/`#ffd700`.
+- Causas: toggle corría al final del render (si abortaba, `Todas` quedaba pegada) → toggle optimista en handlers; detalle Explore usaba inline styles (siempre ganan) → clases; regla vieja `!important` cyan pisaba el dorado → borrada.
+- Archivos: `tracking.js`, `explore.js`, `style.css` (+ `?v=`).
+
+### Draft persistente (pérdida al cambiar de pestaña)
+- Causa: `onAuthChange` re-corría `initCollections`/`reloadVentaFromDb` en cada `SIGNED_IN` (supabase lo re-emite al reenfocar) pisando el borrador en memoria. El guard `draftDirty` existía en migrate pero no ahí.
+- Fix: mismo guard en `onAuthChange` + borrador persiste en `localStorage` por TCG en cada `stageChange` (limpia en save/discard, restaura al arranque con toast, ignora otro TCG).
+- Archivos: `script.js` (+ `?v=`).
+
+### Dev con fallback SPA
+- `npm run dev` (`npx -y serve -s .`): Live Server clásico 404eaba (`Cannot GET /collections`) en F5/auto-reload por falta de fallback. Verificado: `/collections` y `/collections/:id` → 200 `index.html`.
+- Archivo: `package.json` (sin deps nuevas).
+
+### i18n UI ES/EN (todo de una)
+- `js/i18n.js` nuevo: dict plano 544 keys, `t(key, vars)` con fallback a español, `setLang/getLang`, `applyStaticI18n` (`data-i18n`/`-ph`/`-title`, `<html lang>`), persistencia `tutcg_lang` + espejo `profiles.preferences.language`.
+- Selector: `profileLanguage` existente (perfil → Idioma): aplica instantáneo + persiste en ambos stores; al abrir perfil refleja idioma efectivo.
+- ~150 atributos en `index.html` + `t()` en 19 JS (5 tandas paralelas por módulo, prefijos por archivo). Idioma de cartas EN/JA intacto.
+- Harness cobertura 542/542 keys en ambos idiomas, sin duplicadas. Ojo: tanda deck devolvió dict sin prefijo `deck.` → script de alineado (borrado).
+- Lección: `node --check` no alcanza para orden de carga; harness `loadorder` obligatorio si se tocan listeners top-level.
+
+## Sesión 2026-09-19 — Nunca-reload + guía por sección (spotlight)
+
+Commit `40a5eca` (nunca-reload). Resto sin commitear hasta fin del día (guía + tracking + crew).
+
+### Nunca reload al volver de pestaña (commit `40a5eca`)
+- Causa: supabase re-emite `SIGNED_IN` al reenfocar → `onAuthChange` (`script.js:1725`) reconstruía todo y reseteaba filtro Faltantes (`col._trackingFilter` solo vivía en memoria).
+- Fix: guard por `user.id` + `_collectionsReady/_ventaReady` (init real solo primer load o cambio de usuario); `_mark*Ready` solo renderiza si antes not-ready; filtro tracking persiste en `localStorage tutcg_tracking_filter_<id>` (lee memoria > LS > all, restaura en rebuild); snapshot UI en `sessionStorage tutcg_ui_state` (vista/ids/páginas, en `visibilitychange`/`beforeunload`, restore en arranque si no deep-link); sign-out limpia snapshot.
+- Privado nunca revalida (save manual o F5); Explore mantiene TTL 30s (datos ajenos).
+
+### Guía por sección `js/tutorial.js` (nuevo, sin libs ni botón)
+- Modelo final: spotlight sin overlay (anillo fucsia `--fuchsia` + viñeta fija: izq-normal / der-modales+ventas, bottom-sheet mobile). Sin botón sidebar (removido a pedido); único control: select Perfil → Tutorial (`once` default / `always` / `off`, `preferences.tutorial_mode`, legacy `show_tutorial` migra en lectura).
+- Auto directo 1 vez por sección (flags `sec_*` en preferences + espejo LS): home (bienvenida+idea+modos, 3) → catálogo (11) → colecciones (3) → modales crear (binder 2 / venta 3 / tracking 3) → binder (5) / deck (8) / tracking (5) → venta lista (3) / venta (5) → explore (3) / explore-detail (dueño/anillo angosto, faltantes, progreso, totales sale, gear) → perfil (contacto obligatorio vs opcional, idioma/moneda, crew, toggle). ~62 pasos, i18n `tut.h*` ES+EN con harness anti-duplicadas.
+- Mecánica: tap = tu click real avanza; Siguiente siempre + Terminar cierra; gates con rojo (`need_*`, espejo `modals.js:43`); `when` filtra al arrancar (numeración exacta); skip logueado `[tour] skip` + log versión `[tour] vNN` (anti-caché); modal-abort cierra sin marcar; switch de sección cambia sin marcar (`_tourSelfNav`); Siguiente/Atrás en espera = skip manual (fin tildado); render-then-ring + settle anti-stale + post-verify `contains` + tamaño; race guard `_tourBusy/_tourSeq`.
+- Lecciones caras: `tourRender` leía flujo sin filtrar (textos cruzados en individual); `tourPlace` sumaba `scrollY` a `fixed` (pasos invisibles); `tourHi` muerto dejó pasos sin ancla sin posicionar (todo invisible); keys `hd5/hd6` duplicadas (deck pisado por explore); `waitFor` resolvía en nodos viejos (anillo fantasma).
+
+### Tracking: todo deshabilitado por defecto
+- `renderTrackingExtra` OP + `_RB`: checkboxes sets/rarezas nacen `unchecked` (validación toast ya existía). Botones Seleccionar todo siguen.
+
+### Crew: todos eligen (custom con filtro)
+- Nivel 0 ya era Nakama; grid 10 siempre visible (límites intactos); opción Personalizada (input 24 chars) → `crew='custom'` + `preferences.crew_custom`; `tierLabel`/`getMyPlan`/sidebar la muestran (regex al guardar impide HTML); filtro cliente `isValidCrewName` (2-24, letras/números/espacios, blocklist ES/EN ~60 en `profile.js`); servidor abierto por API directa (trigger después si hace falta). Sin migración (JSONB).
+
+### Tracking/filter dorados y explore-detail
+- Clases nuevas en `explore.js`: `explore-owner-name`, `explore-profile-btn`, `explore-sale-totals` (2 ramas c/u) para anclas del tour.
+
+## Pendiente (llevado)
+- Checkout MercadoPago + webhook (setea `plan_level`+`crew`) + badge crew en explore.
+- Scrapear Pokémon, validaciones ACE/Radiant/Basic Energy, filtros PK.
+- API key Riot Runes, `scrape_set.js` por nuevos sets OP.
+- Limpieza duplicados Supabase, deep links `/explore/colecciones|ventas`.
+
 ## Convenciones
 - Leer este archivo al iniciar cada sesión.
 - Cada TCG tiene sus propios archivos JS: `_OP`, `_RB`, `_PK` y `dispatcher`, sin dispatchers inline.

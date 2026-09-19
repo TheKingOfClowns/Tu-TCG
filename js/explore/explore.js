@@ -544,13 +544,13 @@ function renderExploreDetail() {
       <div class="explore-detail-header">
         <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
           <img src="${ownerAvatar || "TUTCG.webp"}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
-          <span style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
-          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">${t("expl.view_profile")}</button>
+          <span class="explore-owner-name" style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
+          <button class="explore-profile-btn" onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">${t("expl.view_profile")}</button>
         </div>
         <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
           <span class="explore-badge ${b.type}">${typeLabel}</span>
           <span style="font-size:var(--text-sm);color:var(--text-secondary)">${t("expl.deck_cards", { n: totalCards })}</span>
-          ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+          ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div class="explore-sale-totals" style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
       </div>
       <div class="deck-container">
@@ -639,13 +639,13 @@ function renderExploreDetail() {
       <div class="explore-detail-header">
         <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)">
           <img src="${ownerAvatar || "TUTCG.webp"}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
-          <span style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
-          <button onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">${t("expl.view_profile")}</button>
+          <span class="explore-owner-name" style="font-size:var(--text-sm);color:var(--text-secondary);flex:1">${ownerName}</span>
+          <button class="explore-profile-btn" onclick="verPerfilPublico('${b.user_id}')" style="padding:4px 12px;background:var(--accent);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--text-xs);font-weight:var(--weight-semibold)">${t("expl.view_profile")}</button>
         </div>
         <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
           <span class="explore-badge ${b.type}">${typeLabel}</span>
           <span style="font-size:var(--text-sm);color:var(--text-secondary)">${t("expl.card_count", { n: totalCards })}</span>
-          ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
+          ${b.type === "sale" && (arsTotal > 0 || usdTotal > 0) ? `<div class="explore-sale-totals" style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-family:var(--font-mono);font-weight:bold">${arsTotal > 0 ? `<span style="color:var(--accent)">ARS $${arsTotal.toFixed(2)}</span>` : ""}${usdTotal > 0 ? `<span style="color:#ffd700">USD $${usdTotal.toFixed(2)}</span>` : ""}</div>` : ""}
         </div>
         ${progressHTML}
         ${isTracking ? `

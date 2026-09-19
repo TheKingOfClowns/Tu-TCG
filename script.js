@@ -524,11 +524,11 @@ var CREWS = [
 var _planCache = null;
 async function getMyPlan() {
   if (_planCache && (Date.now() - _planCache.ts) < 60000) return _planCache.plan;
-  var plan = { level: 0, crew: null, isAdmin: false };
+  var plan = { level: 0, crew: null, crew_custom: null, isAdmin: false };
   try {
     if (typeof isAuthenticated === "function" && isAuthenticated() && authUser) {
-      const { data } = await supabaseClient.from("profiles").select("plan_level,crew,is_admin").eq("id", authUser.id).single();
-      if (data) plan = { level: data.plan_level || 0, crew: data.crew || null, isAdmin: !!data.is_admin };
+      const { data } = await supabaseClient.from("profiles").select("plan_level,crew,is_admin,preferences").eq("id", authUser.id).single();
+      if (data) plan = { level: data.plan_level || 0, crew: data.crew || null, crew_custom: data.preferences?.crew_custom || null, isAdmin: !!data.is_admin };
     }
   } catch (e) {}
   _planCache = { plan: plan, ts: Date.now() };
@@ -538,6 +538,8 @@ function invalidatePlanCache() { _planCache = null; }
 function crewById(id) { return CREWS.find(function(c) { return c.id === id; }) || null; }
 function tierLabel(plan) {
   if (!plan) return t("core.tier_nakama");
+  // ponytail: crew custom va donde sale crew (sidebar/perfil); regex al guardar impide HTML
+  if (plan.crew === "custom" && plan.crew_custom) return plan.crew_custom;
   if (plan.isAdmin && plan.crew) { var ac = crewById(plan.crew); return ac ? ac.name : t("core.tier_nakama"); }
   if (plan.level >= 1 && plan.crew) { var c = crewById(plan.crew); return c ? c.name : t("core.tier_level", { n: plan.level }); }
   if (plan.level >= 1) return t("core.tier_level", { n: plan.level });
@@ -1257,6 +1259,7 @@ async function selectTcg(tcgId) {
 // ─── View System ──────────────────────────────────────────────────────────
 function mostrarVista(vista, navState) {
   if (!requestStagedExit(vista, function() { mostrarVista(vista, navState); })) return;
+  if (typeof tourSectionEnter === "function") { try { tourSectionEnter(vista); } catch (e) {} } // ponytail: hint tour primera visita, nunca bloquea
   if (DRAFT_CTX[vista]) armDraft(); else disarmDraft();
   if (vista !== "catalog") limpiarAddingState();
   if (navState && navState.currentTcg) {

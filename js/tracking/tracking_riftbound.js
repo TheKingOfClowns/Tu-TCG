@@ -143,6 +143,8 @@ function pedirCrearTracking_RB(preFillName) {
     }
   }
   overlay.style.display = "flex";
+  // ponytail: guía tracking (primera vez por sección)
+  if (typeof tourModalEnter === "function") { try { setTimeout(function() { tourModalEnter("tracking"); }, 50); } catch (e) {} }
   setTimeout(function() { nameInput.focus(); }, 100);
 }
 
@@ -156,7 +158,7 @@ function renderTrackingExtra_RB(type, panel) {
       if (!items.length) return "";
       return '<div style="margin-bottom:6px"><span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:2px">' + groupLabels[groupKey] + '</span>' +
         items.map(function(s) {
-          return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-secondary);cursor:pointer;margin:2px 6px 2px 0"><input type="checkbox" value="' + s.id + '" checked> ' + s.label + '</label>';
+          return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-secondary);cursor:pointer;margin:2px 6px 2px 0"><input type="checkbox" value="' + s.id + '"> ' + s.label + '</label>';
         }).join("") +
         '</div>';
     }).join("");
@@ -210,7 +212,7 @@ function renderTrackingExtra_RB(type, panel) {
       '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("track.rarities") + '</label>' +
       '<div id="trackingRarityCheckboxes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--space-3)">' +
         rarities.map(function(r) {
-          return '<label style="display:flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-secondary);cursor:pointer"><input type="checkbox" value="' + r + '" checked> ' + r + '</label>';
+          return '<label style="display:flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-secondary);cursor:pointer"><input type="checkbox" value="' + r + '"> ' + r + '</label>';
         }).join("") +
       '</div>' +
       '<div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-2)">' +

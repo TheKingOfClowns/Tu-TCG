@@ -3755,3 +3755,29 @@ body {
   color: var(--text-primary);
   background: #6366f1;
 }
+
+/* === Tutorial spotlight (sin overlay: anillo + viñeta fijos) === */
+.tour-ring-on {
+  position: relative;
+  z-index: 10001 !important;
+  outline: 2px solid var(--fuchsia);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.18), 0 0 24px rgba(217, 70, 239, 0.4);
+  animation: tour-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tour-pulse {
+  50% { box-shadow: 0 0 0 7px rgba(217, 70, 239, 0.1), 0 0 32px rgba(217, 70, 239, 0.55); }
+}
+.tour-card {
+  position: fixed;
+  z-index: 10002;
+  max-width: 320px;
+  padding: var(--space-4);
+  border: 1px solid var(--fuchsia);
+}
+.tour-card #tourCount { color: var(--fuchsia); }
+.tour-card #tourTitle { color: var(--fuchsia); }
+@media (prefers-reduced-motion: reduce) {
+  .tour-ring-on { animation: none; }
+}
