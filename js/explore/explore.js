@@ -556,8 +556,11 @@ function renderExploreDetail() {
       <div class="deck-container">
         <div class="deck-section deck-leader-section">
           <h3 class="deck-section-title">${t("expl.leader")}</h3>
+          <div class="deck-leader-row">
           <div class="deck-leader-slot" id="exploreDeckLeaderSlot">
             ${leader ? '<div class="deck-leader-card" id="exploreLeaderCard"></div>' : '<div class="deck-empty-slot deck-leader-placeholder">' + t("expl.no_leader") + '</div>'}
+          </div>
+          ${b.type === "sale" && b.config && b.config.extras ? `<div class="deck-extras-box"><h4 class="deck-extras-title">${t("deck.extras_title")}</h4><div class="deck-extras-input" style="min-height:0;white-space:pre-wrap">${escapeHtml(String(b.config.extras))}</div></div>` : ""}
           </div>
         </div>
         <div class="deck-section">

@@ -253,8 +253,8 @@ function showDeckPicker_OP(mode, leaderColor, existingKeys, leaderSetId, existin
 }
 // ─── Deck View Helpers ─────────────────────────────────────────────────
 
-function _opBuildLeaderHTML(leader, isSale) {
-  var html = '<div class="deck-section deck-leader-section"><h3 class="deck-section-title">' + t("deck.op_leader_title") + '</h3><div class="deck-leader-slot">';
+function _opBuildLeaderHTML(leader, isSale, extras) {
+  var html = '<div class="deck-section deck-leader-section"><h3 class="deck-section-title">' + t("deck.op_leader_title") + '</h3><div class="deck-leader-row"><div class="deck-leader-slot">';
   if (leader) {
     const full = leader._key ? cartasMap[leader._key] : null;
     const img = leader.card_image || (full ? full.card_image : null) || "TUTCG.webp";
@@ -271,6 +271,12 @@ function _opBuildLeaderHTML(leader, isSale) {
     html += '<button class="binder-remove" data-leaderremove="1" style="position:static;margin-top:var(--space-2)">&times; ' + t("deck.op_remove_leader") + '</button>';
   } else {
     html += '<div class="deck-empty-slot deck-leader-placeholder">' + t("deck.op_choose_leader") + '</div>';
+  }
+  html += '</div>';
+  // ponytail: caja extras solo en venta (texto libre: sleeves, deckbox, etc.)
+  if (isSale) {
+    var exVal = String(extras != null ? extras : "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    html += '<div class="deck-extras-box"><h4 class="deck-extras-title">' + t("deck.extras_title") + '</h4><textarea class="deck-extras-input" data-deckextras="1" rows="6" maxlength="500">' + exVal + '</textarea></div>';
   }
   html += '</div></div>';
   return html;
@@ -291,6 +297,10 @@ function _opBuildMainCardsHTML(mainCards, isSale) {
     }
     html += '<div class="deck-card-slot" data-key="' + (c._key || "") + '" data-mainidx="' + i + '">';
     html += '<div class="card-img-wrap"><img src="' + img + '" onerror="this.src=\'TUTCG.webp\'"><span class="deck-card-qty">&times;' + qty + '</span></div>';
+    // ponytail: stepper −/+ directo (topes 4 por set / 50 total, espejo picker)
+    var setCount = mainCards.filter(function(x) { return x.card_set_id && x.card_set_id === c.card_set_id; }).reduce(function(s, x) { return s + (x.quantity || 1); }, 0);
+    var plusOff = (!isUnlimited(c) && setCount >= 4) || mainTotal >= 50;
+    html += '<div class="deck-qty-stepper"><button class="deck-pick-qty-btn" data-maindec="' + i + '">&minus;</button><span class="deck-qty-inline">&times;' + qty + '</span><button class="deck-pick-qty-btn" data-maininc="' + i + '"' + (plusOff ? ' disabled' : '') + '>+</button></div>';
     html += priceHTML;
     html += '<button class="binder-remove" data-mainremove="' + i + '">&times;</button></div>';
   });
@@ -334,6 +344,22 @@ function _opAttachDeckEvents(grid, col, isSale, reRender) {
   });
   grid.querySelectorAll("[data-mainremove]").forEach(function(btn) {
     btn.addEventListener("click", function(e) { e.stopPropagation(); var i = parseInt(btn.getAttribute("data-mainremove")); var entry = col.cards[i]; if (!entry) return; if (entry.quantity > 1) entry.quantity--; else col.cards.splice(i, 1); reRender(); });
+  });
+  grid.querySelectorAll("[data-maininc]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var i = parseInt(btn.getAttribute("data-maininc")); var entry = col.cards[i]; if (!entry) return;
+      var mTotal = col.cards.reduce(function(s, card) { return s + (card.quantity || 1); }, 0);
+      if (mTotal >= 50) return;
+      var setId = entry.card_set_id;
+      var deckTotal = !setId ? 0 : col.cards.filter(function(card) { return card.card_set_id === setId; }).reduce(function(sum, card) { return sum + (card.quantity || 1); }, 0);
+      if (!isUnlimited(entry) && deckTotal >= 4) return;
+      entry.quantity = (entry.quantity || 1) + 1;
+      reRender();
+    });
+  });
+  grid.querySelectorAll("[data-maindec]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); var i = parseInt(btn.getAttribute("data-maindec")); var entry = col.cards[i]; if (!entry) return; if ((entry.quantity || 1) > 1) entry.quantity--; else col.cards.splice(i, 1); reRender(); });
   });
   grid.querySelectorAll("[data-donremove]").forEach(function(btn) {
     btn.addEventListener("click", function(e) { e.stopPropagation(); var i = parseInt(btn.getAttribute("data-donremove")); col.dons.splice(i, 1); reRender(); });
@@ -388,6 +414,9 @@ function _opAttachDeckEvents(grid, col, isSale, reRender) {
   });
   grid.querySelectorAll("[data-donprice]").forEach(function(inp) {
     inp.addEventListener("change", function() { var i = parseInt(inp.getAttribute("data-donprice")); if (col.dons[i]) col.dons[i].customPrice = isNaN(parseFloat(inp.value)) ? 0 : parseFloat(inp.value); saveDeck_OP(isSale); });
+  });
+  grid.querySelectorAll("[data-deckextras]").forEach(function(ta) {
+    ta.addEventListener("change", function() { col.extras = ta.value; saveDeck_OP(isSale); });
   });
   (function attachPickerTriggers() {
     function pickLeader() {
@@ -497,7 +526,7 @@ function renderDeckView_OP(type, col, grid, title, toggleContainer) {
     var totals = getTotalsByCurrency(col);
     totalsHTML = '<div class="deck-sale-totals"><span class="deck-total-ars">ARS: $' + totals.ARS.toFixed(2) + '</span><span class="deck-total-usd">USD: $' + totals.USD.toFixed(2) + '</span></div>';
   }
-  grid.innerHTML = totalsHTML + '<div class="deck-container">' + _opBuildLeaderHTML(leader, isSale) + _opBuildMainCardsHTML(mainCards, isSale) + _opBuildDonsHTML(dons, isSale) + '</div>';
+  grid.innerHTML = totalsHTML + '<div class="deck-container">' + _opBuildLeaderHTML(leader, isSale, col.extras) + _opBuildMainCardsHTML(mainCards, isSale) + _opBuildDonsHTML(dons, isSale) + '</div>';
   var reRender = function() { saveDeck_OP(isSale); renderDeckView_OP(type, col, grid, title, toggleContainer); };
   _opAttachDeckEvents(grid, col, isSale, reRender);
   if (toggleContainer) {

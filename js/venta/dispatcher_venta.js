@@ -13,6 +13,7 @@
   };
 
   window.renderVentaList = function renderVentaList() {
+    if (typeof syncGridCols === "function") syncGridCols(document.getElementById("ventaList"));
     return _fn("renderVentaList")();
   };
 

@@ -385,12 +385,20 @@ function _deckExportLines(col) {
   if (!col) return lines;
   var tcgId = col.tcg || (typeof currentTcg !== "undefined" ? currentTcg : "one-piece");
   var short = (typeof tcgShort === "function") ? tcgShort(tcgId) : "OP";
-  var leader = short === "RB" ? col.legend : (short === "PK" ? null : col.leader);
+  // ponytail: fallback a cartasMap (tras F5 las entries vienen delgadas, solo _key)
+  var fullOf = function (c) {
+    if (!c) return null;
+    if (c.card_set_id) return c;
+    var f = (typeof cartasMap !== "undefined" && c._key) ? cartasMap[c._key] : null;
+    return f || c;
+  };
+  var leader = short === "RB" ? fullOf(col.legend) : (short === "PK" ? null : fullOf(col.leader));
   if (leader && leader.card_set_id) lines.push("1 " + leader.card_set_id + " " + (leader.card_name || ""));
-  (col.cards || []).forEach(function(c) {
-    if (!c.card_set_id) return;
+  (col.cards || []).forEach(function (c) {
+    var f = fullOf(c);
+    if (!f.card_set_id) return;
     var full = (typeof cartasMap !== "undefined" && c._key) ? cartasMap[c._key] : null;
-    lines.push((c.quantity || 1) + " " + c.card_set_id + " " + (c.card_name || (full && full.card_name) || "").trim());
+    lines.push((c.quantity || 1) + " " + f.card_set_id + " " + (c.card_name || f.card_name || (full && full.card_name) || "").trim());
   });
   return lines;
 }

@@ -1079,7 +1079,7 @@ body {
   color: var(--text-muted);
   vertical-align: middle;
 }
-/* ═══ Crew picker (suscripción) ═══ */
+/* ═══ Crew picker (tripulación) ═══ */
 .crew-grid {
   display: flex;
   flex-wrap: wrap;
@@ -1315,7 +1315,81 @@ body {
   margin-top: var(--space-3);
   gap: var(--space-2);
   width: 100%;
-  max-width: 220px;
+  /* ponytail: escala con barra deck (default 200px → 220px, igual que antes) */
+  max-width: calc(var(--deck-min-width, 200px) * 1.1);
+}
+/* ponytail: extras venta a la derecha del líder, abajo en mobile */
+.deck-leader-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+}
+.deck-extras-box {
+  margin-top: var(--space-3);
+  width: 100%;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.deck-extras-title {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+.deck-extras-input {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: var(--space-2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  outline: none;
+}
+@media (max-width: 640px) {
+  .deck-leader-row { flex-direction: column; align-items: center; }
+  .deck-extras-box { max-width: 100%; }
+}
+/* ponytail: stepper −/+ en cartas main deck */
+.deck-qty-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.deck-qty-stepper .deck-pick-qty-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  cursor: pointer;
+  padding: 0;
+}
+.deck-qty-stepper .deck-pick-qty-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.deck-qty-inline {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  min-width: 28px;
+  text-align: center;
 }
 .deck-leader-card {
   width: 100%;
@@ -1324,8 +1398,8 @@ body {
   font-size: var(--text-sm);
 }
 .deck-leader-placeholder {
-  width: 220px;
-  height: 300px;
+  width: calc(var(--deck-min-width, 200px) * 1.1);
+  height: calc(var(--deck-min-width, 200px) * 1.3636);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1498,17 +1572,33 @@ body {
 .deck-don-row {
   display: flex;
   gap: 0;
-  justify-content: center;
+  /* ponytail: scroll propio — dones grandes sin romper la página (safe center: centra si entra, alinea inicio si desborda) */
+  justify-content: safe center;
+  overflow-x: auto;
+  scrollbar-width: thin;
   margin-top: var(--space-2);
+  padding: 4px 4px 8px;
   width: 100%;
   max-width: 100%;
 }
+/* ponytail: en pantallas anchas (1400 + sidebar 260 + paddings 64) la fila de dones
+   sale del contenedor 1200 centrada; main y líder intactos. Debajo, contenida + scroll. */
+@media (min-width: 1724px) {
+  .deck-don-row {
+    width: 1400px;
+    max-width: none;
+    margin-left: calc((100% - 1400px) / 2);
+    margin-right: calc((100% - 1400px) / 2);
+    overflow-x: visible;
+  }
+}
 .deck-don-slot {
-  width: 130px;
+  /* ponytail: escala con barra deck (default 200px → 200px / solape -68px, 10 dones ≈1388px) */
+  width: calc(var(--deck-min-width, 200px) * 1);
   flex-shrink: 0;
   flex-grow: 0;
   position: relative;
-  margin-left: -30px;
+  margin-left: calc(var(--deck-min-width, 200px) * -0.34);
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--border-subtle);
@@ -1526,7 +1616,7 @@ body {
   display: block;
 }
 .deck-don-empty {
-  height: 180px;
+  height: calc(var(--deck-min-width, 200px) * 1.4);
   border: 1px dashed var(--border-subtle);
   background: rgba(255,255,255,0.02);
 }
@@ -2965,10 +3055,9 @@ body {
 .sk-line { height: 10px; border-radius: var(--radius-sm); }
 .sk-line.short { width: 60%; }
 
-/* Tamaño de cartas y portadas ajustable (sliders en perfil).
+/* Tamaño de cartas y portadas ajustable (slider: columnas exactas vía --grid-cols).
    Va último a propósito: pisa los grids fijos de todos los breakpoints.
-   Tracks fijos uniformes + arranque a la izquierda (sin estirar).
-   Catálogo cierra filas vía tamaño de página dinámico (catalogPageSize).
+   Columnas fijas uniformes + arranque a la izquierda (sin estirar).
    TCG dashboard afuera (layout propio). */
 .catalog-grid,
 .binder-grid,
@@ -2978,7 +3067,7 @@ body {
 .collection-binder-grid,
 .explore-grid,
 .sk-covers {
-  grid-template-columns: repeat(auto-fit, min(var(--card-min-width), 42vw));
+  grid-template-columns: repeat(var(--grid-cols, 5), minmax(0, 1fr));
   justify-content: start;
 }
 .deck-main-grid,

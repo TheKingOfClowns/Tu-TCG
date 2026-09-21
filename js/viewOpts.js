@@ -1,15 +1,22 @@
-// ─── View options popover (tamaño + filas + count por página, solo localStorage) ───
-// ponytail: un popover compartido para catálogo/binder/venta/explore; pageSizeFor() lee las keys.
+// ─── View options popover (1 barra: tamaño; filas/columnas por fórmula, solo localStorage) ───
+// ponytail: un popover compartido; la barra manda columnas/filas, el px emerge. pageSizeFor() lee todo.
 (function () {
-  var ROWS_KEY = "tutcg_page_rows";
-  var SIZE_KEY = "tutcg_page_size";
+  function snap10(v) {
+    v = parseInt(v, 10);
+    if (isNaN(v)) return 50;
+    return Math.max(0, Math.min(100, Math.round(v / 10) * 10));
+  }
 
-  function getRows() {
-    try {
-      var r = parseInt(localStorage.getItem(ROWS_KEY), 10);
-      if (!isNaN(r) && r >= 2 && r <= 6) return r;
-    } catch (e) {}
-    return 3;
+  function vis(id) {
+    var el = document.getElementById(id);
+    return !!(el && el.style.display !== "none");
+  }
+
+  // ponytail: panel adaptativo — portadas solo tamaño cartas, decks solo tamaño deck
+  function viewMode() {
+    if (vis("collectionManager") || vis("ventaManager")) return "covers";
+    if ((vis("binderView") && vis("binderDeckContainer")) || (vis("ventaView") && vis("ventaDeckContainer"))) return "deck";
+    return "full";
   }
 
   function refreshVisibleView() {
@@ -18,20 +25,25 @@
     if (typeof ventaPage !== "undefined") ventaPage = 1;
     if (typeof explorePage !== "undefined") explorePage = 1;
     if (typeof exploreDetailPage !== "undefined") exploreDetailPage = 1;
-    var vis = function (id) {
-      var el = document.getElementById(id);
-      return el && el.style.display !== "none";
-    };
     if (vis("catalogView") && typeof renderCards === "function") renderCards();
+    else if (vis("collectionManager")) { if (typeof syncGridCols === "function") syncGridCols(document.getElementById("collectionList")); if (typeof renderCollectionList === "function") renderCollectionList(); }
+    else if (vis("ventaManager")) { if (typeof syncGridCols === "function") syncGridCols(document.getElementById("ventaList")); if (typeof renderVentaList === "function") renderVentaList(); }
     else if (vis("binderView") && typeof renderBinder === "function") renderBinder();
     else if (vis("ventaView") && typeof renderVentaView === "function") renderVentaView();
     else if (vis("exploreDetailView") && typeof filterExploreCards === "function") filterExploreCards();
     else if (vis("exploreView") && typeof renderExploreView === "function") renderExploreView();
   }
 
+  // ponytail: debounce 300ms — la barra cambia columnas → el paginado se recalcula
+  var _voTimer = null;
+  function refreshSoon() {
+    try { clearTimeout(_voTimer); } catch (e) {}
+    _voTimer = setTimeout(refreshVisibleView, 300);
+  }
+
   function sizeHint(val) {
-    var px = (typeof sizePx === "function") ? sizePx(val) : Math.round(120 + val * 1.6);
-    return t("view.size_hint", { v: val, n: Math.max(2, Math.floor(1100 / px)) });
+    var g = (typeof gridColsRows === "function") ? gridColsRows(val, 1100) : { cols: 5, rows: 7, size: 35 };
+    return t("view.size_hint", { c: g.cols, s: g.size });
   }
 
   function buildPanel() {
@@ -40,43 +52,24 @@
     p.className = "viewopts-panel glass-panel";
     p.style.display = "none";
     p.innerHTML =
-      '<label class="viewopts-row"><span>' + t("view.card_size") + ' <em id="viewOptsSizeVal"></em></span>' +
-      '<input type="range" id="viewOptsSize" min="0" max="100" step="1"></label>' +
-      '<label class="viewopts-row"><span>' + t("view.deck_size") + ' <em id="viewOptsDeckVal"></em></span>' +
-      '<input type="range" id="viewOptsDeck" min="0" max="100" step="1"></label>' +
-      '<label class="viewopts-row"><span>' + t("view.rows") + '</span>' +
-      '<select id="viewOptsRows">' +
-      [2, 3, 4, 5, 6].map(function (r) { return '<option value="' + r + '">' + r + "</option>"; }).join("") +
-      "</select></label>" +
-      '<label class="viewopts-row"><span>' + t("view.per_page") + '</span>' +
-      '<select id="viewOptsSize2">' +
-      '<option value="">' + t("view.auto_rows") + '</option>' +
-      [10, 20, 30, 40].map(function (n) { return '<option value="' + n + '">' + n + "</option>"; }).join("") +
-      "</select></label>";
+      '<label class="viewopts-row" id="viewOptsRowCard"><span>' + t("view.card_size") + ' <em id="viewOptsSizeVal"></em></span>' +
+      '<input type="range" id="viewOptsSize" min="0" max="100" step="10"></label>' +
+      '<label class="viewopts-row" id="viewOptsRowDeck"><span>' + t("view.deck_size") + ' <em id="viewOptsDeckVal"></em></span>' +
+      '<input type="range" id="viewOptsDeck" min="0" max="100" step="1"></label>';
     document.body.appendChild(p);
 
     var size = document.getElementById("viewOptsSize");
     size.addEventListener("input", function () {
-      var v = parseInt(size.value, 10) || 0;
-      if (typeof applyCardSize === "function") applyCardSize(v, true);
+      var v = snap10(size.value);
+      try { localStorage.setItem("tutcg_card_min", String(v)); } catch (e) {}
       document.getElementById("viewOptsSizeVal").textContent = sizeHint(v);
+      refreshSoon();
     });
     var deck = document.getElementById("viewOptsDeck");
     deck.addEventListener("input", function () {
       var v = parseInt(deck.value, 10) || 0;
       if (typeof applyDeckSize === "function") applyDeckSize(v, true);
-      document.getElementById("viewOptsDeckVal").textContent = sizeHint(v);
-    });
-    document.getElementById("viewOptsRows").addEventListener("change", function (e) {
-      try { localStorage.setItem(ROWS_KEY, e.target.value); } catch (err) {}
-      refreshVisibleView();
-    });
-    document.getElementById("viewOptsSize2").addEventListener("change", function (e) {
-      try {
-        if (e.target.value) localStorage.setItem(SIZE_KEY, e.target.value);
-        else localStorage.removeItem(SIZE_KEY);
-      } catch (err) {}
-      refreshVisibleView();
+      document.getElementById("viewOptsDeckVal").textContent = v + "%";
     });
     return p;
   }
@@ -85,18 +78,18 @@
     var saved = function (key) {
       try { return localStorage.getItem(key); } catch (e) { return null; }
     };
-    var v = parseInt(saved("tutcg_card_min"), 10);
-    if (isNaN(v)) v = 50;
+    var v = snap10(saved("tutcg_card_min"));
     document.getElementById("viewOptsSize").value = v;
     document.getElementById("viewOptsSizeVal").textContent = sizeHint(v);
     var d = parseInt(saved("tutcg_deck_min"), 10);
     if (isNaN(d)) d = 50;
     document.getElementById("viewOptsDeck").value = d;
-    document.getElementById("viewOptsDeckVal").textContent = sizeHint(d);
-    document.getElementById("viewOptsRows").value = String(getRows());
-    var fixed = "";
-    try { fixed = localStorage.getItem(SIZE_KEY) || ""; } catch (e) {}
-    document.getElementById("viewOptsSize2").value = fixed;
+    document.getElementById("viewOptsDeckVal").textContent = d + "%";
+    // ponytail: 1 sola barra — card en todo, deck solo en decks
+    var deckMode = viewMode() === "deck";
+    var show = function (id, on) { var el = document.getElementById(id); if (el) el.style.display = on ? "" : "none"; };
+    show("viewOptsRowCard", !deckMode);
+    show("viewOptsRowDeck", deckMode);
   }
 
   function togglePanel(anchor) {
@@ -123,8 +116,9 @@
     }
   });
 
-  // ponytail: aplica tamaños guardados al arrancar (antes lo hacía initSizeSlider en perfil)
+  // ponytail: aplica tamaños guardados al arrancar + limpia keys viejas de filas/count
   document.addEventListener("DOMContentLoaded", function () {
+    try { localStorage.removeItem("tutcg_page_rows"); localStorage.removeItem("tutcg_page_size"); } catch (e) {}
     var saved = function (key) {
       try { return localStorage.getItem(key); } catch (e) { return null; }
     };

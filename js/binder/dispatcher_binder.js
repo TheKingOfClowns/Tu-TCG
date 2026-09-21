@@ -13,6 +13,7 @@
   };
 
   window.renderCollectionList = function renderCollectionList() {
+    if (typeof syncGridCols === "function") syncGridCols(document.getElementById("collectionList"));
     return _fn("renderCollectionList")();
   };
 

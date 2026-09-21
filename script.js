@@ -97,26 +97,25 @@ const tcgList = [
   { id:"yugioh",      name:"Yu-Gi-Oh!",          color:"#c9a84c", short:"YG", logo:"assets/logos/yugioh.webp" },
 ];
 // ─── Helpers ──────────────────────────────────────────────────────────────
-// ponytail: páginas de filas completas (N filas × columnas reales) salvo count manual 10/20/30/40
-function pageSizeFor(container, rows) {
-  var min = 200;
-  try {
-    var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--card-min-width"), 10);
-    if (!isNaN(v) && v > 0) min = v;
-  } catch (e) {}
-  var gap = 16;
+// ponytail: la barra manda columnas/filas (0%→10×5, 100%→5×10); el px emerge. Móvil pinza columnas.
+function gridColsRows(v, w) {
+  var k = Math.max(0, Math.min(10, Math.round(((v == null || isNaN(v)) ? 50 : v) / 10)));
+  var cols = 10 - Math.floor((k + 1) / 2);
+  var rows = 5 + Math.floor(k / 2);
+  var maxCols = Math.max(2, Math.floor(((w && w > 0) ? w : 1000) / 110));
+  cols = Math.min(cols, maxCols);
+  return { cols: cols, rows: rows, size: cols * rows };
+}
+function syncGridCols(container) {
   var w = (container && container.clientWidth) || 1000;
-  var cols = Math.max(1, Math.floor((w + gap) / (Math.min(min, w * 0.42) + gap)));
-  try {
-    var fixed = parseInt(localStorage.getItem("tutcg_page_size"), 10);
-    if (!isNaN(fixed) && fixed >= 10 && fixed <= 40) return { cols: cols, size: fixed };
-  } catch (e) {}
-  var r = rows || 3;
-  try {
-    var stored = parseInt(localStorage.getItem("tutcg_page_rows"), 10);
-    if (!isNaN(stored) && stored >= 2 && stored <= 6) r = stored;
-  } catch (e) {}
-  return { cols: cols, size: r * cols };
+  var v = 50;
+  try { var s = parseInt(localStorage.getItem("tutcg_card_min"), 10); if (!isNaN(s)) v = s; } catch (e) {}
+  var g = gridColsRows(v, w);
+  try { document.documentElement.style.setProperty("--grid-cols", String(g.cols)); } catch (e) {}
+  return g;
+}
+function pageSizeFor(container) {
+  return syncGridCols(container);
 }
 function getOrden(setId) {
   const stMatch = setId?.match(/^ST-?(\d+)$/i);
@@ -239,6 +238,7 @@ async function _cargarCartas() {
     });
     cartasMap = {};
     cartas.forEach(c => { cartasMap[getCardKey(c)] = c; });
+    if (typeof hydrateDecks === "function") hydrateDecks();
     const statCards = document.getElementById("statCards");
     if (statCards && !currentTcg) statCards.textContent = cartas.length.toLocaleString();
     cargarFiltros();
@@ -502,12 +502,12 @@ function closeDraftModal(run) {
   var fn = _pendingExit; _pendingExit = null;
   if (run && fn) fn();
 }
-// ─── Planes y tripulaciones (límites pool único) ───────────────────────────
-// ponytail: el trigger Postgres manda; esto es UX (pre-chequeo + mensajes). Números espejados de la migración.
+// ─── Tripulación y límites únicos (mismo techo para todos) ─────────────────
+// ponytail: el trigger Postgres manda; esto es UX (pre-chequeo + mensajes). Techo único 30/1000.
 var PLAN_LIMITS = {
-  0: { spaces: 5, cards: 150 },
-  1: { spaces: 10, cards: 500 },
-  2: { spaces: 25, cards: null }
+  0: { spaces: 30, cards: 1000 },
+  1: { spaces: 30, cards: 1000 },
+  2: { spaces: 30, cards: 1000 }
 };
 var CREWS = [
   { id: "mugiwara", name: "Mugiwara", color: "#e63946" },
@@ -540,9 +540,7 @@ function tierLabel(plan) {
   if (!plan) return t("core.tier_nakama");
   // ponytail: crew custom va donde sale crew (sidebar/perfil); regex al guardar impide HTML
   if (plan.crew === "custom" && plan.crew_custom) return plan.crew_custom;
-  if (plan.isAdmin && plan.crew) { var ac = crewById(plan.crew); return ac ? ac.name : t("core.tier_nakama"); }
-  if (plan.level >= 1 && plan.crew) { var c = crewById(plan.crew); return c ? c.name : t("core.tier_level", { n: plan.level }); }
-  if (plan.level >= 1) return t("core.tier_level", { n: plan.level });
+  if (plan.crew) { var c = crewById(plan.crew); if (c) return c.name; }
   return t("core.tier_nakama");
 }
 async function getMySpaceUsage() {
@@ -555,9 +553,8 @@ async function getMySpaceUsage() {
   return 0;
 }
 function upsellMsg(kind, plan) {
-  var lvl = (plan && plan.level) || 0;
-  if (kind === "spaces") return t("core.upsell_spaces", { n: (PLAN_LIMITS[lvl] || PLAN_LIMITS[0]).spaces, plan: tierLabel(plan) });
-  return t("core.upsell_cards", { n: (PLAN_LIMITS[lvl] || PLAN_LIMITS[0]).cards, plan: tierLabel(plan) });
+  if (kind === "spaces") return t("core.upsell_spaces");
+  return t("core.upsell_cards");
 }
 async function guardSpaceForNew() {
   const plan = await getMyPlan();
@@ -565,7 +562,7 @@ async function guardSpaceForNew() {
   const limit = (PLAN_LIMITS[plan.level] || PLAN_LIMITS[0]).spaces;
   const used = await getMySpaceUsage();
   if (used >= limit) {
-    if (typeof showConfirmModal === "function") showConfirmModal(upsellMsg("spaces", plan) + t("core.upsell_upgrade"), null);
+    if (typeof showConfirmModal === "function") showConfirmModal(upsellMsg("spaces", plan), null);
     else if (typeof showToast === "function") showToast(upsellMsg("spaces", plan), "error");
     return false;
   }
@@ -598,7 +595,7 @@ async function refreshSpaceCounters() {
     if (el) el.textContent = t("core.space_count", { used: used, limit: limit });
   });
 }
-// ponytail: traduce violaciones de triggers de plan a mensaje upsell
+// ponytail: traduce violaciones de triggers de techo a mensaje genérico
 function limitToast(msg, fallback) {
   if (msg && /LIMIT_SPACES/i.test(msg)) { showToast(t("core.limit_spaces"), "error"); return; }
   if (msg && /LIMIT_CARDS/i.test(msg)) { showToast(t("core.limit_cards"), "error"); return; }
@@ -644,6 +641,7 @@ async function syncObjectToSupabase(obj, type) {
       if (binder.tracking_config) config.tracking_config = binder.tracking_config;
       if (binder.checklist_mode) config.checklist_mode = true;
       if (binder.totalCurrency) config.totalCurrency = binder.totalCurrency;
+      if (binder.extras) config.extras = binder.extras;
       const { error: upsertErr } = await supabaseClient.from("binders").upsert({
         id,
         user_id: authUser.id,
@@ -844,7 +842,37 @@ function expandDbDeck(rows) {
     else if (row.card_tag === "sideboard") { sideboard.push(entry); }
     else { entry.quantity = row.quantity; cards.push(entry); }
   });
-  return { leader, legend, cards, dons, champions, runes, battlefields, sideboard };
+  var out = { leader, legend, cards, dons, champions, runes, battlefields, sideboard };
+  if (typeof hydrateDeckObj === "function") hydrateDeckObj(out);
+  return out;
+}
+// ponytail: Supabase solo guarda _key; rehidrata campos de display/validación desde cartasMap (F5/login)
+function hydrateDeckEntry(entry) {
+  if (!entry || entry.card_set_id || !entry._key) return entry;
+  var full = (typeof cartasMap !== "undefined") ? cartasMap[entry._key] : null;
+  if (!full) return entry;
+  ["card_set_id", "card_name", "card_image", "card_color", "card_type", "set_id"].forEach(function (k) {
+    if (entry[k] == null && full[k] != null) entry[k] = full[k];
+  });
+  return entry;
+}
+function hydrateDeckObj(deck) {
+  if (!deck) return deck;
+  ["leader", "legend"].forEach(function (k) { if (deck[k]) hydrateDeckEntry(deck[k]); });
+  ["cards", "dons", "champions", "runes", "battlefields", "sideboard"].forEach(function (k) {
+    (deck[k] || []).forEach(hydrateDeckEntry);
+  });
+  return deck;
+}
+function hydrateDecks() {
+  try {
+    Object.values(typeof collections !== "undefined" ? collections : {}).forEach(function (col) {
+      if (col && col.subtype === "deck") hydrateDeckObj(col);
+    });
+    Object.values(typeof ventaCols !== "undefined" ? ventaCols : {}).forEach(function (col) {
+      if (col && col.subtype === "deck") hydrateDeckObj(col);
+    });
+  } catch (e) {}
 }
 function rebuildLocalFallback() {
   const key = collectionsKey();
@@ -986,7 +1014,7 @@ async function reloadVentaFromDb() {
         const deckObj = {
           id: b.id, name: b.name, subtype: "deck",
           cards: deck.cards, is_public: b.is_public || false,
-          display_mode: mode, tcg: tcgVal, totalCurrency: cfg.totalCurrency || "ARS", _synced: true
+          display_mode: mode, tcg: tcgVal, totalCurrency: cfg.totalCurrency || "ARS", extras: cfg.extras || "", _synced: true
         };
         if (tcgVal === "riftbound") {
           deckObj.legend = deck.legend;

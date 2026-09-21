@@ -76,7 +76,7 @@ function populateProfileForm(profile) {
 // ponytail: cambio de idioma instantáneo (Guardar lo persiste en Supabase)
 document.getElementById("profileLanguage")?.addEventListener("change", function(e) { if (typeof setLang === "function") setLang(e.target.value); });
 
-// ─── Subscription / crew ──────────────────────────────────────────────────
+// ─── Crew ─────────────────────────────────────────────────────────────
 
 async function renderPlanBlock(profile) {
   const box = document.getElementById("planBlock");
@@ -96,7 +96,7 @@ async function renderPlanBlock(profile) {
     const used = await getMySpaceUsage();
     html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + t("prof.usage", { used: used, spaces: (plan.isAdmin ? "∞" : lim.spaces), cards: (lim.cards == null ? t("prof.cards_unlimited") : t("prof.cards_upto", { n: lim.cards })) }) + "</p>";
   }
-  // ponytail: todos eligen (10 + custom); límites de plan intactos
+  // ponytail: todos eligen (10 + custom tripulación/personaje); techo único 30/1000
   const crews = (typeof CREWS !== "undefined") ? CREWS : [];
   html += '<p class="profile-field-hint" style="margin-bottom:var(--space-2)">' + t("prof.crew_title") + '</p><div class="crew-grid" id="crewGrid">' +
     crews.map(function(c) {
