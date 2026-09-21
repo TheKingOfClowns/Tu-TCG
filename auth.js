@@ -35,25 +35,15 @@ function isAuthenticated() { return !!authUser; }
 // ─── Auth Actions ────────────────────────────────────────────────────────
 
 async function signUp(email, password, username, firstName, lastName) {
+  // ponytail: sin escritura a profiles — trigger handle_new_user() crea fila (SECURITY DEFINER, sin RLS race)
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password,
     options: {
-      data: { username, display_name: username }
+      data: { username, display_name: username, first_name: firstName, last_name: lastName }
     }
   });
   if (error) throw error;
-
-  if (data?.user) {
-    const { error: profileError } = await supabaseClient.from("profiles").upsert({
-      id: data.user.id,
-      username,
-      display_name: username,
-      first_name: firstName,
-      last_name: lastName
-    });
-    if (profileError) throw profileError;
-  }
 
   return data;
 }
@@ -228,8 +218,10 @@ function hideAuthModal() {
 
 // ponytail: solo mapea strings conocidos de Supabase; si Auth tiene anti-enumeración, email duplicado devuelve éxito falso y no hay error que mapear (pasar a RPC/trigger).
 function friendlyAuthError(err) {
-  const code = err?.code || err?.status || "";
+  const code = String(err?.code || err?.status || "");
   const msg = (err?.message || "").toLowerCase();
+  if (msg.includes("row-level security") || code === "42501")
+    return t("authm.err_auth");
   if (code === "23505" || (msg.includes("duplicate") && msg.includes("username")) || (msg.includes("already exists") && msg.includes("username")))
     return t("authm.err_user_taken");
   if (code === "user_already_exists" || code === "email_exists" || msg.includes("already registered") || msg.includes("already exists") || msg.includes("already been registered"))
