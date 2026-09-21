@@ -121,6 +121,7 @@ function pedirCrearColeccion_OP() {
 
 // ─── Binder Rendering ─────────────────────────────────────────────────────
 function renderBinder_OP() {
+  var _rs = (typeof snapScroll === "function") ? snapScroll() : null;
   const grid = document.getElementById("binderGrid");
   const deckContainer = document.getElementById("binderDeckContainer");
   const trackingHeader = document.getElementById("trackingHeader");
@@ -254,6 +255,7 @@ function renderBinder_OP() {
       }
     });
   }
+  if (_rs) _rs();
 }
 function removeFromCurrentCollection(realIdx) {
   const col = collections[currentCollectionId];

@@ -343,6 +343,19 @@ function getTcgId(carta) {
 function escapeAttr(str) {
   return (str || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+// ponytail: rebuilds colapsan alto (lazy imgs) y el pane salta arriba; congela scroll del pane
+function snapScroll() {
+  var pane = null, st = 0;
+  try {
+    pane = document.querySelector(".view-pane.active");
+    st = pane ? pane.scrollTop : 0;
+  } catch (e) {}
+  return function () {
+    requestAnimationFrame(function () {
+      try { if (pane) pane.scrollTop = st; } catch (e) {}
+    });
+  };
+}
 function showToast(msg, type) {
   const existing = document.querySelector(".toast-notification");
   if (existing) existing.remove();

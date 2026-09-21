@@ -6,6 +6,7 @@ function catalogCardClick(imgEl, e) {
 }
 
 function renderCards() {
+  var _rs = (typeof snapScroll === "function") ? snapScroll() : null;
   var resultado = [...cartas];
   var lang = state.catalog.catalogLanguage || "en";
   var cfg = (typeof tcgConfigs !== "undefined" && tcgConfigs[currentTcg]) || null;
@@ -211,6 +212,7 @@ function renderCards() {
     });
   });
   actualizarBadgesEnPagina();
+  if (_rs) _rs();
 }
 
 // ─── Quick-add helpers (target mode) ──────────────────────────────────────

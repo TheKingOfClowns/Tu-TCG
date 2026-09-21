@@ -508,6 +508,7 @@ function _opAttachDeckEvents(grid, col, isSale, reRender) {
 // ─── Deck View ─────────────────────────────────────────────────────────
 
 function renderDeckView_OP(type, col, grid, title, toggleContainer) {
+  var _rs = (typeof snapScroll === "function") ? snapScroll() : null;
   var isSale = type === "sale";
   if (toggleContainer) {
     toggleContainer.innerHTML = '<button class="deck-io-btn deck-io-export">' + t("deck.export") + '</button><button class="deck-io-btn deck-io-import">' + t("deck.import") + '</button>' + (isAuthenticated() ? '<label class="public-toggle"><span class="public-toggle-label ' + (!col.is_public ? "active" : "") + '">' + t("deck.private") + '</span><input type="checkbox" id="' + (isSale ? "venta" : "binder") + 'PublicCheck" ' + (col.is_public ? "checked" : "") + '><span class="public-toggle-track"><span class="public-toggle-thumb"></span></span><span class="public-toggle-label ' + (col.is_public ? "active" : "") + '">' + t("deck.public") + '</span></label>' : "");
@@ -533,6 +534,7 @@ function renderDeckView_OP(type, col, grid, title, toggleContainer) {
     var deckImBtn = toggleContainer.querySelector(".deck-io-import");
     if (deckImBtn) deckImBtn.onclick = function() { if (typeof openPasteListModal === "function") openPasteListModal(col, isSale, reRender); };
   }
+  if (_rs) _rs();
 }
 function saveDeck_OP(isSale) {
   if (isSale) guardarVenta(); else guardarCollections();

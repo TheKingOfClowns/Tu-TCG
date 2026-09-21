@@ -187,6 +187,7 @@ async function pedirCrearVenta_OP() {
 }
 function openVenta(id) { currentVentaId = id; ventaPage = 1; if (typeof navigateToView === 'function') navigateToView("venta", {id: id}, {}); else mostrarVista("venta"); }
 function renderVentaView() {
+  var _rs = (typeof snapScroll === "function") ? snapScroll() : null;
   const grid = document.getElementById("ventaGrid");
   const deckContainer = document.getElementById("ventaDeckContainer");
   const pagination = document.getElementById("ventaPagination");
@@ -249,6 +250,7 @@ function renderVentaView() {
       }
     });
   }
+  if (_rs) _rs();
 }
 function buildVentaCardHTML_OP(c, globalIdx, mode) {
   const cp = c.customPrice != null ? c.customPrice : 0;
