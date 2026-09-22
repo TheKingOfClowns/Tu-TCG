@@ -145,6 +145,9 @@ function getExploreDisplayCards() {
     if (exploreFilterMode === "faltantes") {
       return targetCards.filter(c => !ownerHas.has(c._key));
     }
+    if (exploreFilterMode === "owned") {
+      return targetCards.filter(c => ownerHas.has(c._key));
+    }
     return targetCards;
   }
   const isDeck = b.config && b.config.subtype === "deck";
@@ -216,12 +219,16 @@ function setupExploreFilters() {
   }
   const allBtn = container.querySelector("[data-filter='all']");
   const faltantesBtn = container.querySelector("[data-filter='faltantes']");
+  const ownedBtn = container.querySelector("[data-filter='owned']");
+  const setActive = (btn) => {
+    [allBtn, faltantesBtn, ownedBtn].forEach(b => b && b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+  };
   if (allBtn) {
     allBtn.addEventListener("click", () => {
       exploreFilterMode = "all";
       exploreDetailPage = 1;
-      if (faltantesBtn) faltantesBtn.classList.remove("active");
-      allBtn.classList.add("active");
+      setActive(allBtn);
       filterExploreCards();
       updateExploreProgress();
     });
@@ -230,8 +237,16 @@ function setupExploreFilters() {
     faltantesBtn.addEventListener("click", () => {
       exploreFilterMode = "faltantes";
       exploreDetailPage = 1;
-      if (allBtn) allBtn.classList.remove("active");
-      faltantesBtn.classList.add("active");
+      setActive(faltantesBtn);
+      filterExploreCards();
+      updateExploreProgress();
+    });
+  }
+  if (ownedBtn) {
+    ownedBtn.addEventListener("click", () => {
+      exploreFilterMode = "owned";
+      exploreDetailPage = 1;
+      setActive(ownedBtn);
       filterExploreCards();
       updateExploreProgress();
     });
@@ -660,6 +675,7 @@ function renderExploreDetail() {
           <input type="text" id="exploreSearchInput" placeholder="${t("expl.search_tracking_ph")}" style="flex:1;min-width:150px;padding:var(--space-2);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
           <button class="explore-filter-btn active" data-filter="all">${t("expl.tab_all")}</button>
           <button class="explore-filter-btn" data-filter="faltantes">${t("expl.filter_missing")}</button>
+          <button class="explore-filter-btn" data-filter="owned">${t("track.filter_owned")}</button>
         </div>
         ` : ""}
       </div>
