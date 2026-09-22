@@ -22,7 +22,7 @@ function renderVentaList_OP() {
     const totalStr = isDeck
       ? `${col.leader ? t("venta.leader_prefix") : ""}${t("venta.count_cards", { n: (col.cards || []).reduce((s, c) => s + (c.quantity || 1), 0) })}${col.dons?.length ? " · " + col.dons.length + " DON" : ""}`
       : `${t("venta.count_cards", { n: col.cards.reduce((s, c) => s + (c.quantity || 1), 0) })}`;
-    const badgeText = isDeck ? t("venta.badge_deck") : (col.display_mode === "playset" ? t("venta.badge_playset") : col.display_mode === "editable" ? t("venta.badge_editable") : t("venta.badge_individual"));
+    const badgeText = isDeck ? t("venta.badge_deck") : t("venta.badge_stock");
     const div = document.createElement("div");
     div.className = "binder-cover-card";
     div.innerHTML = `
@@ -161,25 +161,9 @@ async function pedirCrearVenta_OP() {
     title: t("venta.create_title"),
     confirmText: t("venta.create"),
     placeholder: t("venta.create_name_ph"),
-    extraHTML: `
-      <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("venta.type_label")}</label>
-      <select id="createVentaSubtype" onchange="document.getElementById('createVentaModeRow').style.display=this.value==='binder'?'':'none'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-        <option value="binder">${t("venta.opt_binder")}</option>
-        <option value="deck">${t("venta.opt_deck_op")}</option>
-      </select>
-      <div id="createVentaModeRow">
-        <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">${t("venta.mode_label")}</label>
-        <select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
-          <option value="individual">${t("venta.opt_individual")}</option>
-          <option value="playset">${t("venta.opt_playset_op")}</option>
-          <option value="editable">${t("venta.opt_editable")}</option>
-        </select>
-      </div>`,
     onConfirm: (nombre) => {
-      const subtype = document.getElementById("createVentaSubtype")?.value || "binder";
-      const mode = document.getElementById("createVentaMode")?.value || "individual";
       const id = generarId();
-      ventaCols[id] = { id, name: nombre.trim(), subtype, cards: [], leader: null, dons: [], is_public: false, display_mode: mode, tcg: currentTcg || "one-piece" };
+      ventaCols[id] = { id, name: nombre.trim(), subtype: "binder", cards: [], is_public: false, display_mode: "stock", tcg: currentTcg || "one-piece" };
       guardarVenta();
       renderVentaList_OP();
     }
@@ -188,6 +172,7 @@ async function pedirCrearVenta_OP() {
 function openVenta(id) { currentVentaId = id; ventaPage = 1; if (typeof navigateToView === 'function') navigateToView("venta", {id: id}, {}); else mostrarVista("venta"); }
 function renderVentaView() {
   var _rs = (typeof snapScroll === "function") ? snapScroll() : null;
+  try {
   const grid = document.getElementById("ventaGrid");
   const deckContainer = document.getElementById("ventaDeckContainer");
   const pagination = document.getElementById("ventaPagination");
@@ -213,7 +198,8 @@ function renderVentaView() {
   if (clearPB) clearPB.textContent = t("venta.clear_page_btn");
   if (clearAB) clearAB.textContent = t("venta.clear_all_btn");
   title.textContent = col.name;
-  const mode = col.display_mode || "individual";
+  if (typeof normalizeVentaCol === "function" && col.subtype !== "deck" && col.display_mode !== "stock") { normalizeVentaCol(col); guardarVenta(); }
+  const mode = col.subtype === "deck" ? "deck" : "stock";
   if (toggleContainer) {
     toggleContainer.innerHTML = isAuthenticated() ? `
       <label class="public-toggle">
@@ -229,13 +215,11 @@ function renderVentaView() {
     if (chk) chk.onchange = () => toggleBinderPublic(currentVentaId);
   }
   if (modeContainer) {
-    const labels = { individual: t("venta.badge_individual"), playset: t("venta.badge_playset"), editable: t("venta.badge_editable") };
-    modeContainer.innerHTML = `<span class="venta-mode-badge">${labels[mode] || mode}</span>`;
+    modeContainer.innerHTML = mode === "deck" ? "" : `<span class="venta-mode-badge">${t("venta.badge_stock")}</span>`;
   }
   grid.innerHTML = "";
-  if (mode === "individual") renderVentaIndividual(col, grid);
-  else if (mode === "playset") renderVentaGrouped(col, grid, "playset");
-  else if (mode === "editable") renderVentaGrouped(col, grid, "editable");
+  if (mode === "deck") return;
+  renderVentaStock(col, grid);
   if (!grid.hasAttribute("data-empty-click")) {
     grid.setAttribute("data-empty-click", "1");
     grid.addEventListener("click", function(e) {
@@ -250,7 +234,7 @@ function renderVentaView() {
       }
     });
   }
-  if (_rs) _rs();
+  } finally { if (_rs) _rs(); }
 }
 function buildVentaCardHTML_OP(c, globalIdx, mode) {
   const cp = c.customPrice != null ? c.customPrice : 0;
@@ -261,15 +245,8 @@ function buildVentaCardHTML_OP(c, globalIdx, mode) {
     (() => { const r = obtenerRareza(fullCard); if (fullCard.set_id === "PRB-01" || fullCard.set_id === "PRB-02") return ["Reprint","Jolly Roger","Full Art","AA","Textured Foil","Manga","SP"].includes(r) ? r : ""; return r; })() : "";
   const printType = fullCard?.print_type || c.print_type || "";
   const setId = (data.category || data.producto) === "DON" ? (data.variant || "") : (data.card_set_id || "");
-  let qtyHTML = "";
-  if (mode === "playset") {
-    const q = c.quantity || 1;
-    const psTag = q >= 4 ? `<span class="card-ps-badge">PS</span>` : "";
-    qtyHTML = `<div class="venta-qty-control"><button class="venta-qty-btn" data-action="decr" data-ventaidx="${globalIdx}" data-mode="${mode}">&minus;</button><span class="venta-qty-value">${q}</span><button class="venta-qty-btn" data-action="incr" data-ventaidx="${globalIdx}" data-mode="${mode}">+</button>${psTag}</div>`;
-  } else if (mode === "editable") {
-    const qe = c.quantity || 1;
-        qtyHTML = `<div class="venta-qty-control"><button class="venta-qty-btn" data-action="decr" data-ventaidx="${globalIdx}" data-mode="${mode}">&minus;</button><input type="number" class="venta-qty-input venta-qty-value" value="${qe}" min="1" max="50" data-ventaidx="${globalIdx}"><button class="venta-qty-btn" data-action="incr" data-ventaidx="${globalIdx}" data-mode="${mode}">+</button></div>`;
-  }
+  const q = Math.min(c.quantity || 1, window.VENTA_STOCK_MAX || 20);
+  const qtyHTML = `<div class="venta-qty-control"><button class="venta-qty-btn" data-action="decr" data-ventaidx="${globalIdx}" data-mode="stock">&minus;</button><input type="number" class="venta-qty-input venta-qty-value" value="${q}" min="1" max="20" data-ventaidx="${globalIdx}"><button class="venta-qty-btn" data-action="incr" data-ventaidx="${globalIdx}" data-mode="stock">+</button></div>`;
   return `
     <div class="card-img-wrap">
       <img src="${c.card_image || fullCard?.card_image || 'TUTCG.webp'}" onerror="this.src='TUTCG.webp'" loading="lazy">
@@ -292,54 +269,32 @@ function buildVentaCardHTML_OP(c, globalIdx, mode) {
     </div>
     <button class="binder-remove" data-ventaidx="${globalIdx}" data-mode="${mode}">&times;</button>`;
 }
-function renderVentaIndividual_OP(col, grid) {
+function renderVentaStock(col, grid) { return window.renderVentaGrouped(col, grid, "stock"); }
+function renderVentaIndividual_OP(col, grid) { return renderVentaGrouped_OP(col, grid, "stock"); }
+function renderVentaGrouped_OP(col, grid, mode) {
+  if (mode !== "stock") mode = "stock";
   const _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
-  const totalPages = Math.max(1, Math.ceil(col.cards.length / _pgSize));
+  const totalPages = Math.max(1, Math.ceil((col.cards || []).length / _pgSize));
+  if (ventaPage > totalPages) ventaPage = totalPages; // ponytail: página vacía = salto arriba
   const start = (ventaPage - 1) * _pgSize;
-  const pageCards = col.cards.slice(start, start + _pgSize);
+  const pageCards = (col.cards || []).slice(start, start + _pgSize);
   for (let i = 0; i < _pgSize; i++) {
     const slot = document.createElement("div");
     const globalIdx = start + i;
-    slot.className = "card";
+    slot.className = "card venta-slot venta-grouped";
     slot.setAttribute("data-global", globalIdx);
     if (pageCards[i]) {
       const c = pageCards[i];
-      slot.className = "card venta-slot";
-      slot.setAttribute("draggable", "true");
       slot.setAttribute("data-key", c._key || "");
       slot.setAttribute("data-cardkey", c._key || "");
-      slot.innerHTML = buildVentaCardHTML_OP(c, globalIdx, "individual");
+      slot.innerHTML = buildVentaCardHTML_OP(c, globalIdx, "stock");
     } else {
       slot.innerHTML = '<div class="binder-empty">+</div>';
     }
     grid.appendChild(slot);
   }
-  attachVentaEvents_OP(col, "individual", grid, totalPages);
-}
-function renderVentaGrouped_OP(col, grid, mode) {
-  const cards = col.cards || [];
-  const _pgSize = pageSizeFor(grid, 3).size; // ponytail: 3 filas exactas
-  const totalPages = Math.max(1, Math.ceil(cards.length / _pgSize));
-  const start = (ventaPage - 1) * _pgSize;
-  const pageCards = cards.slice(start, start + _pgSize);
-  for (let i = 0; i < _pgSize; i++) {
-    const globalIdx = start + i;
-    const slot = document.createElement("div");
-    if (pageCards[i]) {
-      const c = pageCards[i];
-      slot.className = "card venta-slot venta-grouped";
-      slot.setAttribute("data-key", c._key || "");
-      slot.setAttribute("data-cardkey", c._key || "");
-      slot.setAttribute("data-global", globalIdx);
-      slot.innerHTML = buildVentaCardHTML_OP(c, globalIdx, mode);
-    } else {
-      slot.className = "card venta-slot venta-grouped";
-      slot.setAttribute("data-global", globalIdx);
-      slot.innerHTML = '<div class="binder-empty">+</div>';
-    }
-    grid.appendChild(slot);
-  }
-  attachVentaEvents_OP(col, mode, grid, totalPages);
+  attachVentaEvents_OP(col, "stock", grid, totalPages);
+  setupVentaSplit(grid, col);
 }
 function attachVentaEvents_OP(col, mode, grid, totalPages) {
   // Remove buttons
@@ -347,15 +302,10 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       const idx = parseInt(btn.getAttribute("data-ventaidx"));
-      const btnMode = btn.getAttribute("data-mode") || "individual";
-      if (btnMode === "individual") {
-        removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
-      } else {
-        const entry = col.cards.find((_, i) => i === idx);
-        if (!entry) return;
-        if (entry.quantity > 1) { entry.quantity--; guardarVenta(); renderVentaView(); }
-        else removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
-      }
+      const entry = col.cards.find((_, i) => i === idx);
+      if (!entry) return;
+      if ((entry.quantity || 1) > 1) { entry.quantity--; guardarVenta(); renderVentaView(); }
+      else removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
     });
   });
   // Price inputs
@@ -388,11 +338,10 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
     btn.addEventListener("click", async e => {
       e.stopPropagation();
       const idx = parseInt(btn.getAttribute("data-ventaidx"));
-      const btnMode = btn.getAttribute("data-mode") || "playset";
       const col = ventaCols[currentVentaId];
       if (!col || !col.cards[idx]) return;
-      const max = btnMode === "editable" ? 50 : 4;
-      if (col.cards[idx].quantity >= max) return;
+      const max = window.VENTA_STOCK_MAX || 20;
+      if ((col.cards[idx].quantity || 1) >= max) return;
       if (typeof overCardCap === "function" && await overCardCap(col, 1)) {
         const plan = (typeof getMyPlan === "function") ? await getMyPlan() : null;
         if (typeof showToast === "function") showToast(upsellMsg("cards", plan), "error");
@@ -400,7 +349,7 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       }
       col.cards[idx].quantity++;
       guardarVenta();
-      renderVentaView();
+      ventaSyncQtyInput(btn, idx);
     });
   });
   grid.querySelectorAll(".venta-qty-btn[data-action='decr']").forEach(btn => {
@@ -409,11 +358,11 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       const idx = parseInt(btn.getAttribute("data-ventaidx"));
       const col = ventaCols[currentVentaId];
       if (!col || !col.cards[idx]) return;
-      if (col.cards[idx].quantity > 1) { col.cards[idx].quantity--; guardarVenta(); renderVentaView(); }
+      if (col.cards[idx].quantity > 1) { col.cards[idx].quantity--; guardarVenta(); ventaSyncQtyInput(btn, idx); }
       else removeEntryWithUndo(col, idx, guardarVenta, renderVentaView);
     });
   });
-  // Quantity inputs (editable mode)
+  // Quantity inputs (stock 1-20)
   grid.querySelectorAll(".venta-qty-input").forEach(inp => {
     inp.addEventListener("change", async () => {
       const idx = parseInt(inp.getAttribute("data-ventaidx"));
@@ -421,16 +370,17 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
       if (!col || !col.cards[idx]) return;
       const val = parseInt(inp.value);
       if (val < 1) { removeEntryWithUndo(col, idx, guardarVenta, renderVentaView); return; }
-      const delta = Math.min(val, 50) - (col.cards[idx].quantity || 1);
+      const capped = Math.min(val, window.VENTA_STOCK_MAX || 20);
+      const delta = capped - (col.cards[idx].quantity || 1);
       if (delta > 0 && typeof overCardCap === "function" && await overCardCap(col, delta)) {
         const plan = (typeof getMyPlan === "function") ? await getMyPlan() : null;
         if (typeof showToast === "function") showToast(upsellMsg("cards", plan), "error");
-        renderVentaView();
+        inp.value = col.cards[idx].quantity || 1;
         return;
       }
-      col.cards[idx].quantity = Math.min(val, 50);
+      col.cards[idx].quantity = capped;
       guardarVenta();
-      renderVentaView();
+      inp.value = capped;
     });
   });
   // Click to open card modal
@@ -451,6 +401,52 @@ function attachVentaEvents_OP(col, mode, grid, totalPages) {
   document.getElementById("ventaPrevBtn").disabled = ventaPage <= 1;
   document.getElementById("ventaNextBtn").disabled = ventaPage >= totalPages;
   document.getElementById("ventaPageInfo").textContent = t("venta.page", { a: ventaPage, b: totalPages });
+}
+
+// ponytail: +/−/input no reconstruyen (el rebuild reseteaba scroll); solo pintan el número
+function ventaSyncQtyInput(fromEl, idx) {
+  try {
+    const col = ventaCols[currentVentaId];
+    const slot = fromEl && fromEl.closest ? fromEl.closest(".venta-slot, .venta-card") : null;
+    const inp = slot ? slot.querySelector(".venta-qty-input") : grid_safe_query(idx);
+    if (inp) inp.value = (col && col.cards[idx] && col.cards[idx].quantity) || 1;
+  } catch (e) {}
+}
+function grid_safe_query(idx) {
+  try {
+    const grid = document.getElementById("ventaGrid");
+    const slot = grid ? grid.querySelector('[data-global="' + idx + '"]') : null;
+    return slot ? slot.querySelector(".venta-qty-input") : null;
+  } catch (e) { return null; }
+}
+// ponytail: swipe horizontal crea copia qty1 misma carta (cada stack tope 20, N stacks)
+function setupVentaSplit(grid, col) {
+  if (!grid || grid._splitBound) return;
+  grid._splitBound = true;
+  let sx = 0, sy = 0, target = null;
+  grid.addEventListener("pointerdown", e => {
+    const slot = e.target.closest(".venta-slot");
+    if (!slot || e.target.closest("button,input")) return;
+    sx = e.clientX; sy = e.clientY; target = slot;
+  });
+  grid.addEventListener("pointerup", async e => {
+    if (!target) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    const slot = target; target = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > 30) return;
+    const idx = parseInt(slot.getAttribute("data-global"));
+    const cur = ventaCols[currentVentaId];
+    if (!cur || !cur.cards[idx]) return;
+    if (typeof overCardCap === "function" && await overCardCap(cur, 1)) {
+      if (typeof showToast === "function") showToast(t("venta.split_cap"), "error");
+      return;
+    }
+    const src = cur.cards[idx];
+    const copy = Object.assign({}, src, { quantity: 1 });
+    cur.cards.splice(idx + 1, 0, copy);
+    guardarVenta(); renderVentaView();
+    if (typeof showToast === "function") showToast(t("venta.split_ok"), "success");
+  });
 }
 
 // ─── Venta view events (bound here: renderVentaView is defined in this file) ──

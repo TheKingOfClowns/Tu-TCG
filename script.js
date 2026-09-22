@@ -345,14 +345,25 @@ function escapeAttr(str) {
 }
 // ponytail: rebuilds colapsan alto (lazy imgs) y el pane salta arriba; congela scroll del pane
 function snapScroll() {
-  var pane = null, st = 0;
+  var pane = null, st = 0, wst = 0, sh = 0;
   try {
     pane = document.querySelector(".view-pane.active");
     st = pane ? pane.scrollTop : 0;
+    sh = pane ? pane.scrollHeight : 0;
+    wst = window.scrollY || 0;
+    if (window._DEBUG) console.info("[snap] cap", pane && pane.id, st, sh);
   } catch (e) {}
   return function () {
     requestAnimationFrame(function () {
-      try { if (pane) pane.scrollTop = st; } catch (e) {}
+      requestAnimationFrame(function () {
+        try {
+          if (pane) {
+            if (window._DEBUG) console.info("[snap] restore", pane.id, st, pane.scrollHeight);
+            pane.scrollTop = st;
+          }
+          if ((window.scrollY || 0) !== wst) window.scrollTo(0, wst);
+        } catch (e) {}
+      });
     });
   };
 }
@@ -365,6 +376,8 @@ function showToast(msg, type) {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
+// ponytail: alert() bloqueante → toast no bloqueante (25 llamados en deck/modals quedan intactos)
+try { window.alert = function(m) { showToast(String(m == null ? "" : m), "error"); }; } catch (e) {}
 // ponytail: Deshacer de un solo nivel; una quitada nueva pisa la anterior
 var _lastRemoval = null;
 var _undoTimer = null;
@@ -416,6 +429,42 @@ function getCardKey(carta) {
   const base = (carta.card_set_id || "") + "|" + (carta.card_name || "") + "|" + (carta.card_image || "");
   if (tcgId) return "tcg_" + tcgId + "|" + base;
   return base;
+}
+// ponytail: venta única stock 20 por stack (N stacks por carta); decks legacy intactos
+window.VENTA_STOCK_MAX = 20;
+function normalizeVentaCol(col) {
+  if (!col || col.subtype === "deck") return col;
+  if (col.display_mode === "stock") return col;
+  var cards = col.cards || [];
+  if (col.display_mode === "individual") {
+    var byKey = {};
+    cards.forEach(function(c) {
+      var k = c._key || "";
+      if (!byKey[k]) byKey[k] = { proto: c, qty: 0 };
+      byKey[k].qty += (c.quantity || 1);
+    });
+    cards = [];
+    Object.keys(byKey).forEach(function(k) {
+      var e = byKey[k], left = e.qty;
+      while (left > 0) {
+        var q = Math.min(left, window.VENTA_STOCK_MAX);
+        var nc = Object.assign({}, e.proto, { _key: k, quantity: q });
+        cards.push(nc); left -= q;
+      }
+    });
+  } else {
+    var out = [];
+    cards.forEach(function(c) {
+      var left = (c.quantity || 1);
+      while (left > window.VENTA_STOCK_MAX) { out.push(Object.assign({}, c, { quantity: window.VENTA_STOCK_MAX })); left -= window.VENTA_STOCK_MAX; }
+      out.push(Object.assign({}, c, { quantity: left }));
+    });
+    cards = out;
+  }
+  col.cards = cards;
+  col.display_mode = "stock";
+  col._synced = false;
+  return col;
 }
 // ─── Collections / Supabase + LocalStorage ──────────────────────────────
 function guardarCollections() {
@@ -655,6 +704,18 @@ async function syncObjectToSupabase(obj, type) {
       if (binder.checklist_mode) config.checklist_mode = true;
       if (binder.totalCurrency) config.totalCurrency = binder.totalCurrency;
       if (binder.extras) config.extras = binder.extras;
+      if (type === "sale" && binder.subtype !== "deck") {
+        // ponytail: baseline para alerta <30% (máximo publicado por carta)
+        try {
+          const totals = {};
+          (binder.cards || []).forEach(function(c) { totals[c._key] = (totals[c._key] || 0) + (c.quantity || 1); });
+          const prev = (binder._baseline || {});
+          Object.keys(totals).forEach(function(k) { prev[k] = Math.max(prev[k] || 0, totals[k]); });
+          binder._baseline = prev;
+          config.stock_baseline = prev;
+          if (binder._lowNotified) config.low_notified = binder._lowNotified;
+        } catch (e) {}
+      }
       const { error: upsertErr } = await supabaseClient.from("binders").upsert({
         id,
         user_id: authUser.id,
@@ -1042,12 +1103,14 @@ async function reloadVentaFromDb() {
         ventaCols[b.id] = deckObj;
       } else {
         const expandFn = mode === "individual" ? expandDbCards : expandDbCardsGrouped;
-        ventaCols[b.id] = {
+        var vc = {
           id: b.id, name: b.name, subtype: "binder",
           cards: expandFn(b.binder_cards),
           is_public: b.is_public || false, display_mode: mode, tcg: cfg.tcg || "one-piece",
-          totalCurrency: cfg.totalCurrency || "ARS", _synced: true
+          totalCurrency: cfg.totalCurrency || "ARS", _synced: true,
+          _baseline: cfg.stock_baseline || {}, _lowNotified: cfg.low_notified || []
         };
+        ventaCols[b.id] = normalizeVentaCol(vc);
       }
     });
     localStorage.setItem(ventaKey(), JSON.stringify(ventaCols));

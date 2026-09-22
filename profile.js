@@ -45,8 +45,10 @@ function populateProfileForm(profile) {
     if (typeof setLang === "function") setLang(eff);
   } catch (e) {}
 
-  const notifEl = document.getElementById("profileNotifications");
-  if (notifEl) notifEl.checked = profile?.preferences?.notifications !== false;
+  const notifEl = document.getElementById("profileNotifySales");
+  if (notifEl) notifEl.checked = (profile?.preferences?.notify_sales ?? profile?.preferences?.notifications) !== false;
+  const notifLowEl = document.getElementById("profileNotifyLow");
+  if (notifLowEl) notifLowEl.checked = (profile?.preferences?.notify_low_stock ?? profile?.preferences?.notifications) !== false;
 
   const tutEl = document.getElementById("profileShowTutorial");
   if (tutEl) {
@@ -311,12 +313,13 @@ async function handleProfileSave(e) {
     return false;
   }
 
-  const preferences = {
+  const preferences = Object.assign({}, (typeof currentProfile !== "undefined" && currentProfile?.preferences) || {}, {
     language: document.getElementById("profileLanguage")?.value || "es",
     currency: document.getElementById("profileCurrency")?.value || "USD",
-    notifications: document.getElementById("profileNotifications")?.checked,
+    notify_sales: document.getElementById("profileNotifySales")?.checked ?? true,
+    notify_low_stock: document.getElementById("profileNotifyLow")?.checked ?? true,
     tutorial_mode: document.getElementById("profileShowTutorial")?.value || "once"
-  };
+  });
 
   const updates = {
     first_name: document.getElementById("profileFirstName")?.value || null,

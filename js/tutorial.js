@@ -5,7 +5,13 @@
 var TOUR_FLOWS = {
   home: [
     { sel: null, mode: "info", t: "tut.hh1t", d: "tut.hh1d", view: null },
-    { sel: null, mode: "info", t: "tut.hh2t", d: "tut.hh2d", view: null },
+    { sels: ["#sidebarHome", "#bottomHome"], mode: "info", t: "tut.hn1t", d: "tut.hn1d", view: null },
+    { sels: ["#sidebarCatalog", "#bottomCatalog"], mode: "info", t: "tut.hn2t", d: "tut.hn2d", view: null },
+    { sels: ["#sidebarColecciones", "#bottomColecciones"], mode: "info", t: "tut.hn3t", d: "tut.hn3d", view: null },
+    { sels: ["#sidebarVenta", "#bottomVenta"], mode: "info", t: "tut.hn4t", d: "tut.hn4d", view: null },
+    { sels: ["#sidebarExplore", "#bottomExplore"], mode: "info", t: "tut.hn5t", d: "tut.hn5d", view: null },
+    { sels: ["#sidebarProfile", "#userBtn"], mode: "info", t: "tut.hn6t", d: "tut.hn6d", view: null },
+    { sel: "#notifBell", mode: "info", t: "tut.hn7t", d: "tut.hn7d", view: null, when: "authed", soft: true },
     { sel: null, mode: "info", t: "tut.hh3t", d: "tut.hh3d", view: null }
   ],
   catalog: [
@@ -31,9 +37,7 @@ var TOUR_FLOWS = {
     { sel: "#createColSubtype", mode: "tap", t: "tut.hm2t", d: "tut.hm2d", view: null, needsModal: "createModalOverlay" }
   ],
   create_venta: [
-    { sel: "#createModalInput", mode: "info", t: "tut.hv1t", d: "tut.hv1d", view: null, needsModal: "createModalOverlay" },
-    { sel: "#createVentaSubtype", mode: "tap", t: "tut.hv2t", d: "tut.hv2d", view: null, needsModal: "createModalOverlay" },
-    { sel: "#createVentaMode", mode: "info", t: "tut.hv3t", d: "tut.hv3d", view: null, needsModal: "createModalOverlay" }
+    { sel: "#createModalInput", mode: "info", t: "tut.hv1t", d: "tut.hv1d", view: null, needsModal: "createModalOverlay" }
   ],
   create_tracking: [
     { sel: "#trackingNameInput", mode: "info", t: "tut.ht1t", d: "tut.ht1d", view: null, needsModal: "trackingModalOverlay" },
@@ -73,6 +77,7 @@ var TOUR_FLOWS = {
     { sel: ".venta-price-input", mode: "info", t: "tut.hw1t", d: "tut.hw1d", view: null, soft: true },
     { sel: ".venta-currency-toggle", mode: "info", t: "tut.hw2t", d: "tut.hw2d", view: null, soft: true },
     { sel: ".venta-qty-btn", mode: "info", t: "tut.hw3t", d: "tut.hw3d", view: null, when: "ventaQty", soft: true },
+    { sel: ".venta-slot", mode: "info", t: "tut.hw6t", d: "tut.hw6d", view: null, when: "ventaQty", soft: true },
     { sel: "#ventaClearAllBtn", mode: "info", t: "tut.hw4t", d: "tut.hw4d", view: null },
     { sel: "#ventaModeContainer", mode: "info", t: "tut.hw5t", d: "tut.hw5d", view: null }
   ],
@@ -86,6 +91,7 @@ var TOUR_FLOWS = {
     { sel: ".explore-filter-btn[data-filter='missing']", mode: "info", t: "tut.he4t", d: "tut.he4d", view: null, when: "exploreTracking", wait: 20000 },
     { sel: ".explore-progress", mode: "info", t: "tut.he7t", d: "tut.he7d", view: null, when: "exploreTracking", wait: 20000 },
     { sel: ".explore-sale-totals", mode: "info", t: "tut.he8t", d: "tut.he8d", view: null, when: "exploreSale" },
+    { sel: ".cart-row", mode: "info", t: "tut.he10t", d: "tut.he10d", view: null, when: "exploreSale" },
     { sel: ".viewopts-gear", mode: "info", t: "tut.he9t", d: "tut.he9d", view: null, when: "exploreSale" }
   ],
   profile: [
@@ -284,8 +290,10 @@ function tourVentaMode() {
     var id = (typeof currentVentaId !== "undefined") ? currentVentaId : null;
     var cols = (typeof ventaCols !== "undefined") ? ventaCols : {};
     var col = id ? cols[id] : null;
-    return (col && col.display_mode) || "individual";
-  } catch (e) { return "individual"; }
+    if (!col) return "stock";
+    if (col.subtype === "deck") return "deck";
+    return "stock";
+  } catch (e) { return "stock"; }
 }
 // when: filtro al arrancar (numeración exacta, sin fantasmas); acepta fn
 function tourWhenOk(step) {
@@ -293,7 +301,8 @@ function tourWhenOk(step) {
     if (!step.when) return true;
     if (typeof step.when === "function") return !!step.when();
     if (step.when === "plus") return !!tourTarget(".card-actions .plus-btn");
-    if (step.when === "ventaQty") return tourVentaMode() !== "individual";
+    if (step.when === "authed") return (typeof isAuthenticated === "function") && isAuthenticated();
+    if (step.when === "ventaQty") return tourVentaMode() === "stock";
     if (step.when === "exploreTracking") {
       var b = (typeof exploreDetailBinder !== "undefined") ? exploreDetailBinder : null;
       var cfg = b ? (b.config || {}) : {};
@@ -520,6 +529,7 @@ function tourEnd(mark) {
 function tourSectionEnter(vista) {
   try {
     if (_tourSelfNav) return; // ponytail: navegación del propio tour no lo mata
+    if (!window._tourProfileReady) { window._tourPendingView = vista; return; } // ponytail: sin perfil, tourMode miente (off parece once)
     if (_tourFlow) {
       // ponytail: cambiaste de sección a mitad del tour → cierra sin marcar y arranca la que toca
       var cur = _tourFlow;
@@ -563,7 +573,7 @@ function tourModalEnter(kind) {
     if (kind === "tracking") flow = "create_tracking";
     else if (kind === "create") {
       var isVenta = false;
-      try { isVenta = !!tourTarget("#createVentaSubtype"); } catch (e) {}
+      try { var av = document.querySelector(".view-pane.active"); isVenta = !!(av && av.id === "ventaManager"); } catch (e) {}
       flow = isVenta ? "create_venta" : "create_binder";
     }
     if (!flow || tourFlowSeen(flow)) return;
@@ -584,9 +594,20 @@ document.getElementById("profileLanguage")?.addEventListener("change", function(
 if (typeof onAuthChange === "function") onAuthChange(async function(user) {
   // ponytail: perfil primero para respetar toggle; home hace bienvenida
   try {
+    if (user && !_tourFlow && typeof loadProfile === "function") { try { await loadProfile(); } catch (e) {} }
+    window._tourProfileReady = true;
+    tourReplayPending();
     if (!user || _tourFlow) return;
-    if (typeof loadProfile === "function") { try { await loadProfile(); } catch (e) {} }
     if (!tourEnabled() || tourFlowSeen("home")) return;
     setTimeout(function() { if (!_tourFlow && tourEnabled() && !tourFlowSeen("home")) startTour("home"); }, 1500);
-  } catch (e) {}
+  } catch (e) { window._tourProfileReady = true; tourReplayPending(); }
 });
+function tourReplayPending() {
+  try {
+    var v = window._tourPendingView || null;
+    window._tourPendingView = null;
+    if (v && !_tourFlow && typeof tourSectionEnter === "function") tourSectionEnter(v);
+  } catch (e) {}
+}
+// ponytail: si auth nunca resuelve (invitado sin evento), no colgar el tour
+setTimeout(function() { if (!window._tourProfileReady) { window._tourProfileReady = true; tourReplayPending(); } }, 4000);

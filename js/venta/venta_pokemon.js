@@ -23,12 +23,9 @@ async function pedirCrearVenta_PK() {
     title: t("venta.create_title"),
     confirmText: t("venta.create"),
     placeholder: t("venta.create_name_ph"),
-    extraHTML: '<label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("venta.type_label") + '</label><select id="createVentaSubtype" onchange="document.getElementById(\'createVentaModeRow\').style.display=this.value===\'binder\'?\'\':\'none\'" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none"><option value="binder">' + t("venta.opt_binder") + '</option><option value="deck">' + t("venta.opt_deck_pk") + '</option></select><div id="createVentaModeRow"><label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-2) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em">' + t("venta.mode_label") + '</label><select id="createVentaMode" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none"><option value="individual">' + t("venta.badge_individual") + '</option><option value="playset">' + t("venta.opt_playset_pk") + '</option><option value="editable">' + t("venta.opt_editable_pk") + '</option></select></div>',
     onConfirm: function(nombre) {
-      var subtype = (document.getElementById("createVentaSubtype") && document.getElementById("createVentaSubtype").value) || "binder";
-      var mode = (document.getElementById("createVentaMode") && document.getElementById("createVentaMode").value) || "individual";
       var id = generarId();
-      ventaCols[id] = { id: id, name: nombre.trim(), subtype: subtype, cards: [], is_public: false, display_mode: mode, tcg: currentTcg || "pokemon" };
+      ventaCols[id] = { id: id, name: nombre.trim(), subtype: "binder", cards: [], is_public: false, display_mode: "stock", tcg: currentTcg || "pokemon" };
       guardarVenta();
       renderVentaList();
     }
@@ -56,7 +53,7 @@ function renderVentaList_PK() {
     var coverImg = getFirstCardImage(col.cards, col);
     var isDeck = col.subtype === "deck";
     var totalStr = isDeck ? t("venta.count_cards", { n: (col.cards || []).reduce(function(s, c) { return s + (c.quantity || 1); }, 0) }) : t("venta.count_cards", { n: col.cards.reduce(function(s, c) { return s + (c.quantity || 1); }, 0) });
-    var badgeText = isDeck ? t("venta.badge_deck") : (col.display_mode === "playset" ? t("venta.badge_playset") : col.display_mode === "editable" ? t("venta.badge_editable") : t("venta.badge_individual"));
+    var badgeText = isDeck ? t("venta.badge_deck") : t("venta.badge_stock");
     var div = document.createElement("div");
     div.className = "binder-cover-card";
     var tp = getTotalPrice(col);

@@ -127,11 +127,13 @@ function renderExploreDetailCards(cards, grid, b, navList, base) {
         <h3>${formatearNombre(carta)}</h3>
         <span class="card-set-id">${carta.card_set_id || ""}</span>
         ${b.type === "sale" && row.price != null ? `<div class="card-price">$${parseFloat(row.price).toFixed(2)} <span class="${row.price_currency === "USD" ? "usd" : ""}" style="font-size:11px;font-family:var(--font-mono);font-weight:bold;color:${row.price_currency === "USD" ? "#ffd700" : "var(--accent)"}">${row.price_currency || "ARS"}</span></div>` : ""}
+        ${b.type === "sale" ? `<div class="cart-row" data-cardid="${row._key || row.card_id || ""}" data-stock="${qty}"></div>` : ""}
       </div>`;
     const startIdx = navList ? _base + idx : undefined;
-    div.addEventListener("click", () => openCardInModal(carta, navList, startIdx));
+    div.addEventListener("click", (e) => { if (e.target.closest(".cart-row")) return; openCardInModal(carta, navList, startIdx); });
     grid.appendChild(div);
   });
+  if (b.type === "sale" && typeof cartPaintRows === "function") cartPaintRows(b);
 }
 function getExploreDisplayCards() {
   const b = exploreDetailBinder;
@@ -465,18 +467,20 @@ function openExploreDetail(binder) {
   exploreFilterMode = "all";
   exploreSearchQuery = "";
   exploreDetailPage = 1;
-  exploreDetailOwner = { username: "", avatar_url: "" };
+  exploreDetailOwner = { username: "", avatar_url: "", contact_wsp: "", contact_phone: "" };
   (async () => {
     try {
       const { data: prof } = await supabaseClient
         .from("profiles")
-        .select("username, avatar_url")
+        .select("username, avatar_url, contact_wsp, contact_phone")
         .eq("id", binder.user_id)
         .single();
       if (prof) {
         exploreDetailOwner = {
           username: prof.username || t("expl.fallback_user"),
-          avatar_url: prof.avatar_url || ""
+          avatar_url: prof.avatar_url || "",
+          contact_wsp: prof.contact_wsp || "",
+          contact_phone: prof.contact_phone || ""
         };
       }
     } catch (e) { console.error("Explore owner fetch error:", e); }
@@ -663,7 +667,9 @@ function renderExploreDetail() {
     `;
 
     setupExploreFilters();
-    filterExploreCards();
     updateExploreProgress();
+    if (b.type === "sale" && subtype !== "deck" && typeof cartLoad === "function") { cartLoad(b.id).then(function() { filterExploreCards(); }); }
+    else if (typeof cartBar === "function") { try { Cart.binder = null; Cart.mine = {}; } catch (e) {} cartBar(); }
+    filterExploreCards();
   }
 }

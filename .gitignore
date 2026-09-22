@@ -24,3 +24,6 @@ Thumbs.db
 
 # Keys / secrets
 riot.txt
+
+# Impeccable engine binaries (reinstalable con npx impeccable install)
+**/skills/impeccable/scripts/bin/

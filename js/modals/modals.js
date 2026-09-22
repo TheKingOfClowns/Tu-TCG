@@ -186,13 +186,13 @@ async function addPendingCardsToCol(col, isVenta) {
     guardarCollections();
     return addedTotal;
   }
-  const isGrouped = isVenta && (col.display_mode === "playset" || col.display_mode === "editable");
+  const isGrouped = isVenta ? (col.subtype !== "deck") : false;
   const colTcg = col.tcg || "one-piece";
   const playsetMax = _getPlaysetMax(colTcg);
   Object.values(pendingCards).forEach(pc => {
     const key = getCardKey(pc);
     if (isGrouped) {
-      const maxPerStack = col.display_mode === "playset" ? playsetMax : 999;
+      const maxPerStack = window.VENTA_STOCK_MAX || 20;
       var remaining = pc.count;
       var cards = col.cards || [];
       for (var ci = 0; ci < cards.length && remaining > 0; ci++) {

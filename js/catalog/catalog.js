@@ -218,6 +218,9 @@ function renderCards() {
 // ─── Quick-add helpers (target mode) ──────────────────────────────────────
 function countInTarget(col, key) {
   if (!col || !key) return 0;
+  if (catalogTargetType === "venta") {
+    return (col.cards || []).filter(c => c._key === key).reduce((s, c) => s + (c.quantity || 1), 0);
+  }
   const isGrouped = col.display_mode === "playset" || col.display_mode === "editable";
   if (isGrouped) {
     return (col.cards || []).filter(c => c._key === key).reduce((s, c) => s + (c.quantity || 1), 0);
@@ -226,10 +229,7 @@ function countInTarget(col, key) {
 }
 function getTargetMax(col) {
   if (!col) return null;
-  if (catalogTargetType === "venta") {
-    if (col.display_mode === "playset") return null;
-    return 10;
-  }
+  if (catalogTargetType === "venta") return window.VENTA_STOCK_MAX || 20;
   return _getPlaysetMax(col.tcg || currentTcg);
 }
 function removeOneFromTarget(col, key, isVenta) {
@@ -240,7 +240,7 @@ function removeOneFromTarget(col, key, isVenta) {
   }
   if (idx === -1) return false;
   var row = cards[idx];
-  var isGrouped = col.display_mode === "playset" || col.display_mode === "editable";
+  var isGrouped = isVenta || col.display_mode === "playset" || col.display_mode === "editable" || col.display_mode === "stock";
   if (isGrouped && (row.quantity || 1) > 1) {
     row.quantity = (row.quantity || 1) - 1;
     if (isVenta) guardarVenta(); else guardarCollections();
