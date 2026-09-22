@@ -1385,6 +1385,7 @@ function mostrarVista(vista, navState) {
   document.getElementById("ventaView").classList.remove("active");
   document.getElementById("exploreView").classList.remove("active");
   document.getElementById("exploreDetailView").classList.remove("active");
+  document.getElementById("sellerView")?.classList.remove("active");
   const profileView = document.getElementById("profileView");
   if (profileView) profileView.classList.remove("active");
   document.getElementById("tcgSelector").style.display = "none";
@@ -1400,6 +1401,7 @@ function mostrarVista(vista, navState) {
   document.getElementById("ventaView").style.display = "none";
   document.getElementById("exploreView").style.display = "none";
   document.getElementById("exploreDetailView").style.display = "none";
+  document.getElementById("sellerView").style.display = "none";
   if (profileView) profileView.style.display = "none";
   const tcg = tcgList.find(t => t.id === currentTcg);
   document.querySelectorAll(".sidebar-nav-item").forEach(b => b.classList.remove("active"));
@@ -1600,6 +1602,13 @@ function mostrarVista(vista, navState) {
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
     document.getElementById("sidebarProfile")?.classList.add("active");
+  } else if (vista === "seller") {
+    document.getElementById("sellerView")?.classList.add("active");
+    const _sv = document.getElementById("sellerView");
+    if (_sv) _sv.style.display = "";
+    document.getElementById("sidebarExplore")?.classList.add("active");
+    document.getElementById("bottomExplore")?.classList.add("active");
+    if (typeof renderSellerView === "function") renderSellerView();
   } else if (vista === "home") {
     document.getElementById("tcgSelector").classList.add("active");
     document.getElementById("tcgSelector").style.display = "";
@@ -1734,6 +1743,7 @@ document.getElementById("binderBackBtn")?.addEventListener("click", () => {
   history.back();
 });
 document.getElementById("exploreDetailBackBtn")?.addEventListener("click", () => { history.back(); });
+document.getElementById("sellerBackBtn")?.addEventListener("click", () => { history.back(); });
 document.getElementById("ventaBackBtn")?.addEventListener("click", () => {
   if (!requestStagedExit("ventaCols", function() { history.back(); })) return;
   history.back();
@@ -1776,7 +1786,8 @@ document.querySelectorAll("#footerContact, #footerPrivacy, #footerTerms, #footer
   if ((parsed.route === "home" || !parsed.route) && !(parsed.params && parsed.params.id)) {
     var _rs = (typeof restoreUiState === "function") ? restoreUiState() : null;
     if (_rs) {
-      if ((_rs.view === "binder" || _rs.view === "venta" || _rs.view === "exploreDetail") && _rs.id) {
+      if ((_rs.view === "binder" || _rs.view === "venta" || _rs.view === "exploreDetail" || _rs.view === "seller") && _rs.id) {
+        if (_rs.view === "seller") window._sellerId = _rs.id;
         await navigateToView(_rs.view, { id: _rs.id }, {});
         return;
       }
@@ -1812,6 +1823,11 @@ document.querySelectorAll("#footerContact, #footerPrivacy, #footerTerms, #footer
       return;
     }
     await navigateToView("exploreDetail", parsed.params, parsed.filters);
+    return;
+  } else if (parsed.route === 'seller' && parsed.params.id) {
+    window._sellerId = parsed.params.id;
+    mostrarVista("seller");
+    await navigateToView("seller", parsed.params, parsed.filters);
     return;
   }
   if (parsed.route && typeof navigateToView === 'function') {
@@ -1986,6 +2002,9 @@ async function navigateToView(route, params, filters) {
   } else if (route === 'exploreDetail') {
     navState.currentCollectionId = params.id;
     router.navigateToRoute('exploreDetail', { id: params.id }, navState);
+  } else if (route === 'seller') {
+    window._sellerId = params.id;
+    router.navigateToRoute('seller', { id: params.id }, navState);
   } else if (route === 'profile') {
     router.navigateToRoute('profile', {}, navState);
   } else {

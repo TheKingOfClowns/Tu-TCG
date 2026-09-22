@@ -36,74 +36,10 @@ const SOCIAL_PLATFORM_LABELS = {
 };
 async function verPerfilPublico(userId) {
   if (!userId) return;
-  cerrarModalPerfilPublico();
-  try {
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("username, display_name, avatar_url, bio, city, country, contact_phone, contact_wsp, social_links")
-      .eq("id", userId)
-      .single();
-    const username = escapeHtml(profile?.username || profile?.display_name || t("expl.fallback_user"));
-    const avatarUrl = profile?.avatar_url || "";
-    const bio = escapeHtml(profile?.bio || "");
-    const locationParts = [escapeHtml(profile?.city || ""), escapeHtml(profile?.country || "")].filter(Boolean);
-    const phone = profile?.contact_phone || "";
-    const wspUrl = sanitizeWspUrl(profile?.contact_wsp);
-    const socials = (Array.isArray(profile?.social_links) ? profile.social_links : [])
-      .map(function (l) {
-        const url = (l && typeof l === "object" && l.url) ? String(l.url).trim() : "";
-        if (!/^https?:\/\//i.test(url)) return null;
-        const platform = (l && l.platform) ? l.platform : "other";
-        return { label: escapeHtml(SOCIAL_PLATFORM_LABELS[platform] || t("expl.platform_other")), url: escapeHtml(url) };
-      })
-      .filter(Boolean);
-
-    const modal = document.createElement("div");
-    modal.className = "modal-overlay";
-    modal.id = "publicProfileModal";
-    modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000";
-    modal.innerHTML = `
-      <div class="pp-card">
-        <img src="${escapeHtml(avatarUrl) || "TUTCG.webp"}" class="pp-avatar" onerror="this.src='TUTCG.webp'">
-        <h2 class="pp-name">${username}</h2>
-        <p class="pp-member">${t("expl.member")}</p>
-        ${bio ? `<p class="pp-bio">${bio}</p>` : ""}
-        ${locationParts.length ? `<p class="pp-location">${locationParts.join(", ")}</p>` : ""}
-        ${wspUrl || phone ? `
-        <div class="pp-section">
-          <h3 class="pp-section-title">${t("expl.contact")}</h3>
-          ${wspUrl ? `<a href="${wspUrl}" target="_blank" rel="noopener" class="pp-contact-btn pp-wsp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WhatsApp</a>` : ""}
-          ${phone ? `<a href="tel:${phone.replace(/[^\d+]/g, "")}" class="pp-contact-btn pp-phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${escapeHtml(phone)}</a>` : ""}
-        </div>` : `
-        <div class="pp-section">
-          <p class="pp-empty-contact">${t("expl.no_contact")}</p>
-        </div>`}
-        ${socials.length ? `
-        <div class="pp-section">
-          <h3 class="pp-section-title">${t("expl.socials")}</h3>
-          ${socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener" class="pp-social-link"><span>${s.label}</span><span aria-hidden="true">→</span></a>`).join("")}
-        </div>` : ""}
-        <button onclick="cerrarModalPerfilPublico()" class="pp-close">${t("expl.close")}</button>
-      </div>
-    `;
-    modal.addEventListener("click", (e) => { if (e.target === modal) cerrarModalPerfilPublico(); });
-    document.body.appendChild(modal);
-    if (window._publicProfileKeyHandler) {
-      document.removeEventListener("keydown", window._publicProfileKeyHandler);
-    }
-    window._publicProfileKeyHandler = (e) => { if (e.key === "Escape") cerrarModalPerfilPublico(); };
-    document.addEventListener("keydown", window._publicProfileKeyHandler);
-  } catch (e) {
-    console.error("Error loading profile:", e);
-  }
-}
-function cerrarModalPerfilPublico() {
-  const modal = document.getElementById("publicProfileModal");
-  if (modal) modal.remove();
-  if (window._publicProfileKeyHandler) {
-    document.removeEventListener("keydown", window._publicProfileKeyHandler);
-    window._publicProfileKeyHandler = null;
-  }
+  window._sellerId = userId;
+  _sellerTab = "reviews";
+  if (typeof navigateToView === "function") navigateToView("seller", { id: userId }, {});
+  else if (typeof mostrarVista === "function") mostrarVista("seller");
 }
 function renderExploreDetailCards(cards, grid, b, navList, base) {
   grid.innerHTML = "";
@@ -397,6 +333,15 @@ async function renderExploreView() {
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       } catch (e) { console.error("Explore profiles fetch error:", e); }
     }
+    // ponytail: reputación batch por página (1 RPC, sin N+1)
+    let repMap = {};
+    try {
+      const pageIds = [...new Set(_pageBinders.map(b => b.user_id))];
+      if (pageIds.length) {
+        const { data: reps } = await supabaseClient.rpc("seller_reputations", { p_sellers: pageIds });
+        if (reps) repMap = reps;
+      }
+    } catch (e) {}
     for (const b of _pageBinders) {
       const prof = profileMap[b.user_id];
       const username = escapeHtml(prof?.username || t("expl.fallback_user"));
@@ -446,6 +391,7 @@ async function renderExploreView() {
           <div class="binder-cover-user-row">
             <img src="${avatarUrl || 'TUTCG.webp'}" class="binder-cover-avatar" onerror="this.src='TUTCG.webp'">
             <span class="binder-cover-username">${username}</span>
+            ${repMap[b.user_id] && repMap[b.user_id].n ? `<span style="font-size:10px;color:#ffd700;font-family:var(--font-mono);font-weight:bold" title="${repMap[b.user_id].n} reseñas">★ ${repMap[b.user_id].avg}</span>` : ""}
           </div>
           <div class="binder-cover-name-row">
             <span class="binder-cover-name-badge">${escapeHtml(b.name || "")}</span>

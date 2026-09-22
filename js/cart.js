@@ -139,22 +139,41 @@ function cartBar() {
   };
   bar.querySelector("#cartClearBtn").addEventListener("click", (e) => { e.stopPropagation(); cartClear(Cart.binder); });
 }
-// ponytail: botón global junto a la campana; abre el mismo drawer
+// ponytail: botón global junto a la campana, siempre visible; abre el mismo drawer
 function cartTopSync(n) {
   try {
     const btn = document.getElementById("cartTopBtn");
     const badge = document.getElementById("cartTopBadge");
     if (!btn) return;
     if (typeof n !== "number") n = cartCount();
-    btn.style.display = n ? "" : "none";
+    btn.style.display = "";
     if (badge) {
       badge.style.display = n ? "" : "none";
       badge.textContent = n > 99 ? "99+" : String(n);
     }
   } catch (e) {}
 }
+// ponytail: suma global de mis carritos no vencidos (vistas sin binder activo)
+async function cartTopGlobal() {
+  try {
+    if (typeof isAuthenticated !== "function" || !isAuthenticated() || typeof supabaseClient === "undefined" || typeof authUser === "undefined" || !authUser) { cartTopSync(0); return; }
+    const { data } = await supabaseClient.from("sale_carts").select("items,updated_at").eq("buyer_id", authUser.id);
+    const now = Date.now();
+    let n = 0;
+    (data || []).forEach(function(c) {
+      if (!c.updated_at || now - new Date(c.updated_at).getTime() > cartWindowMs()) return;
+      (c.items || []).forEach(function(it) { n += it.qty || 0; });
+    });
+    if (!Cart.binder) cartTopSync(n);
+  } catch (e) {}
+}
 (function cartTopInit() {
-  document.getElementById("cartTopBtn")?.addEventListener("click", () => cartDrawerOpen());
+  document.getElementById("cartTopBtn")?.addEventListener("click", () => {
+    if (typeof isAuthenticated === "function" && !isAuthenticated()) { if (typeof showAuthModal === "function") showAuthModal(); return; }
+    cartDrawerOpen();
+  });
+  setTimeout(function() { cartTopSync(0); cartTopGlobal(); }, 2000);
+  if (typeof onAuthChange === "function") onAuthChange(function() { cartTopSync(0); cartTopGlobal(); });
 })();
 // ─── Drawer ───
 function cartCartRows() {

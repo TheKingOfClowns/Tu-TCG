@@ -261,7 +261,7 @@ function tourOnView(view) {
   try {
     var map = { catalog: "catalogView", collections: "collectionManager", binder: "binderView",
       ventaCols: "ventaManager", venta: "ventaView", explore: "exploreView",
-      exploreDetail: "exploreDetailView", tcgHome: "welcomeView", profile: "profileView" };
+      exploreDetail: "exploreDetailView", seller: "sellerView", tcgHome: "welcomeView", profile: "profileView" };
     var el = view && map[view] ? document.getElementById(map[view]) : null;
     return !!(el && el.classList.contains("active"));
   } catch (e) { return false; }

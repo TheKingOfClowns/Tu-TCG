@@ -93,7 +93,8 @@ async function renderPlanBlock(profile) {
   const lim = ((typeof PLAN_LIMITS !== "undefined" && PLAN_LIMITS[plan.level]) || { spaces: 5, cards: 150 });
   const crew = (typeof crewById === "function") ? crewById(plan.crew) : null;
   let html = '<p style="font-size:var(--text-sm);margin-bottom:var(--space-2)">' + t("prof.plan_label") + ' <strong style="color:' +
-    (crew ? crew.color : "var(--accent)") + '">' + label + "</strong></p>";
+    (crew ? crew.color : "var(--accent)") + '">' + label + "</strong>" +
+    (plan.isAdmin ? ' <span class="binder-cover-badge sale">🛡️ ' + t("seller.mod_badge") + "</span>" : "") + "</p>";
   if (typeof getMySpaceUsage === "function") {
     const used = await getMySpaceUsage();
     html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + t("prof.usage", { used: used, spaces: (plan.isAdmin ? "∞" : lim.spaces), cards: (lim.cards == null ? t("prof.cards_unlimited") : t("prof.cards_upto", { n: lim.cards })) }) + "</p>";
@@ -116,6 +117,49 @@ async function renderPlanBlock(profile) {
     btn.addEventListener("click", function() { setCrew(btn.getAttribute("data-crew")); });
   });
   document.getElementById("crewCustomSave")?.addEventListener("click", function() { setCrew("custom"); });
+  if (plan.isAdmin) renderModQueue(box);
+}
+// ponytail: cola de reportes solo-mods, dentro del perfil (sin ruta nueva)
+async function renderModQueue(box) {
+  const wrap = document.createElement("div");
+  wrap.id = "modQueue";
+  wrap.innerHTML = `<p class="profile-field-hint" style="margin:var(--space-4) 0 var(--space-2)">🛡️ ${t("mod.title")}</p><div id="modQueueList"><p class="profile-field-hint">${t("seller.loading")}</p></div>`;
+  box.appendChild(wrap);
+  const list = wrap.querySelector("#modQueueList");
+  const esc = function(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); };
+  try {
+    const { data } = await supabaseClient.from("reports")
+      .select("id, reason, created_at, reporter_id, reviews!inner(id, rating, comment, reviewed_id)")
+      .eq("status", "pending").order("created_at", { ascending: false }).limit(20);
+    if (!data || !data.length) { list.innerHTML = `<p class="profile-field-hint">${t("mod.empty")}</p>`; return; }
+    list.innerHTML = data.map(function(r) {
+      const rev = r.reviews || {};
+      return `<div data-mod="${r.id}" style="padding:8px 0;border-bottom:1px solid var(--border-default)">
+        <div style="font-size:13px">★ ${rev.rating} · ${esc(rev.comment || "")}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${t("mod.reason")}: ${esc(r.reason || "")}</div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn-ghost btn-xs" data-dismiss>${t("mod.dismiss")}</button>
+          <button class="btn-danger btn-xs" data-del>${t("mod.delete_review")}</button>
+        </div></div>`;
+    }).join("");
+    list.querySelectorAll("[data-mod]").forEach(function(el) {
+      const rid = el.getAttribute("data-mod");
+      el.querySelector("[data-dismiss]").addEventListener("click", async function() {
+        await supabaseClient.rpc("mod_resolve_report", { p_report_id: rid, p_action: "dismiss" });
+        renderModQueueRefresh();
+      });
+      el.querySelector("[data-del]").addEventListener("click", async function() {
+        if (!confirm(t("mod.delete_confirm"))) return;
+        await supabaseClient.rpc("mod_resolve_report", { p_report_id: rid, p_action: "delete" });
+        renderModQueueRefresh();
+      });
+    });
+  } catch (e) { list.innerHTML = `<p class="profile-field-hint">${t("mod.error")}</p>`; }
+}
+async function renderModQueueRefresh() {
+  const box = document.getElementById("planBlock");
+  document.getElementById("modQueue")?.remove();
+  if (box) renderModQueue(box);
 }
 
 // ponytail: filtro cliente (servidor queda abierto por API directa; trigger después si hace falta)
