@@ -3726,7 +3726,7 @@ body {
   line-height: var(--leading-normal);
   max-width: 280px;
 }
-.footer-links h4 {
+.footer-links h3 {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: #fff;

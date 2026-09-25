@@ -175,21 +175,14 @@ function ventaKey() { return "tutcg_" + getTcgPrefix() + "_venta"; }
 async function cargarStatsLanding() {
   if (typeof skeletonStats === 'function') skeletonStats();
   try {
-    const configRes = await fetch("config/games.json");
-    const gamesConfig = await configRes.json();
-    var totalCards = 0;
-    var enabledGames = Object.entries(gamesConfig).filter(function(e) { return e[1].enabled; });
-    for (var i = 0; i < enabledGames.length; i++) {
-      try {
-        var res = await fetch(enabledGames[i][1].data_dir + "/cards_master.json");
-        if (!res.ok) continue;
-        var data = await res.json();
-        totalCards += data.total_cards || (data.cards ? data.cards.length : 0);
-      } catch (e) { /* skip failed loads */ }
-    }
+    const response = await fetch("config/card-stats.json");
+    if (!response.ok) return;
+    const stats = await response.json();
     var statCards = document.getElementById("statCards");
-    if (statCards) statCards.textContent = totalCards.toLocaleString();
-  } catch (e) { /* skip if games.json fails */ }
+    if (statCards && Number.isFinite(stats.total_cards)) {
+      statCards.textContent = stats.total_cards.toLocaleString();
+    }
+  } catch (e) { /* keep the current count if the summary file is unavailable */ }
 }
 // ─── Card Data Loading ───────────────────────────────────────────────────
 let _cartasPromise = null;
@@ -842,7 +835,7 @@ async function syncObjectToSupabase(obj, type) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ binder_id: id, cards: allCardRows, user_id: authUser.id })
+          body: JSON.stringify({ binder_id: id, cards: allCardRows })
         });
         const result = await response.json();
         if (!response.ok || result.error) {

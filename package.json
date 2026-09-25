@@ -5,7 +5,8 @@
   "main": "script.js",
   "scripts": {
     "dev": "npx -y serve -s .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:card-stats": "node _tools/build-card-stats.js",
+    "test": "node --test supabase/functions/sync-binder-cards-v3/handler.test.mjs"
   },
   "keywords": [],
   "author": "",
