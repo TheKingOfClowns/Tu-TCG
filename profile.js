@@ -71,12 +71,71 @@ function populateProfileForm(profile) {
 
   // Social links
   renderSocialLinks(profile?.social_links || []);
+  renderPublicProfile(profile);
 
   updateSidebarProfile(profile);
   renderPlanBlock(profile);
 }
 // ponytail: cambio de idioma instantáneo (Guardar lo persiste en Supabase)
-document.getElementById("profileLanguage")?.addEventListener("change", function(e) { if (typeof setLang === "function") setLang(e.target.value); });
+document.getElementById("profileLanguage")?.addEventListener("change", function(e) {
+  if (typeof setLang === "function") setLang(e.target.value);
+  renderPublicProfile(currentProfile);
+});
+
+function publicProfileUrl(raw) {
+  try {
+    const url = new URL(raw);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : null;
+  } catch { return null; }
+}
+
+function renderPublicProfile(profile) {
+  const name = document.getElementById("profileShowcaseTitle");
+  const username = document.getElementById("profileShowcaseUsername");
+  const bio = document.getElementById("profileShowcaseBio");
+  const location = document.getElementById("profileShowcaseLocation");
+  const links = document.getElementById("profileShowcaseLinks");
+  if (!name || !username || !bio || !location || !links) return;
+
+  const handle = (profile?.username || "").trim();
+  name.textContent = (profile?.display_name || handle || t("prof.fallback_user")).trim();
+  username.textContent = handle ? `@${handle.replace(/^@/, "")}` : "";
+  username.hidden = !handle || name.textContent === handle;
+
+  const description = (profile?.bio || "").trim();
+  bio.textContent = description || t("prof.bio_empty");
+  bio.classList.toggle("is-empty", !description);
+
+  const place = [profile?.city, profile?.country].map(value => (value || "").trim()).filter(Boolean);
+  location.textContent = place.join(" · ");
+  location.hidden = !place.length;
+
+  links.replaceChildren();
+  const addLink = (label, href) => {
+    const anchor = document.createElement("a");
+    anchor.textContent = label;
+    anchor.href = href;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    links.appendChild(anchor);
+  };
+  const phone = (profile?.contact_phone || "").trim();
+  if (phone) {
+    const phoneTag = document.createElement("span");
+    phoneTag.textContent = `${t("prof.phone")}: ${phone}`;
+    links.appendChild(phoneTag);
+  }
+  const whatsapp = publicProfileUrl(profile?.contact_wsp || "");
+  if (whatsapp && ["wa.me", "web.whatsapp.com", "api.whatsapp.com"].includes(new URL(whatsapp).hostname)) {
+    addLink("WhatsApp ↗", whatsapp);
+  }
+  const platforms = { instagram: "Instagram", twitter: "X", tiktok: "TikTok", youtube: "YouTube", discord: "Discord" };
+  (Array.isArray(profile?.social_links) ? profile.social_links : []).forEach(link => {
+    const href = publicProfileUrl(link?.url || "");
+    if (href) addLink(platforms[link.platform] || t("prof.platform_other"), href);
+  });
+  links.hidden = !links.childElementCount;
+}
 
 // ─── Crew ─────────────────────────────────────────────────────────────
 
@@ -401,6 +460,7 @@ async function handleProfileSave(e) {
 
     currentProfile = result;
     updateSidebarProfile(result);
+    renderPublicProfile(result);
     updateAuthUI();
     if (typeof setLang === "function") setLang(preferences.language);
     showMsg(t("prof.updated"), "success");
@@ -426,6 +486,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const avatarUploadBtn = document.getElementById("avatarUploadBtn");
 
   if (avatarWrap) avatarWrap.addEventListener("click", () => avatarInput?.click());
+  if (avatarWrap) avatarWrap.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      avatarInput?.click();
+    }
+  });
   if (avatarUploadBtn) avatarUploadBtn.addEventListener("click", (e) => { e.stopPropagation(); avatarInput?.click(); });
 
   if (avatarInput) {

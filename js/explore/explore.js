@@ -30,6 +30,10 @@ function sanitizeWspUrl(url) {
   } catch (e) { /* invalid url */ }
   return null;
 }
+function publicBinderCoverImage(binder) {
+  const first = binder?.binder_cards?.[0];
+  return first?.card_id ? (cartasMap[first.card_id]?.card_image || null) : null;
+}
 const SOCIAL_PLATFORM_LABELS = {
   instagram: "Instagram", twitter: "X (Twitter)", tiktok: "TikTok",
   youtube: "YouTube", discord: "Discord"
@@ -350,14 +354,7 @@ async function renderExploreView() {
       const cardCount = b.binder_cards?.reduce((s, c) => s + c.quantity, 0) || 0;
       const typeLabel = b.type === "sale" ? t("expl.type_sale") : t("expl.type_collection");
       const isOwner = authUser && b.user_id === authUser.id;
-      let coverImg = null;
-      if (b.binder_cards?.length) {
-        const first = b.binder_cards[0];
-        if (first.card_id) {
-          const found = cartasMap[first.card_id];
-          if (found?.card_image) coverImg = found.card_image;
-        }
-      }
+      const coverImg = publicBinderCoverImage(b);
       let arsTotal = 0, usdTotal = 0;
       if (b.type === "sale" && b.binder_cards?.length) {
         b.binder_cards.forEach(c => {

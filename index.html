@@ -12,7 +12,7 @@
   <meta property="og:image" content="TUTCG.webp">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="design-system.css?v=3">
-  <link rel="stylesheet" href="style.css?v=41">
+  <link rel="stylesheet" href="style.css?v=44">
 </head>
 <body>
 
@@ -526,25 +526,44 @@
       <!-- ── Profile View ── -->
       <section class="view-pane" id="profileView" style="display:none">
         <div class="profile-inner">
+          <div class="profile-showcase" aria-labelledby="profileShowcaseTitle">
+            <div class="profile-showcase-cover">
+              <span class="profile-showcase-eyebrow" data-i18n="prof.public_preview">TU PERFIL PÚBLICO</span>
+              <a class="profile-showcase-edit" href="#profileForm" data-i18n="prof.edit_profile">Editar perfil</a>
+            </div>
+            <div class="profile-showcase-body">
+              <div class="profile-avatar-section">
+                <div class="profile-avatar-wrap" id="profileAvatarWrap" role="button" tabindex="0" aria-label="Cambiar foto" data-i18n-aria-label="prof.change_photo">
+                  <img id="profileAvatarImg" src="" alt="" style="display:none">
+                  <svg id="profileAvatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <div class="profile-avatar-overlay" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                </div>
+                <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
+                <button type="button" class="profile-photo-action" id="avatarUploadBtn" data-i18n="prof.change_photo">Cambiar foto</button>
+              </div>
+              <div class="profile-showcase-content">
+                <h1 id="profileShowcaseTitle" class="profile-showcase-name"></h1>
+                <p id="profileShowcaseUsername" class="profile-showcase-username" hidden></p>
+                <p id="profileShowcaseBio" class="profile-showcase-bio"></p>
+                <p id="profileShowcaseLocation" class="profile-showcase-location" hidden></p>
+                <div id="profileShowcaseLinks" class="profile-showcase-links" hidden></div>
+              </div>
+            </div>
+          </div>
           <form class="profile-form" id="profileForm" onsubmit="handleProfileSave(event); return false">
+            <div class="profile-settings-heading">
+              <div>
+                <h2 data-i18n="prof.settings_title">Editar mi perfil</h2>
+                <p data-i18n="prof.settings_desc">Elegí qué mostrar y completá los datos de tu cuenta.</p>
+              </div>
+            </div>
             <div class="profile-columns">
               <!-- Left Column: Private Info -->
               <div class="profile-column profile-column-private">
                 <h2 class="profile-column-title" data-i18n="prof.private_title">Información Privada</h2>
                 <p class="profile-column-desc" data-i18n="prof.private_desc">Esta información no es visible para otros usuarios</p>
-
-                <!-- Avatar Section -->
-                <div class="profile-avatar-section">
-                  <div class="profile-avatar-wrap" id="profileAvatarWrap">
-                    <img id="profileAvatarImg" src="" alt="Avatar" style="display:none">
-                    <svg id="profileAvatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <div class="profile-avatar-overlay">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    </div>
-                  </div>
-                  <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
-                  <button type="button" class="btn-ghost btn-sm" id="avatarUploadBtn" data-i18n="prof.change_photo">Cambiar foto</button>
-                </div>
 
                 <!-- Personal Info (Private) -->
                 <div class="profile-section">
@@ -868,7 +887,7 @@
   <script src="supabase.js?v=2"></script>
   <script src="auth.js?v=8"></script>
   <script src="js/state.js?v=1"></script>
-  <script src="js/i18n.js?v=17"></script>
+  <script src="js/i18n.js?v=22"></script>
   <script src="js/tcg/onepiece/config.js?v=1"></script>
   <script src="js/tcg/riftbound/config.js?v=1"></script>
   <script src="js/tcg/pokemon/config.js?v=1"></script>
@@ -882,9 +901,9 @@
   <script src="js/venta/venta_riftbound.js?v=7"></script>
   <script src="js/venta/venta_pokemon.js?v=3"></script>
   <script src="js/venta/dispatcher_venta.js?v=3"></script>
-  <script src="js/explore/explore.js?v=17"></script>
-  <script src="js/seller.js?v=2"></script>
-  <script src="js/cart.js?v=5"></script>
+  <script src="js/explore/explore.js?v=18"></script>
+  <script src="js/seller.js?v=4"></script>
+  <script src="js/cart.js?v=8"></script>
   <script src="js/notifs.js?v=2"></script>
   <script src="js/deck/deck.js?v=7"></script>
   <script src="js/deck/deck_riftbound.js?v=4"></script>
@@ -899,7 +918,7 @@
   <script src="js/skeleton.js?v=1"></script>
   <script src="js/tutorial.js?v=21"></script>
   <script src="script.js?v=74"></script>
-  <script src="profile.js?v=10"></script>
+  <script src="profile.js?v=11"></script>
   <script src="js/viewOpts.js?v=4"></script>
 </body>
 </html>

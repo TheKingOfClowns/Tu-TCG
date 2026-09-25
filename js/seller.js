@@ -1,5 +1,5 @@
 // ─── Seller public profile (/seller/:id) ─────────────────────────────────
-// ponytail: 1 vista, 3 tabs (Reseñas / En venta / Valorar). Sin montos ni items
+// ponytail: 1 vista, 4 tabs (Reseñas / Colecciones / En venta / Valorar). Sin montos ni items
 // de ventas ajenas: solo comprador + puntuación + texto.
 var _sellerTab = "reviews";
 async function renderSellerView() {
@@ -19,57 +19,97 @@ async function renderSellerView() {
     container.innerHTML = `<div class="collection-empty"><p>${t("seller.not_found")}</p></div>`;
     return;
   }
-  const esc = (typeof escapeHtml === "function") ? escapeHtml : function(s) { return String(s == null ? "" : s); };
-  const name = esc(prof.username || prof.display_name || t("expl.fallback_user"));
-  if (title) title.textContent = prof.username || prof.display_name || t("seller.title");
+  const esc = (typeof escapeHtml === "function") ? escapeHtml : function(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  };
+  const displayName = String(prof.display_name || prof.username || t("expl.fallback_user")).trim() || t("expl.fallback_user");
+  const name = esc(displayName);
+  const handle = prof.username && prof.username !== displayName ? esc(String(prof.username).trim().replace(/^@/, "")) : "";
+  if (title) title.textContent = t("prof.profile_title");
   let rep = { avg: null, n: 0 };
   try {
     const { data: r } = await supabaseClient.rpc("seller_reputation", { p_seller: sid });
     if (r) rep = r;
   } catch (e) {}
-  const stars = rep.n ? ("★".repeat(Math.round(Number(rep.avg))) + "☆".repeat(5 - Math.round(Number(rep.avg)))) : "☆☆☆☆☆";
+  const reviewCount = Math.max(0, Number(rep.n) || 0);
+  const average = Math.min(5, Math.max(0, Number(rep.avg) || 0));
+  const rounded = Math.round(average);
+  const stars = "★".repeat(rounded) + "☆".repeat(5 - rounded);
   const bio = esc(prof.bio || "");
-  const loc = [esc(prof.city || ""), esc(prof.country || "")].filter(Boolean).join(", ");
+  const loc = [prof.city, prof.country].map(v => esc(String(v || "").trim())).filter(Boolean).join(" · ");
   const wspUrl = (typeof sanitizeWspUrl === "function") ? sanitizeWspUrl(prof.contact_wsp) : null;
   const phone = prof.contact_phone || "";
+  const safeUrl = function(raw) {
+    try {
+      const url = new URL(raw);
+      return ["https:", "http:"].includes(url.protocol) ? url.href : null;
+    } catch (e) { return null; }
+  };
+  const avatarUrl = safeUrl(prof.avatar_url);
+  const initial = esc(String(displayName).trim().charAt(0).toUpperCase() || "?");
   const socials = (Array.isArray(prof.social_links) ? prof.social_links : [])
     .map(function(l) {
-      const url = (l && typeof l === "object" && l.url) ? String(l.url).trim() : "";
-      if (!/^https?:\/\//i.test(url)) return null;
-      return { label: esc((typeof SOCIAL_PLATFORM_LABELS !== "undefined" && SOCIAL_PLATFORM_LABELS[l.platform]) || (l.platform || "link")), url: esc(url) };
+      const url = (l && typeof l === "object" && l.url) ? safeUrl(l.url) : null;
+      if (!url) return null;
+      return { label: esc((typeof SOCIAL_PLATFORM_LABELS !== "undefined" && SOCIAL_PLATFORM_LABELS[l.platform]) || t("prof.platform_other")), url: esc(url) };
     }).filter(Boolean);
-  let crewName = "";
-  try { crewName = esc(prof.crew || ""); } catch (e) {}
+  const crewName = esc(prof.crew || "");
   container.innerHTML = `
-    <div class="explore-detail-header">
-      <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-2)">
-        <img src="${esc(prof.avatar_url || "") || "TUTCG.webp"}" onerror="this.src='TUTCG.webp'" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid var(--border-accent)">
-        <div style="flex:1;min-width:0">
-          <div class="explore-owner-name" style="font-size:var(--text-lg);font-weight:var(--weight-bold)">${name}</div>
-          ${prof.is_admin ? `<span class="binder-cover-badge sale">🛡️ ${t("seller.mod_badge")}</span>` : ""}
-          ${crewName ? `<span style="font-size:var(--text-xs);color:var(--text-secondary)"> · ${crewName}</span>` : ""}
-          <div style="font-size:var(--text-sm);color:var(--text-secondary)"><span style="color:#ffd700">${stars}</span> ${rep.n ? `${rep.avg} (${rep.n})` : t("seller.no_reviews_yet")}</div>
+    <article class="profile-showcase seller-profile-hero">
+      <div class="profile-showcase-cover seller-profile-cover">
+        <span class="profile-showcase-eyebrow">${t("prof.public_preview_other")}</span>
+      </div>
+      <div class="seller-profile-main">
+        <div class="seller-profile-avatar" aria-hidden="true">
+          <span>${initial}</span>
+          ${avatarUrl ? `<img src="${esc(avatarUrl)}" alt="">` : ""}
+        </div>
+        <div class="seller-profile-info">
+          <h1 class="seller-profile-name">${name}</h1>
+          ${handle ? `<p class="seller-profile-handle">@${handle}</p>` : ""}
+          <div class="seller-profile-meta">
+            ${prof.is_admin ? `<span class="seller-profile-badge">🛡️ ${t("seller.mod_badge")}</span>` : ""}
+            ${crewName ? `<span class="seller-profile-crew">${crewName}</span>` : ""}
+          </div>
+          <div class="seller-profile-rating" aria-label="${reviewCount ? `${average.toFixed(1)} / 5, ${reviewCount} ${t("seller.tab_reviews")}` : t("seller.no_reviews_yet")}">
+            <span class="seller-profile-stars" aria-hidden="true">${stars}</span>
+            <span>${reviewCount ? `${average.toFixed(1)} · ${reviewCount} ${t("seller.tab_reviews").toLowerCase()}` : t("seller.no_reviews_yet")}</span>
+          </div>
+          ${bio ? `<p class="seller-profile-bio">${bio}</p>` : ""}
+          ${loc ? `<p class="seller-profile-location">${loc}</p>` : ""}
+          ${(wspUrl || phone || socials.length) ? `<div class="seller-profile-links">
+            ${wspUrl ? `<a href="${esc(wspUrl)}" target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>` : ""}
+            ${phone ? `<a href="tel:${String(phone).replace(/[^\d+]/g, "")}">${esc(phone)}</a>` : ""}
+            ${socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener noreferrer">${s.label} ↗</a>`).join("")}
+          </div>` : ""}
         </div>
       </div>
-      ${bio ? `<p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0 0 var(--space-2)">${bio}</p>` : ""}
-      ${loc ? `<p style="font-size:var(--text-xs);color:var(--text-muted);margin:0 0 var(--space-2)">${loc}</p>` : ""}
-      <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
-        ${wspUrl ? `<a href="${wspUrl}" target="_blank" rel="noopener" class="btn-ghost btn-xs">WhatsApp</a>` : ""}
-        ${phone ? `<a href="tel:${String(phone).replace(/[^\d+]/g, "")}" class="btn-ghost btn-xs">${esc(phone)}</a>` : ""}
-        ${socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener" class="btn-ghost btn-xs">${s.label} →</a>`).join("")}
-      </div>
-      <div class="explore-tabs" style="margin-top:var(--space-3)">
-        <button class="explore-tab${_sellerTab === "reviews" ? " active" : ""}" data-stab="reviews">${t("seller.tab_reviews")}</button>
-        <button class="explore-tab${_sellerTab === "sales" ? " active" : ""}" data-stab="sales">${t("seller.tab_sales")}</button>
-        <button class="explore-tab${_sellerTab === "rate" ? " active" : ""}" data-stab="rate" id="sellerRateTab" style="display:none">${t("seller.tab_rate")}</button>
-      </div>
+    </article>
+    <div class="seller-profile-tabs" role="tablist" aria-label="${t("seller.title")}">
+      <button class="seller-profile-tab${_sellerTab === "reviews" ? " active" : ""}" data-stab="reviews" role="tab" aria-selected="${_sellerTab === "reviews"}">${t("seller.tab_reviews")}</button>
+      <button class="seller-profile-tab${_sellerTab === "collections" ? " active" : ""}" data-stab="collections" role="tab" aria-selected="${_sellerTab === "collections"}">${t("seller.tab_collections")}</button>
+      <button class="seller-profile-tab${_sellerTab === "sales" ? " active" : ""}" data-stab="sales" role="tab" aria-selected="${_sellerTab === "sales"}">${t("seller.tab_sales")}</button>
+      <button class="seller-profile-tab${_sellerTab === "rate" ? " active" : ""}" data-stab="rate" role="tab" aria-selected="${_sellerTab === "rate"}" id="sellerRateTab" style="display:none">${t("seller.tab_rate")}</button>
     </div>
     <div id="sellerTabBody"></div>`;
+  const avatarImage = container.querySelector(".seller-profile-avatar img");
+  if (avatarImage) avatarImage.addEventListener("error", () => { avatarImage.remove(); });
   container.querySelectorAll("[data-stab]").forEach(function(btn) {
     btn.addEventListener("click", function() {
       _sellerTab = btn.getAttribute("data-stab");
-      container.querySelectorAll("[data-stab]").forEach(b => b.classList.toggle("active", b === btn));
+      container.querySelectorAll("[data-stab]").forEach(b => {
+        b.classList.toggle("active", b === btn);
+        b.setAttribute("aria-selected", String(b === btn));
+      });
       sellerPaintTab(sid);
+    });
+    btn.addEventListener("keydown", function(event) {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const tabs = [...container.querySelectorAll("[data-stab]")].filter(tab => tab.style.display !== "none");
+      const next = (tabs.indexOf(btn) + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      event.preventDefault();
+      tabs[next].focus();
+      tabs[next].click();
     });
   });
   sellerPaintTab(sid);
@@ -78,6 +118,7 @@ async function renderSellerView() {
 async function sellerPaintTab(sid) {
   const body = document.getElementById("sellerTabBody");
   if (!body) return;
+  if (_sellerTab === "collections") { sellerPaintCollections(sid, body); return; }
   if (_sellerTab === "sales") { sellerPaintSales(sid, body); return; }
   if (_sellerTab === "rate") { sellerPaintRate(sid, body); return; }
   body.innerHTML = `<div class="collection-empty"><p>${t("seller.loading")}</p></div>`;
@@ -93,11 +134,11 @@ async function sellerPaintTab(sid) {
     const st = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
     let d = "";
     try { d = new Date(r.created_at).toLocaleDateString(); } catch (e) {}
-    return `<div style="padding:10px 0;border-bottom:1px solid var(--border-default)">
-      <div style="display:flex;gap:8px;align-items:center"><b style="font-size:13px">${esc(r.buyer)}</b><span style="color:#ffd700;font-size:13px">${st}</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted)">${d}</span></div>
-      ${r.comment ? `<p style="font-size:13px;color:var(--text-secondary);margin:6px 0 0">${esc(r.comment)}</p>` : ""}
-      ${canReport ? `<button class="btn-ghost btn-xs" data-report="${r.id}" style="margin-top:6px">${t("seller.report")}</button>` : ""}
-    </div>`;
+    return `<article class="seller-review">
+      <div class="seller-review-header"><span class="seller-review-author">${esc(r.buyer)}</span><span class="seller-review-stars" aria-hidden="true">${st}</span><time class="seller-review-date">${d}</time></div>
+      ${r.comment ? `<p class="seller-review-comment">${esc(r.comment)}</p>` : ""}
+      ${canReport ? `<button class="btn-ghost btn-xs seller-review-report" data-report="${r.id}">${t("seller.report")}</button>` : ""}
+    </article>`;
   }).join("");
   body.querySelectorAll("[data-report]").forEach(function(btn) {
     btn.addEventListener("click", function() {
@@ -116,6 +157,54 @@ async function sellerPaintTab(sid) {
       });
     });
   });
+}
+async function sellerPaintCollections(sid, body) {
+  body.innerHTML = `<div class="collection-empty"><p>${t("seller.loading")}</p></div>`;
+  try {
+    if (typeof ensureCartasLoaded === "function") await ensureCartasLoaded();
+    const { data, error } = await supabaseClient.from("binders")
+      .select("*, binder_cards(*), target_cards")
+      .eq("user_id", sid).eq("is_public", true)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    if (_sellerTab !== "collections" || window._sellerId !== sid || !body.isConnected) return;
+    const collections = (data || []).filter(b => b.type !== "sale");
+    if (!collections.length) {
+      body.innerHTML = `<div class="collection-empty"><p>${t("seller.no_collections")}</p></div>`;
+      return;
+    }
+    const grid = document.createElement("div");
+    grid.className = "collection-binder-grid seller-collection-grid";
+    collections.forEach(binder => {
+      const count = (binder.binder_cards || []).reduce((sum, card) => sum + (Number(card.quantity) || 0), 0);
+      const cover = publicBinderCoverImage(binder) || "TUTCG.webp";
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "binder-cover-card seller-collection-card";
+      card.setAttribute("aria-label", `${binder.name || t("expl.type_collection")} · ${t("expl.card_count", { n: count })}`);
+      card.innerHTML = `<div class="binder-cover-img"><div class="binder-cover-overlay"><span class="binder-cover-count"></span></div></div>
+        <div class="binder-cover-meta"><div class="binder-cover-name-row"><span class="binder-cover-name-badge"></span><span class="binder-cover-badge"></span></div></div>`;
+      const image = document.createElement("img");
+      image.className = "seller-collection-image";
+      image.src = cover;
+      image.alt = "";
+      image.loading = "lazy";
+      image.addEventListener("error", () => { if (!image.src.endsWith("TUTCG.webp")) image.src = "TUTCG.webp"; });
+      card.querySelector(".binder-cover-img").prepend(image);
+      card.querySelector(".binder-cover-count").textContent = t("expl.card_count", { n: count });
+      card.querySelector(".binder-cover-name-badge").textContent = binder.name || t("expl.type_collection");
+      const badge = card.querySelector(".binder-cover-badge");
+      badge.classList.add("collection");
+      badge.textContent = t("expl.type_collection");
+      card.addEventListener("click", () => openExploreDetail(binder));
+      grid.appendChild(card);
+    });
+    body.replaceChildren(grid);
+  } catch (error) {
+    if (_sellerTab === "collections" && body.isConnected) {
+      body.innerHTML = `<div class="collection-empty"><p>${t("expl.load_error")}</p></div>`;
+    }
+  }
 }
 async function sellerPaintSales(sid, body) {
   body.innerHTML = `<div class="collection-empty"><p>${t("seller.loading")}</p></div>`;
@@ -205,6 +294,7 @@ async function sellerPaintRate(sid, body) {
         const { error } = await supabaseClient.rpc("rate_order", { p_order_id: oid, p_rating: picked, p_comment: box.querySelector("[data-comment]").value || "" });
         if (error) throw error;
         if (typeof showToast === "function") showToast(t("seller.rated_ok"), "success");
+        _sellerTab = "reviews";
         renderSellerView();
       } catch (e) { if (typeof showToast === "function") showToast(t("seller.rate_error"), "error"); }
     });

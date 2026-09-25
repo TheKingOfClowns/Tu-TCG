@@ -1,6 +1,6 @@
 // ─── Carrito venta (reserva 20min, solo logueados) ─────────────────────────
 // ponytail: ventana por updated_at (cada add/set la resetea). Sin cron: RPCs filtran 20min.
-var Cart = { reserved: {}, mine: {}, binder: null, expiresAt: 0, _tick: null, seller: null };
+var Cart = { reserved: {}, mine: {}, binder: null, expiresAt: 0, _tick: null, seller: null, _checkoutPending: false };
 function cartWindowMs() { return 20 * 60 * 1000; }
 async function cartLoad(binderId) {
   Cart.binder = binderId; Cart.reserved = {}; Cart.mine = {}; Cart.expiresAt = 0; Cart.seller = null;
@@ -48,6 +48,7 @@ async function cartRefresh() {
   if (typeof cartDrawerPaint === "function") cartDrawerPaint();
 }
 async function cartAdd(binderId, cardId, qty) {
+  if (Cart._checkoutPending) return;
   if (typeof isAuthenticated === "function" && !isAuthenticated()) { if (typeof showAuthModal === "function") showAuthModal(); return; }
   try {
     const { data, error } = await supabaseClient.rpc("cart_add", { p_binder_id: binderId, p_card_id: cardId, p_qty: qty || 1 });
@@ -69,6 +70,7 @@ async function cartAdd(binderId, cardId, qty) {
   if (typeof cartDrawerPaint === "function") cartDrawerPaint();
 }
 async function cartSet(binderId, cardId, qty) {
+  if (Cart._checkoutPending) return;
   try {
     const { data, error } = await supabaseClient.rpc("cart_set_qty", { p_binder_id: binderId, p_card_id: cardId, p_qty: qty });
     if (error) throw error;
@@ -87,6 +89,7 @@ async function cartSet(binderId, cardId, qty) {
   if (typeof cartDrawerPaint === "function") cartDrawerPaint();
 }
 async function cartClear(binderId) {
+  if (Cart._checkoutPending) return;
   try {
     if (typeof authUser === "undefined" || !authUser) return;
     await supabaseClient.from("sale_carts").delete().eq("binder_id", binderId).eq("buyer_id", authUser.id);
@@ -176,6 +179,15 @@ async function cartTopGlobal() {
   if (typeof onAuthChange === "function") onAuthChange(function() { cartTopSync(0); cartTopGlobal(); });
 })();
 // ─── Drawer ───
+function cartCardLabel(card, cardId) {
+  const parts = String(cardId || "").split("|");
+  const offset = parts[0]?.startsWith("tcg_") ? 1 : 0;
+  const name = String(card?.card_name || parts[offset + 1] || "").trim();
+  const code = String(card?.card_set_id || parts[offset] || "").trim();
+  const variant = (card?.category || card?.producto) === "DON" && card?.variant && card.variant !== "Common"
+    ? ` (${card.variant})` : "";
+  return name ? `${name}${variant}${code ? ` (${code})` : ""}` : (code || String(cardId || ""));
+}
 function cartCartRows() {
   var b = (typeof exploreDetailBinder !== "undefined") ? exploreDetailBinder : null;
   if (!b || b.id !== Cart.binder) return [];
@@ -187,7 +199,7 @@ function cartCartRows() {
   return Object.keys(Cart.mine).map(function(cid) {
     var info = byId[cid] || { card_id: cid, qty: 0, price: null };
     var carta = (typeof cartasMap !== "undefined") ? cartasMap[cid] : null;
-    return { card_id: cid, qty: Cart.mine[cid], stock: info.qty, price: info.price, price_currency: info.price_currency || "ARS", name: carta ? formatearNombre(carta) : cid };
+    return { card_id: cid, qty: Cart.mine[cid], stock: info.qty, price: info.price, price_currency: info.price_currency || "ARS", name: cartCardLabel(carta, cid) };
   });
 }
 function cartDrawerOpen() {
@@ -220,15 +232,15 @@ function cartDrawerPaint() {
   const wsp = cartWspLink(rows, ars, usd);
   body.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><h3 style="flex:1;margin:0">🛒 ${t("cart.title")}</h3><span id="cartDrawerTimer" style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">${cartLeftStr()}</span><button class="btn-ghost btn-xs" id="cartDrawerX">✕</button></div>` +
     (rows.length ? rows.map(function(r) {
-      return `<div class="cart-line"><span style="flex:1;font-size:13px">${r.name} <span style="color:var(--text-muted);font-size:11px">stock ${Math.max(0, r.stock - (Cart.reserved[r.card_id] || 0))}/${r.stock}</span></span><button class="btn-ghost btn-xs" data-dec="${r.card_id}">−</button><b>${r.qty}</b><button class="btn-ghost btn-xs" data-inc="${r.card_id}">+</button></div>`;
+      return `<div class="cart-line"><span style="flex:1;font-size:13px">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-size:11px">stock ${Math.max(0, r.stock - (Cart.reserved[r.card_id] || 0))}/${r.stock}</span></span><button class="btn-ghost btn-xs" data-dec="${r.card_id}" ${Cart._checkoutPending ? "disabled" : ""}>−</button><b>${r.qty}</b><button class="btn-ghost btn-xs" data-inc="${r.card_id}" ${Cart._checkoutPending ? "disabled" : ""}>+</button></div>`;
     }).join("") : `<p style="color:var(--text-muted)">${t("cart.empty")}</p>`) +
     `<div style="margin:12px 0;font-family:var(--font-mono);font-size:13px;font-weight:bold">${ars > 0 ? `<div style="color:var(--accent)">ARS $${ars.toFixed(2)}</div>` : ""}${usd > 0 ? `<div style="color:#ffd700">USD $${usd.toFixed(2)}</div>` : ""}</div>` +
     `<p style="font-size:11px;color:var(--text-muted)">${t("cart.expire_note")}</p>` +
-    (wsp ? `<a href="${wsp}" target="_blank" rel="noopener" class="btn-primary" style="display:flex;justify-content:center;text-decoration:none;margin-top:8px">💬 ${t("cart.send_wsp")}</a>` : `<p style="font-size:11px;color:var(--text-muted)">${t("cart.no_contact")}</p>`) +
-    `<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary" id="cartCheckoutBtn" style="flex:1">${t("cart.checkout")}</button><button class="btn-ghost" id="cartDrawerClear">${t("cart.clear")}</button></div>`;
+    (rows.length && !wsp ? `<p style="font-size:11px;color:var(--text-muted)">${t("cart.no_contact")}</p>` : "") +
+    `<div style="display:flex;gap:8px;margin-top:8px">${rows.length && wsp ? `<button class="btn-primary" id="cartSendOrderBtn" style="flex:1" ${Cart._checkoutPending ? "disabled" : ""}>💬 ${Cart._checkoutPending ? t("cart.sending") : t("cart.send_wsp")}</button>` : ""}<button class="btn-ghost" id="cartDrawerClear" ${Cart._checkoutPending ? "disabled" : ""}>${t("cart.clear")}</button></div>`;
   body.querySelector("#cartDrawerX").addEventListener("click", cartDrawerClose);
   body.querySelector("#cartDrawerClear").addEventListener("click", () => cartClear(Cart.binder));
-  body.querySelector("#cartCheckoutBtn").addEventListener("click", () => cartCheckout());
+  body.querySelector("#cartSendOrderBtn")?.addEventListener("click", () => cartCheckout(wsp));
   body.querySelectorAll("[data-dec]").forEach(function(btn) {
     btn.addEventListener("click", () => cartSet(Cart.binder, btn.getAttribute("data-dec"), (Cart.mine[btn.getAttribute("data-dec")] || 1) - 1));
   });
@@ -256,31 +268,62 @@ function cartWspLink(rows, ars, usd) {
     var buyer = "";
     try { buyer = (typeof currentProfile !== "undefined" && currentProfile?.username) || ""; } catch (e) {}
     var b = (typeof exploreDetailBinder !== "undefined") ? exploreDetailBinder : null;
-    var lines = rows.map(function(r) {
-      return "• " + r.qty + "x " + r.name + (r.price != null ? " ($" + Number(r.price).toFixed(2) + " " + r.price_currency + ")" : "");
+    var lines = rows.map(function(r, index) {
+      var item = (index + 1) + ". " + r.name + "\n   " + t("cart.wsp_qty", { n: r.qty });
+      if (r.price != null) item += "\n   " + t("cart.wsp_unit_price", { currency: r.price_currency, price: Number(r.price).toFixed(2) });
+      return item;
     });
-    var msg = t("cart.wsp_hello", { seller: Cart.seller.name || "", buyer: buyer }) + "\n" +
-      t("cart.wsp_sale", { sale: b ? b.name : "" }) + "\n" + lines.join("\n") + "\n" +
-      t("cart.wsp_total", { ars: ars.toFixed(2), usd: usd.toFixed(2) });
+    var msg = [
+      t("cart.wsp_hello", { seller: Cart.seller.name || "", buyer: buyer }),
+      t("cart.wsp_sale", { sale: b ? b.name : "" }),
+      "",
+      t("cart.wsp_cards"),
+      lines.join("\n\n"),
+      "",
+      t("cart.wsp_total", { ars: ars.toFixed(2), usd: usd.toFixed(2) })
+    ].join("\n");
     return base + (base.indexOf("?") >= 0 ? "&" : "?") + "text=" + encodeURIComponent(msg);
   } catch (e) { return ""; }
 }
-async function cartCheckout() {
-  if (!Cart.binder || !cartCount()) return;
+async function cartCheckout(wspLink) {
+  if (!Cart.binder || !cartCount() || !wspLink || Cart._checkoutPending) return;
   if (!confirm(t("cart.checkout_confirm"))) return;
+  Cart._checkoutPending = true;
+  const binderId = Cart.binder;
+  cartDrawerPaint();
+  let whatsappTab = null;
   try {
-    const { error } = await supabaseClient.rpc("checkout_cart", { p_binder_id: Cart.binder });
+    whatsappTab = window.open("about:blank", "_blank");
+    if (whatsappTab) {
+      whatsappTab.opener = null;
+      whatsappTab.document.title = t("cart.sending");
+      whatsappTab.document.body.textContent = t("cart.sending");
+    }
+  } catch (e) {
+    try { if (whatsappTab && !whatsappTab.closed) whatsappTab.close(); } catch (_) {}
+    whatsappTab = null;
+  }
+  try {
+    const { error } = await supabaseClient.rpc("checkout_cart", { p_binder_id: binderId });
     if (error) throw error;
   } catch (e) {
+    try { if (whatsappTab && !whatsappTab.closed) whatsappTab.close(); } catch (_) {}
     const m = String(e?.message || "");
-    if (typeof showToast === "function") showToast(m.indexOf("STOCK") === 0 ? t("cart.no_stock") : t("cart.error"), "error");
+    if (typeof showToast === "function") showToast(m.indexOf("STOCK") === 0 ? t("cart.no_stock") : t("cart.checkout_error"), "error");
+    Cart._checkoutPending = false;
     cartRefresh();
     return;
   }
-  Cart.mine = {}; Cart.expiresAt = 0;
+  if (Cart.binder === binderId) { Cart.mine = {}; Cart.expiresAt = 0; }
   if (typeof showToast === "function") showToast(t("cart.bought"), "success");
   cartDrawerClose();
-  cartRefresh();
+  Cart._checkoutPending = false;
+  if (Cart.binder === binderId) cartRefresh();
+  else cartTopGlobal();
+  try {
+    if (whatsappTab && !whatsappTab.closed) whatsappTab.location.replace(wspLink);
+    else window.location.href = wspLink;
+  } catch (e) { window.location.href = wspLink; }
 }
 // ponytail: pinta steppers por fila (stock - reservas); dueño no compra propio
 function cartPaintRows(b) {
