@@ -69,6 +69,22 @@ function populateProfileForm(profile) {
     if (avatarPlaceholder) avatarPlaceholder.style.display = "";
   }
 
+  // Cover image is stored in the existing preferences JSON, so it needs no schema change.
+  const cover = document.querySelector(".profile-showcase-cover");
+  if (cover) {
+    const coverUrl = profile?.preferences?.profile_cover_url;
+    let safeCoverUrl = null;
+    if (typeof coverUrl === "string" && coverUrl) {
+      try {
+        const parsed = new URL(coverUrl);
+        if (["https:", "http:"].includes(parsed.protocol)) safeCoverUrl = parsed.href;
+      } catch (e) {}
+    }
+    cover.style.backgroundImage = safeCoverUrl
+      ? `linear-gradient(90deg, rgba(5,5,17,.68), rgba(5,5,17,.18) 72%), linear-gradient(0deg, rgba(5,5,17,.35), transparent 60%), url(${JSON.stringify(safeCoverUrl)})`
+      : "";
+  }
+
   // Social links
   renderSocialLinks(profile?.social_links || []);
   renderPublicProfile(profile);
@@ -484,6 +500,49 @@ document.addEventListener("DOMContentLoaded", () => {
   const avatarWrap = document.getElementById("profileAvatarWrap");
   const avatarInput = document.getElementById("avatarInput");
   const avatarUploadBtn = document.getElementById("avatarUploadBtn");
+  const coverInput = document.getElementById("coverInput");
+  const coverUploadBtn = document.getElementById("coverUploadBtn");
+  coverUploadBtn?.addEventListener("click", () => coverInput?.click());
+  coverInput?.addEventListener("change", async () => {
+    const file = coverInput.files?.[0];
+    if (!file || !isAuthenticated()) return;
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+      showMsg(t("prof.cover_invalid"), "error");
+      coverInput.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showMsg(t("prof.img_too_big"), "error");
+      coverInput.value = "";
+      return;
+    }
+    const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" })[file.type];
+    const filePath = `${authUser.id}/covers/${Date.now()}.${extension}`;
+    coverUploadBtn.disabled = true;
+    showMsg(t("prof.uploading"), "success");
+    try {
+      const { error: uploadError } = await supabaseClient.storage.from("avatars")
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data } = supabaseClient.storage.from("avatars").getPublicUrl(filePath);
+      const coverUrl = data?.publicUrl;
+      if (!coverUrl) throw new Error(t("prof.no_public_url"));
+      const preferences = Object.assign({}, currentProfile?.preferences || {}, { profile_cover_url: coverUrl });
+      const { data: saved, error } = await supabaseClient.from("profiles")
+        .upsert({ id: authUser.id, preferences, updated_at: new Date().toISOString() })
+        .select().single();
+      if (error) throw error;
+      currentProfile = saved || Object.assign({}, currentProfile || {}, { preferences });
+      populateProfileForm(currentProfile);
+      showMsg(t("prof.cover_ok"), "success");
+    } catch (err) {
+      console.error("Profile cover upload error:", err);
+      showMsg(err.message || t("prof.upload_error"), "error");
+    } finally {
+      coverUploadBtn.disabled = false;
+      coverInput.value = "";
+    }
+  });
 
   if (avatarWrap) avatarWrap.addEventListener("click", () => avatarInput?.click());
   if (avatarWrap) avatarWrap.addEventListener("keydown", event => {

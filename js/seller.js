@@ -11,7 +11,7 @@ async function renderSellerView() {
   let prof = null;
   try {
     const { data } = await supabaseClient.from("profiles")
-      .select("id, username, display_name, avatar_url, bio, city, country, contact_phone, contact_wsp, social_links, crew, is_admin")
+      .select("id, username, display_name, avatar_url, bio, city, country, contact_phone, contact_wsp, social_links, crew, is_admin, cover_url:preferences->>profile_cover_url")
       .eq("id", sid).single();
     prof = data;
   } catch (e) {}
@@ -94,6 +94,11 @@ async function renderSellerView() {
     <div id="sellerTabBody"></div>`;
   const avatarImage = container.querySelector(".seller-profile-avatar img");
   if (avatarImage) avatarImage.addEventListener("error", () => { avatarImage.remove(); });
+  const coverUrl = safeUrl(prof.cover_url);
+  const cover = container.querySelector(".seller-profile-cover");
+  if (cover && coverUrl) {
+    cover.style.backgroundImage = `linear-gradient(90deg, rgba(5,5,17,.68), rgba(5,5,17,.18) 72%), linear-gradient(0deg, rgba(5,5,17,.35), transparent 60%), url(${JSON.stringify(coverUrl)})`;
+  }
   container.querySelectorAll("[data-stab]").forEach(function(btn) {
     btn.addEventListener("click", function() {
       _sellerTab = btn.getAttribute("data-stab");
