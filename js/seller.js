@@ -299,8 +299,8 @@ async function sellerPaintRate(sid, body) {
         <div class="seller-order-heading"><span>${t("seller.order_cards")}</span><time>${d}</time></div>
         ${items ? `<ol class="seller-order-list">${items}</ol>` : `<p class="seller-order-empty">${t("seller.order_empty")}</p>`}
       </div>
-      <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap" data-stars>
-        ${[0, 1, 2, 3, 4, 5].map(n => `<button class="btn-ghost btn-xs" data-star="${n}">${n}★</button>`).join("")}
+      <div class="seller-rating-stars" data-stars role="group" aria-label="${t("seller.select_stars")}">
+        ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="seller-rating-star" data-star="${n}" aria-label="${n} / 5" aria-pressed="false">★</button>`).join("")}
       </div>
       <div style="display:flex;gap:6px;margin-top:8px">
         <input type="text" data-comment maxlength="500" placeholder="${t("seller.rate_placeholder")}" style="flex:1;min-width:0;padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:13px;outline:none">
@@ -309,17 +309,21 @@ async function sellerPaintRate(sid, body) {
   }).join("");
   body.querySelectorAll("[data-order]").forEach(function(box) {
     const oid = box.getAttribute("data-order");
-    let picked = -1;
+    let picked = 0;
     const send = box.querySelector("[data-send]");
     box.querySelectorAll("[data-star]").forEach(function(sb) {
       sb.addEventListener("click", function() {
         picked = parseInt(sb.getAttribute("data-star"));
-        box.querySelectorAll("[data-star]").forEach(x => x.classList.toggle("active", parseInt(x.getAttribute("data-star")) <= picked));
+        box.querySelectorAll("[data-star]").forEach(x => {
+          const value = parseInt(x.getAttribute("data-star"));
+          x.classList.toggle("is-filled", value <= picked);
+          x.setAttribute("aria-pressed", String(value === picked));
+        });
         send.disabled = false;
       });
     });
     send.addEventListener("click", async function() {
-      if (picked < 0) { if (typeof showToast === "function") showToast(t("seller.select_stars"), "error"); return; }
+      if (picked < 1) { if (typeof showToast === "function") showToast(t("seller.select_stars"), "error"); return; }
       try {
         const { error } = await supabaseClient.rpc("rate_order", { p_order_id: oid, p_rating: picked, p_comment: box.querySelector("[data-comment]").value || "" });
         if (error) throw error;

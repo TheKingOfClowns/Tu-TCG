@@ -2964,6 +2964,30 @@ body {
 .seller-order-card-name { color: var(--text-primary); overflow-wrap: anywhere; }
 .seller-order-card-qty { display: block; margin-top: 2px; color: var(--text-muted); font-size: var(--text-xs); }
 .seller-order-empty { margin: var(--space-3) 0 0; color: var(--text-muted); font-size: var(--text-sm); }
+.seller-rating-stars { display: flex; gap: var(--space-1); margin-top: var(--space-3); }
+.seller-rating-star {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.seller-rating-star:hover { border-color: #ffd700; color: #ffd700; transform: translateY(-1px); }
+.seller-rating-star.is-filled {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, .13);
+  color: #ffd700;
+  box-shadow: 0 3px 12px rgba(255, 215, 0, .16);
+}
+.seller-rating-star:focus-visible { outline: 2px solid #ffd700; outline-offset: 2px; }
 @media (max-width: 767px) {
   .seller-profile-cover { min-height: 118px; }
   .seller-profile-main { grid-template-columns: 1fr; gap: 0; padding: 0 var(--space-5) var(--space-6); }
