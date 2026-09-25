@@ -749,6 +749,59 @@ Commit `40a5eca` (nunca-reload). Resto sin commitear hasta fin del día (guía +
 - API key Riot Runes, `scrape_set.js` por nuevos sets OP.
 - Limpieza duplicados Supabase, deep links `/explore/colecciones|ventas`.
 
+## Sesión 2026-09-22 — Venta stock20, carrito 20min, checkout, notifs, seller profiles
+
+Commits `8d7839e` (venta+carrito+notifs+guía+skills), `947c7b9` (tab Obtenidas público), `98e0660` (seller profiles). Push a `master` (auto-deploy). DB: `sale_carts`, `sale_orders`, `notifications`, `reports`, `reviews.order_id`, RPCs abajo.
+
+### Venta tipo único stock20 (F1/F2)
+- `window.VENTA_STOCK_MAX=20` + `normalizeVentaCol()` (`script.js`): migra legacy (`individual` mergea en chunks 20, `playset/editable` splitea >20). Corre en `reloadVentaFromDb` + `renderVentaView`. Decks legacy intactos.
+- Crear sin selects (`pedirCrearVenta_OP/RB/PK` → siempre `{subtype:binder, display_mode:stock}`). Badge `venta.badge_stock` = "Venta"/"Sale". Steppers/input 1-20 OP+RB (PK delega OP).
+- `catalog.js`: `getTargetMax` venta=20, `countInTarget` suma qty; `modals.js`: venta binder siempre grouped, `maxPerStack=20`.
+- Split por swipe horizontal >60px (`setupVentaSplit`, `venta.js`, RB reusea): crea copia qty1 al lado. Cada stack tope 20, N stacks por carta.
+- Sync: stock20 colapsa como grouped (rama `else` existente); baseline `config.stock_baseline` (máx publicado por carta) + `low_notified` se guardan en `syncObjectToSupabase` (solo sale no-deck), se restauran a `_baseline/_lowNotified` en `reloadVentaFromDb`.
+
+### Carrito 20min + checkout (F3)
+- `js/cart.js` nuevo: `sale_carts(buyer+binder único, items, updated_at)`, RPCs `sale_reserved/cart_add/cart_set_qty` filtran 20min (cada write toca `updated_at` = resetea timer). Countdown en barra/drawer, expira → toast + libera (reservas computadas, nada que restaurar). Dueño no compra propio; guest ve stock sin reserva.
+- Botón topbar `#cartTopBtn` siempre visible junto a campana (badge solo con items, suma global no-vencidas al arrancar/login); barra inferior con timer; drawer con items +/−, totales ARS/USD, WhatsApp vendedor (link `wa.me` con pedido armado, valida dominios como perfil público), Finalizar con confirm.
+- `checkout_cart` atómico: valida stock, descuenta `binder_cards` por `card_id` (achica stacks, borra en 0), crea `sale_orders`, borra cart, notifica venta. Precio = unitario del primer stack con precio × qty.
+- Stock en explore: pill mono cyan (`stock N`), `Agotado` rojo, `🛒 n · stock m`. Fix race: `cartLoad` repinta filas al terminar + `await` antes de pintar + guards `typeof`.
+
+### Notificaciones + campana (F4/F5)
+- `notifications` (owner-only RLS) + `js/notifs.js`: 🔔 en topbar global, badge, panel 20 últimas, leer todas, poll 60s. RPC `_notify_if_allowed` respeta `preferences.notify_sales/notify_low_stock`.
+- Alerta <30%: `_sale_check_low` en `cart_add/cart_set_qty/checkout` (avail vs baseline; reponer limpia flag). Toggles en perfil (`profileNotifySales/profileNotifyLow`, legacy `notifications` migra en lectura).
+- Venta realizada → notif al vendedor con comprador + totales.
+
+### Guía + tour fixes
+- `create_venta` 1 paso (selects eliminados; `tourModalEnter` detecta por vista `ventaManager`, no por `#createVentaSubtype` que ya no existe).
+- Home: intro + 6 pasos sidebar dual desktop/mobile (`sels`) + campana (`when:authed` nuevo) + toggle final; `hh2` dropeado. Keys `tut.hn1–hn7` ES+EN.
+- Gate `_tourProfileReady`: sin perfil no auto-arranca (era la causa de "sale aunque deshabilitado": `mostrarVista` corría con prefs `{}` → `once`). Replay pendiente + timeout 4s invitados.
+- Explore-detail `he5` = abre sección; `he10` carrito 20min.
+
+### Scroll venta (fix post-sesión)
+- +/−/input in-place (`ventaSyncQtyInput`, OP+RB): sin rebuild, sin salto. Estructural (quitar/split/undo) sigue con render.
+- `snapScroll` doble-rAF + `window.scrollY` + logs `[snap]` tras `_DEBUG`; `renderVentaView` con `try/finally` (el path deck salteaba restore); clamp `ventaPage` en grouped OP/RB.
+
+### Skills + producto + pulido
+- `npx impeccable install` (skills+engine+hooks en `.claude/.agents/.github`; bins `.exe` gitignoreados `**/skills/impeccable/scripts/bin/`) + `/impeccable init` → `PRODUCT.md` en raíz (web, coleccionista+vendedor, todo-en-uno vanilla, Nexus).
+- `npx skills add Leonxlnx/taste-skill --all` (13 skills en `.agents/agent/data`).
+- Pulido Nexus: cartBar pill, drawer slide-in, notif panel, `.stock-pill`; audit: `alert()`→toast (shim), `:focus-visible`, smooth scroll, metas og/description, `text-wrap:balance`; landing: subtext ≤20 palabras, bento 1ra card span 2, copy sin "precios actualizados".
+- Tab Obtenidas en detalle público tracking (`947c7b9`): Todas/Faltantes/Obtenidas (dueño), reuse `track.filter_owned`.
+
+### Seller profiles + reputación (`98e0660`)
+- Ruta `/seller/:id` (router + `mostrarVista` + pane + arranque + snapshot); `js/seller.js`: header completo + badge 🛡️ mod + ★ promedio, tabs Reseñas (buyer+★+texto+fecha, sin montos) / En venta (públicas → explore detail) / Valorar (mis órdenes sin puntuar, 0-5 + comentario).
+- `rate_order` (1 por orden, valida comprador), `seller_reputation(s)`, `seller_reviews`, `report_review` (no propia, notifica mods), `mod_resolve_report`. Reviews inmutables por RLS (sin UPDATE).
+- `reports` (unique review+reporter) + cola moderación en perfil solo-admin (Desestimar/Borrar). `TheKingOfClowns`=buronebrothers@hotmail.com ya `is_admin` (verificado).
+- Modal `pp-*` borrado (JS+CSS); `verPerfilPublico` navega. Badge ★ en portadas Explore (batch 1 RPC).
+- i18n 754/754 ES+EN (`seller.*`, `mod.*`, `cart.*`, `notif.*`, `tut.hn/hw6/he10`).
+
+## Sesión 2026-09-25 — Perfiles públicos, portadas y pedidos
+
+- Commit anterior `2275049` (ya en `origin/master`): perfil propio y público rediseñados con información pública, tab Colecciones con portadas, y checkout desde el único botón «Enviar pedido por WhatsApp». El mensaje enumera cada carta con nombre, código de expansión y cantidad en líneas separadas.
+- Perfil ajeno (`js/seller.js`): Colecciones y En venta ahora comparten `sellerCreateBinderCover`. Los binders públicos de venta consultan `binder_cards.card_id`, muestran la imagen de la carta principal igual que Explorar y conservan contador, badge, totales ARS/USD y apertura del detalle. CSS en `style.css`; versiones de recursos actualizadas en `index.html`.
+- Tab Valorar: las cartas de cada `sale_orders.items` se muestran en una lista numerada, una por línea, con nombre/código desde `cartCardLabel` (también resuelve el ID si no está en `cartasMap`) y cantidad. Se añadieron textos ES/EN y estado para pedidos sin cartas registradas. Las acciones de estrellas, comentario y envío siguen igual.
+- Verificación local: `node --check` de `js/seller.js` y `js/i18n.js`, `git diff --check` e Impeccable layout detect sin hallazgos en los archivos de la vista. No se probó con una cuenta real en el navegador.
+- Windows/Codex: el ajuste temporal de Windows Terminal (`windowingBehavior=useExisting`, minimizar a notificaciones) causó pestañas adicionales y fue revertido. La ventana persistente se rastreó a `codex-code-mode-host.exe`, hijo del app-server. En `C:\Users\buron\.codex\config.toml` se fijó `[features] code_mode_host = false`; `codex features list` confirma el valor, pero necesita reiniciar VS Code/Codex para comprobar si desaparece la ventana. Hay copia de la configuración previa fuera del repo.
+
 ## Convenciones
 - Leer este archivo al iniciar cada sesión.
 - Cada TCG tiene sus propios archivos JS: `_OP`, `_RB`, `_PK` y `dispatcher`, sin dispatchers inline.

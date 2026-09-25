@@ -176,28 +176,7 @@ async function sellerPaintCollections(sid, body) {
     const grid = document.createElement("div");
     grid.className = "collection-binder-grid seller-collection-grid";
     collections.forEach(binder => {
-      const count = (binder.binder_cards || []).reduce((sum, card) => sum + (Number(card.quantity) || 0), 0);
-      const cover = publicBinderCoverImage(binder) || "TUTCG.webp";
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "binder-cover-card seller-collection-card";
-      card.setAttribute("aria-label", `${binder.name || t("expl.type_collection")} · ${t("expl.card_count", { n: count })}`);
-      card.innerHTML = `<div class="binder-cover-img"><div class="binder-cover-overlay"><span class="binder-cover-count"></span></div></div>
-        <div class="binder-cover-meta"><div class="binder-cover-name-row"><span class="binder-cover-name-badge"></span><span class="binder-cover-badge"></span></div></div>`;
-      const image = document.createElement("img");
-      image.className = "seller-collection-image";
-      image.src = cover;
-      image.alt = "";
-      image.loading = "lazy";
-      image.addEventListener("error", () => { if (!image.src.endsWith("TUTCG.webp")) image.src = "TUTCG.webp"; });
-      card.querySelector(".binder-cover-img").prepend(image);
-      card.querySelector(".binder-cover-count").textContent = t("expl.card_count", { n: count });
-      card.querySelector(".binder-cover-name-badge").textContent = binder.name || t("expl.type_collection");
-      const badge = card.querySelector(".binder-cover-badge");
-      badge.classList.add("collection");
-      badge.textContent = t("expl.type_collection");
-      card.addEventListener("click", () => openExploreDetail(binder));
-      grid.appendChild(card);
+      grid.appendChild(sellerCreateBinderCover(binder, false, () => openExploreDetail(binder)));
     });
     body.replaceChildren(grid);
   } catch (error) {
@@ -206,44 +185,82 @@ async function sellerPaintCollections(sid, body) {
     }
   }
 }
+function sellerCreateBinderCover(binder, isSale, onOpen) {
+  const count = (binder.binder_cards || []).reduce((sum, card) => sum + (Number(card.quantity) || 0), 0);
+  const typeLabel = t(isSale ? "expl.type_sale" : "expl.type_collection");
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "binder-cover-card seller-collection-card";
+  card.setAttribute("aria-label", `${binder.name || typeLabel} · ${t("expl.card_count", { n: count })}`);
+  card.innerHTML = `<div class="binder-cover-img"><div class="binder-cover-overlay"><span class="binder-cover-count"></span></div></div>
+    <div class="binder-cover-meta"><div class="binder-cover-name-row"><span class="binder-cover-name-badge"></span><span class="binder-cover-badge"></span></div></div>`;
+  const image = document.createElement("img");
+  image.className = "seller-collection-image";
+  image.src = publicBinderCoverImage(binder) || "TUTCG.webp";
+  image.alt = "";
+  image.loading = "lazy";
+  image.addEventListener("error", () => { if (!image.src.endsWith("TUTCG.webp")) image.src = "TUTCG.webp"; });
+  card.querySelector(".binder-cover-img").prepend(image);
+  card.querySelector(".binder-cover-count").textContent = t("expl.card_count", { n: count });
+  card.querySelector(".binder-cover-name-badge").textContent = binder.name || typeLabel;
+  const badge = card.querySelector(".binder-cover-badge");
+  badge.classList.add(isSale ? "sale" : "collection");
+  badge.textContent = typeLabel;
+  card.addEventListener("click", onOpen);
+  return card;
+}
 async function sellerPaintSales(sid, body) {
   body.innerHTML = `<div class="collection-empty"><p>${t("seller.loading")}</p></div>`;
   let rows = [];
   try {
-    const { data } = await supabaseClient.from("binders")
-      .select("id, name, is_public, config, binder_cards(quantity, price, price_currency)")
+    if (typeof ensureCartasLoaded === "function") await ensureCartasLoaded();
+    const { data, error } = await supabaseClient.from("binders")
+      .select("id, name, is_public, config, binder_cards(card_id, quantity, price, price_currency)")
       .eq("user_id", sid).eq("type", "sale").eq("is_public", true).order("updated_at", { ascending: false }).limit(20);
+    if (error) throw error;
     if (data) rows = data;
   } catch (e) {}
+  if (_sellerTab !== "sales" || window._sellerId !== sid || !body.isConnected) return;
   if (!rows.length) { body.innerHTML = `<div class="collection-empty"><p>${t("seller.no_sales")}</p></div>`; return; }
-  body.innerHTML = `<div class="collection-binder-grid">` + rows.map(function(b) {
+  const grid = document.createElement("div");
+  grid.className = "collection-binder-grid seller-collection-grid";
+  rows.forEach(function(b) {
     const cards = b.binder_cards || [];
-    const n = cards.reduce(function(s, c) { return s + (c.quantity || 0); }, 0);
     let ars = 0, usd = 0;
     cards.forEach(function(c) {
       if (c.price == null) return;
       if (c.price_currency === "USD") usd += Number(c.price) * (c.quantity || 0);
       else ars += Number(c.price) * (c.quantity || 0);
     });
-    return `<div class="binder-cover-card" data-sale="${b.id}" style="cursor:pointer">
-      <div class="binder-cover-meta">
-        <span class="binder-cover-name-badge">${((typeof escapeHtml === "function") ? escapeHtml(b.name) : b.name)}</span>
-        <span style="font-size:11px;color:var(--text-muted)">${t("venta.count_cards", { n: n })}</span>
-        <div style="font-family:var(--font-mono);font-size:11px;font-weight:bold">${ars > 0 ? `<span style="color:var(--accent)">ARS $${ars.toFixed(2)}</span>` : ""}${usd > 0 ? ` <span style="color:#ffd700">USD $${usd.toFixed(2)}</span>` : ""}</div>
-      </div></div>`;
-  }).join("") + `</div>`;
-  body.querySelectorAll("[data-sale]").forEach(function(el) {
-    el.addEventListener("click", async function() {
-      const id = el.getAttribute("data-sale");
+    const cover = sellerCreateBinderCover(b, true, async function() {
       try {
         if (typeof loadPublicBinderById === "function") {
-          const full = await loadPublicBinderById(id);
+          const full = await loadPublicBinderById(b.id);
           if (full && typeof openExploreDetail === "function") { openExploreDetail(full); return; }
         }
       } catch (e) {}
-      if (typeof navigateToView === "function") navigateToView("exploreDetail", { id: id }, {});
+      if (typeof navigateToView === "function") navigateToView("exploreDetail", { id: b.id }, {});
     });
+    if (ars > 0 || usd > 0) {
+      const prices = document.createElement("div");
+      prices.className = "seller-cover-prices";
+      if (ars > 0) {
+        const price = document.createElement("span");
+        price.className = "seller-cover-price seller-cover-price-ars";
+        price.textContent = `ARS $${ars.toFixed(2)}`;
+        prices.appendChild(price);
+      }
+      if (usd > 0) {
+        const price = document.createElement("span");
+        price.className = "seller-cover-price seller-cover-price-usd";
+        price.textContent = `USD $${usd.toFixed(2)}`;
+        prices.appendChild(price);
+      }
+      cover.querySelector(".binder-cover-meta").appendChild(prices);
+    }
+    grid.appendChild(cover);
   });
+  body.replaceChildren(grid);
 }
 async function sellerPaintRate(sid, body) {
   body.innerHTML = `<div class="collection-empty"><p>${t("seller.loading")}</p></div>`;
@@ -264,11 +281,19 @@ async function sellerPaintRate(sid, body) {
   if (!pending.length) { body.innerHTML = `<div class="collection-empty"><p>${t("seller.no_pending")}</p></div>`; return; }
   const esc = (typeof escapeHtml === "function") ? escapeHtml : function(s) { return String(s == null ? "" : s); };
   body.innerHTML = pending.map(function(o) {
-    const items = (o.items || []).map(function(it) { return (it.qty || 0) + "x " + esc(it.card_id); }).join(", ");
+    const items = (Array.isArray(o.items) ? o.items : []).map(function(it) {
+      const cardId = String(it.card_id || "");
+      const card = (typeof cartasMap !== "undefined") ? cartasMap[cardId] : null;
+      const label = (typeof cartCardLabel === "function") ? cartCardLabel(card, cardId) : cardId;
+      return `<li><span class="seller-order-card-name">${esc(label)}</span><span class="seller-order-card-qty">${t("cart.wsp_qty", { n: Number(it.qty) || 0 })}</span></li>`;
+    }).join("");
     let d = "";
     try { d = new Date(o.created_at).toLocaleDateString(); } catch (e) {}
     return `<div data-order="${o.id}" style="padding:10px 0;border-bottom:1px solid var(--border-default)">
-      <div style="font-size:13px">${items} <span style="color:var(--text-muted);font-size:11px">· ${d}</span></div>
+      <div class="seller-order-summary">
+        <div class="seller-order-heading"><span>${t("seller.order_cards")}</span><time>${d}</time></div>
+        ${items ? `<ol class="seller-order-list">${items}</ol>` : `<p class="seller-order-empty">${t("seller.order_empty")}</p>`}
+      </div>
       <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap" data-stars>
         ${[0, 1, 2, 3, 4, 5].map(n => `<button class="btn-ghost btn-xs" data-star="${n}">${n}★</button>`).join("")}
       </div>
