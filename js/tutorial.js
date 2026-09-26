@@ -227,7 +227,13 @@ function tourPlace() {
   card.style.bottom = "auto";
   card.style.width = Math.min(300, window.innerWidth - 24) + "px";
   if (window.innerWidth < 768) {
-    card.style.top = "auto"; card.style.bottom = "8px";
+    var bottom = 84;
+    try {
+      bottom = (typeof window.getFloatingBottomOffset === "function")
+        ? window.getFloatingBottomOffset(card)
+        : 84;
+    } catch (e) {}
+    card.style.top = "auto"; card.style.bottom = bottom + "px";
     card.style.left = "8px"; card.style.right = "8px"; card.style.width = "auto";
     card.style.transform = "";
     return;

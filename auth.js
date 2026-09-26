@@ -178,7 +178,7 @@ function showAuthModal(mode) {
   if (mode === "login") {
     title.textContent = t("authm.login_title");
     fields.innerHTML = `
-      <input type="email" id="authEmail" placeholder="${t("authm.ph_email")}" required autocomplete="email">
+      <input type="email" id="authEmail" data-dialog-initial placeholder="${t("authm.ph_email")}" required autocomplete="email">
       <input type="password" id="authPassword" placeholder="${t("authm.ph_password")}" required autocomplete="current-password">
     `;
     submitBtn.textContent = t("authm.login_btn");
@@ -187,7 +187,7 @@ function showAuthModal(mode) {
     title.textContent = t("authm.register_title");
     fields.innerHTML = `
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px">
-        <input type="text" id="authFirstName" placeholder="${t("authm.ph_first")}" required autocomplete="given-name">
+        <input type="text" id="authFirstName" data-dialog-initial placeholder="${t("authm.ph_first")}" required autocomplete="given-name">
         <input type="text" id="authLastName" placeholder="${t("authm.ph_last")}" required autocomplete="family-name">
       </div>
       <input type="text" id="authUsername" placeholder="${t("authm.ph_user")}" required autocomplete="username">
@@ -199,7 +199,7 @@ function showAuthModal(mode) {
   } else if (mode === "forgot") {
     title.textContent = t("authm.forgot_title");
     fields.innerHTML = `
-      <input type="email" id="authEmail" placeholder="${t("authm.ph_email")}" required autocomplete="email">
+      <input type="email" id="authEmail" data-dialog-initial placeholder="${t("authm.ph_email")}" required autocomplete="email">
     `;
     submitBtn.textContent = t("authm.forgot_btn");
     toggleLink.innerHTML = '<a href="#" id="authToggle">' + t("authm.back_login") + '</a>';

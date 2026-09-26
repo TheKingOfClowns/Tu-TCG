@@ -98,19 +98,25 @@ const tcgList = [
 ];
 // ─── Helpers ──────────────────────────────────────────────────────────────
 // ponytail: la barra manda columnas/filas (0%→10×5, 100%→5×10); el px emerge. Móvil pinza columnas.
-function gridColsRows(v, w) {
+function gridColsRows(v, w, viewportWidth) {
   var k = Math.max(0, Math.min(10, Math.round(((v == null || isNaN(v)) ? 50 : v) / 10)));
   var cols = 10 - Math.floor((k + 1) / 2);
   var rows = 5 + Math.floor(k / 2);
-  var maxCols = Math.max(2, Math.floor(((w && w > 0) ? w : 1000) / 110));
+  var available = (w && w > 0) ? w : 1000;
+  var viewport = (viewportWidth && viewportWidth > 0) ? viewportWidth : available;
+  var breakpointMax = viewport < 768 ? 2 : viewport < 1024 ? 3 : 10;
+  var maxCols = Math.min(breakpointMax, Math.max(2, Math.floor(available / 110)));
   cols = Math.min(cols, maxCols);
   return { cols: cols, rows: rows, size: cols * rows };
 }
 function syncGridCols(container) {
-  var w = (container && container.clientWidth) || 1000;
+  var viewport = Math.max(320, document.documentElement.clientWidth || window.innerWidth || 1000);
+  var measured = 0;
+  try { measured = container ? container.getBoundingClientRect().width : 0; } catch (e) {}
+  var w = measured > 0 ? Math.min(measured, viewport) : viewport;
   var v = 50;
   try { var s = parseInt(localStorage.getItem("tutcg_card_min"), 10); if (!isNaN(s)) v = s; } catch (e) {}
-  var g = gridColsRows(v, w);
+  var g = gridColsRows(v, w, viewport);
   try { document.documentElement.style.setProperty("--grid-cols", String(g.cols)); } catch (e) {}
   return g;
 }
@@ -360,12 +366,43 @@ function snapScroll() {
     });
   };
 }
+function getFloatingBottomOffset(exclude) {
+  if (window.innerWidth >= 768) return 24;
+  var offset = 12;
+  var nav = document.getElementById("bottomNav");
+  try {
+    if (nav && getComputedStyle(nav).display !== "none") offset += nav.getBoundingClientRect().height;
+  } catch (e) { offset = 84; }
+  ["draftBar", "cartBar"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el || el === exclude) return;
+    try {
+      var cs = getComputedStyle(el);
+      var r = el.getBoundingClientRect();
+      if (cs.display !== "none" && cs.visibility !== "hidden" && r.height > 0) {
+        offset = Math.max(offset, window.innerHeight - r.top + 8);
+      }
+    } catch (e) {}
+  });
+  return offset;
+}
+window.getFloatingBottomOffset = getFloatingBottomOffset;
+
+function prepareToast(toast, type) {
+  var urgent = type === "error";
+  toast.setAttribute("role", urgent ? "alert" : "status");
+  toast.setAttribute("aria-live", urgent ? "assertive" : "polite");
+  toast.setAttribute("aria-atomic", "true");
+  toast.style.bottom = getFloatingBottomOffset(toast) + "px";
+}
+
 function showToast(msg, type) {
   const existing = document.querySelector(".toast-notification");
   if (existing) existing.remove();
   const toast = document.createElement("div");
   toast.className = "toast-notification" + (type ? " " + type : "");
   toast.textContent = msg;
+  prepareToast(toast, type);
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
@@ -397,6 +434,7 @@ function showUndoToast(msg) {
   if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
   var toast = document.createElement("div");
   toast.className = "toast-notification info";
+  prepareToast(toast, "info");
   var span = document.createElement("span");
   span.textContent = msg;
   var btn = document.createElement("button");
@@ -412,6 +450,51 @@ function showUndoToast(msg) {
   document.body.appendChild(toast);
   _undoTimer = setTimeout(function () { toast.remove(); _lastRemoval = null; }, 8000);
 }
+
+// Accesibilidad común para los diálogos estáticos del shell.
+function initDialogAccessibility() {
+  var dialogs = Array.from(document.querySelectorAll('.modal-overlay-dark[role="dialog"]'));
+  var previousFocus = new WeakMap();
+  var focusSelector = '[data-dialog-initial], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
+  function isOpen(dialog) {
+    try { return getComputedStyle(dialog).display !== "none"; } catch (e) { return false; }
+  }
+  function sync(dialog) {
+    var open = isOpen(dialog);
+    dialog.setAttribute("aria-hidden", open ? "false" : "true");
+    if (open) {
+      if (!previousFocus.has(dialog)) previousFocus.set(dialog, document.activeElement);
+      requestAnimationFrame(function() {
+        if (!isOpen(dialog) || dialog.contains(document.activeElement)) return;
+        var target = dialog.querySelector("[data-dialog-initial]") || dialog.querySelector(focusSelector);
+        if (target) { try { target.focus({ preventScroll: true }); } catch (e) { try { target.focus(); } catch (e2) {} } }
+      });
+    } else if (previousFocus.has(dialog)) {
+      var target = previousFocus.get(dialog);
+      previousFocus.delete(dialog);
+      if (target && target.isConnected) { try { target.focus({ preventScroll: true }); } catch (e) {} }
+    }
+  }
+  dialogs.forEach(function(dialog) {
+    sync(dialog);
+    try { new MutationObserver(function() { sync(dialog); }).observe(dialog, { attributes: true, attributeFilter: ["style", "class"] }); } catch (e) {}
+  });
+  document.addEventListener("keydown", function(e) {
+    if (e.key !== "Tab") return;
+    var open = dialogs.filter(isOpen);
+    var dialog = open.length ? open[open.length - 1] : null;
+    if (!dialog) return;
+    var items = Array.from(dialog.querySelectorAll(focusSelector)).filter(function(el) {
+      try { var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; } catch (err) { return false; }
+    });
+    if (!items.length) { e.preventDefault(); return; }
+    var first = items[0], last = items[items.length - 1];
+    if (!dialog.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+}
+initDialogAccessibility();
 function decodeHtml(str) {
   const txt = document.createElement("textarea");
   txt.innerHTML = str;
@@ -1138,6 +1221,7 @@ async function migrateLocalToSupabase() {
   const toast = document.createElement("div");
   toast.className = "toast-notification";
   toast.textContent = t("core.migrating");
+  prepareToast(toast, "info");
   document.body.appendChild(toast);
   if (hasCols) await syncCollectionsToSupabase();
   if (hasVenta) await syncVentaToSupabase();

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
   <title>TuTCG</title>
   <meta name="description" content="TuTCG: catálogo, binder virtual, deck builder y venta de cartas TCG (One Piece, Riftbound, Pokémon) con carrito y stock en tiempo real.">
@@ -11,8 +11,8 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="TUTCG.webp">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="stylesheet" href="design-system.css?v=3">
-  <link rel="stylesheet" href="style.css?v=46">
+<link rel="stylesheet" href="design-system.css?v=4">
+  <link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
 
@@ -177,7 +177,6 @@
                   </div>
                   <h3 data-i18n="land.feat1_t">Catálogo completo</h3>
                   <p data-i18n="land.feat1_d">Miles de cartas con imágenes, rarezas y precios actualizados.</p>
-                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
@@ -185,7 +184,6 @@
                   </div>
                   <h3 data-i18n="land.feat2_t">Búsqueda instantánea</h3>
                   <p data-i18n="land.feat2_d">Buscá por nombre, set o código de carta con resultados en tiempo real.</p>
-                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
@@ -193,7 +191,6 @@
                   </div>
                   <h3 data-i18n="land.feat3_t">Binder virtual</h3>
                   <p data-i18n="land.feat3_d">Organizá tus cartas en colecciones personalizadas con drag & drop.</p>
-                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
@@ -201,7 +198,6 @@
                   </div>
                   <h3 data-i18n="land.feat4_t">Deck builder</h3>
                   <p data-i18n="land.feat4_d">Armá mazos con límites oficiales.</p>
-                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
@@ -209,7 +205,6 @@
                   </div>
                   <h3 data-i18n="land.feat5_t">Vos ponés tus precios</h3>
                   <p data-i18n="land.feat5_d">Precios editables por el usuario.</p>
-                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon">
@@ -217,7 +212,6 @@
                   </div>
                   <h3 data-i18n="land.feat6_t">Lista de deseos</h3>
                   <p data-i18n="land.feat6_d">Marcá las cartas que te faltan y armá tu wishlist para completar colecciones.</p>
-                  <span class="feature-tag" data-i18n="land.available">Disponible</span>
                 </div>
               </div>
               <p class="coming-soon-note" data-i18n="land.coming_note">Próximamente: más TCG disponibles para explorar</p>
@@ -369,9 +363,9 @@
         <div id="catalogAddBanner" style="display:none;align-items:center;justify-content:space-between;padding:var(--space-3);background:linear-gradient(135deg,rgba(0,240,255,0.1),rgba(99,102,241,0.1));border:1px solid rgba(0,240,255,0.2);border-radius:var(--radius-md);margin-bottom:var(--space-2)">
           <span style="font-size:var(--text-sm);color:var(--text-secondary)"><span data-i18n="cat.adding_to">Agregando a:</span> <strong id="catalogAddBinderName" style="color:var(--accent)"></strong></span>
           <div style="display:flex;gap:var(--space-2)">
-            <button class="btn-primary btn-xs" id="catalogAddConfirm" style="font-size:10px;padding:4px 10px" data-i18n="modal.add">Agregar</button>
-            <button class="btn-ghost btn-xs" id="catalogAddBack" style="font-size:10px" data-i18n="modal.back_binder">Volver al binder</button>
-            <button class="btn-ghost btn-xs" id="catalogAddCancel" style="font-size:10px;color:var(--text-muted)">✕</button>
+            <button class="btn-primary btn-xs" id="catalogAddConfirm" style="font-size:11px;padding:4px 10px" data-i18n="modal.add">Agregar</button>
+            <button class="btn-ghost btn-xs" id="catalogAddBack" style="font-size:11px" data-i18n="modal.back_binder">Volver al binder</button>
+            <button class="btn-ghost btn-xs" id="catalogAddCancel" style="font-size:11px;color:var(--text-muted)" aria-label="Cancelar" data-i18n-aria-label="modal.cancel">✕</button>
           </div>
         </div>
 
@@ -705,11 +699,11 @@
       </section>
 
       <!-- ── Create / Rename Modal ── -->
-      <div class="modal-overlay-dark" id="createModalOverlay" style="display:none">
+      <div class="modal-overlay-dark" id="createModalOverlay" role="dialog" aria-modal="true" aria-labelledby="createModalTitle" aria-hidden="true" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:400px">
           <h3 id="createModalTitle" data-i18n="modal.create_title">Crear colección</h3>
           <div class="add-modal-body">
-            <input type="text" id="createModalInput" placeholder="Nombre de la colección" data-i18n-ph="modal.create_name_ph" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
+            <input type="text" id="createModalInput" data-dialog-initial placeholder="Nombre de la colección" data-i18n-ph="modal.create_name_ph" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
             <div id="createModalExtra" style="margin-top:var(--space-3)"></div>
           </div>
           <div class="add-modal-actions">
@@ -720,11 +714,11 @@
       </div>
 
       <!-- ── Importar lista al deck ── -->
-      <div class="modal-overlay-dark" id="pasteListModal" style="display:none">
+      <div class="modal-overlay-dark" id="pasteListModal" role="dialog" aria-modal="true" aria-labelledby="pasteListTitle" aria-hidden="true" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:480px">
-          <h3 data-i18n="modal.import_title">Importar lista</h3>
+          <h3 id="pasteListTitle" data-i18n="modal.import_title">Importar lista</h3>
           <div class="add-modal-body">
-            <textarea id="pasteListInput" rows="8" placeholder="1 OP17-118 Rocks.D.Xebec&#10;4 OP17-056 Rocks Pirates" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);font-family:var(--font-mono);outline:none;resize:vertical"></textarea>
+            <textarea id="pasteListInput" data-dialog-initial rows="8" placeholder="1 OP17-118 Rocks.D.Xebec&#10;4 OP17-056 Rocks Pirates" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);font-family:var(--font-mono);outline:none;resize:vertical"></textarea>
             <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-2)" data-i18n="modal.import_hint">Una carta por línea: cantidad, ID y nombre (ej: 4 OP17-056 Rocks Pirates). El líder se detecta solo. Solo entran cartas de su color.</p>
           </div>
           <div class="add-modal-actions">
@@ -735,12 +729,12 @@
       </div>
 
       <!-- ── Tracking Create Modal ── -->
-      <div class="modal-overlay-dark" id="trackingModalOverlay" style="display:none">
+      <div class="modal-overlay-dark" id="trackingModalOverlay" role="dialog" aria-modal="true" aria-labelledby="trackingModalTitle" aria-hidden="true" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:480px;max-height:80vh;overflow-y:auto">
           <h3 id="trackingModalTitle" data-i18n="track.create_title">Crear binder de colección</h3>
           <div class="add-modal-body">
             <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.05em" data-i18n="track.name_label">Nombre</label>
-            <input type="text" id="trackingNameInput" placeholder="Nombre del binder" data-i18n-ph="track.name_ph" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
+            <input type="text" id="trackingNameInput" data-dialog-initial placeholder="Nombre del binder" data-i18n-ph="track.name_ph" autocomplete="off" style="width:100%;padding:var(--space-3);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-base);outline:none">
             <label style="display:block;font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase;letter-spacing:0.05em" data-i18n="track.collect_label">¿Qué vas a coleccionar?</label>
             <select id="trackingTypeSelect" style="width:100%;padding:var(--space-3);background-color:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-sm);outline:none">
               <option value="expansion" data-i18n="track.opt_expansion">Expansiones</option>
@@ -764,7 +758,7 @@
       </div>
 
       <!-- ── Confirm Modal ── -->
-      <div class="modal-overlay-dark" id="confirmModal" style="display:none">
+      <div class="modal-overlay-dark" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalMsg" aria-hidden="true" style="display:none">
         <div class="add-modal-panel glass-panel" style="max-width:360px">
           <h3 id="confirmModalTitle" data-i18n="modal.confirm_title">Confirmar</h3>
           <p id="confirmModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0"></p>
@@ -776,7 +770,7 @@
       </div>
 
       <!-- ── Guía por sección (spotlight: anillo + viñeta, sin overlay) ── -->
-      <div id="tourCard" class="tour-card glass-panel" style="display:none" data-sel="">
+      <div id="tourCard" class="tour-card glass-panel" role="dialog" aria-modal="false" aria-labelledby="tourTitle" aria-describedby="tourBody" style="display:none" data-sel="">
         <p id="tourCount" style="font-size:var(--text-xs);color:var(--text-muted);margin:0 0 var(--space-1)"></p>
         <h3 id="tourTitle" style="margin:0"></h3>
         <p id="tourBody" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-2) 0"></p>
@@ -788,8 +782,8 @@
       </div>
 
       <!-- ── Card Detail Modal ── -->
-      <div class="modal-overlay-dark" id="modal" style="display:none">
-        <button class="modal-close-btn" id="closeModal">
+      <div class="modal-overlay-dark" id="modal" role="dialog" aria-modal="true" aria-label="Detalle de carta" data-i18n-aria-label="modal.card_detail" aria-hidden="true" style="display:none">
+        <button class="modal-close-btn" id="closeModal" aria-label="Cerrar" data-i18n-aria-label="modal.close">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
         <div class="modal-body" id="modalBody"></div>
@@ -823,9 +817,9 @@
   </nav>
 
   <!-- ═══ AUTH MODAL ═══ -->
-  <div class="modal-overlay-dark" id="authModalOverlay" style="display:none">
+  <div class="modal-overlay-dark" id="authModalOverlay" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" aria-hidden="true" style="display:none">
     <div class="auth-modal glass-panel">
-      <button class="modal-close-btn" onclick="hideAuthModal()">
+      <button class="modal-close-btn" onclick="hideAuthModal()" aria-label="Cerrar" data-i18n-aria-label="modal.close">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
       <h2 id="authModalTitle" data-i18n="authm.login_title">Iniciar sesión</h2>
@@ -840,11 +834,11 @@
   </div>
 
   <!-- ═══ DECK PICKER MODAL ═══ -->
-  <div class="modal-overlay-dark" id="deckPickerOverlay" style="display:none">
+  <div class="modal-overlay-dark" id="deckPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="deckPickerTitle" aria-hidden="true" style="display:none">
     <div class="deck-picker-panel glass-panel">
       <div class="deck-picker-header">
         <h3 id="deckPickerTitle" data-i18n="deck.pick_title">Elegir carta</h3>
-        <input type="text" id="deckPickerSearch" placeholder="Buscar carta…" data-i18n-ph="deck.pick_search_ph" autocomplete="off">
+        <input type="text" id="deckPickerSearch" data-dialog-initial placeholder="Buscar carta…" data-i18n-ph="deck.pick_search_ph" autocomplete="off">
       </div>
       <div class="deck-picker-grid" id="deckPickerGrid"></div>
       <div class="deck-picker-footer">
@@ -860,9 +854,9 @@
     <button class="btn-ghost btn-sm" id="draftDiscardBtn" data-i18n="core.draft_discard">Descartar</button>
     <button class="btn-primary btn-sm" id="draftSaveBtn" data-i18n="core.draft_save">Guardar</button>
   </div>
-  <div class="modal-overlay-dark" id="draftModal" style="display:none">
+  <div class="modal-overlay-dark" id="draftModal" role="dialog" aria-modal="true" aria-labelledby="draftModalTitle" aria-describedby="draftModalMsg" aria-hidden="true" style="display:none">
     <div class="add-modal-panel glass-panel" style="max-width:360px">
-      <h3 data-i18n="core.draft_title">Cambios sin guardar</h3>
+      <h3 id="draftModalTitle" data-i18n="core.draft_title">Cambios sin guardar</h3>
       <p id="draftModalMsg" style="font-size:var(--text-sm);color:var(--text-secondary);margin:var(--space-3) 0" data-i18n="core.draft_msg">Tenés cambios sin guardar. ¿Qué querés hacer?</p>
       <div class="add-modal-actions">
         <button class="btn-ghost" id="draftStayBtn" data-i18n="core.draft_stay">Seguir editando</button>
@@ -887,9 +881,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="supabase.js?v=2"></script>
-  <script src="auth.js?v=8"></script>
+  <script src="auth.js?v=9"></script>
   <script src="js/state.js?v=1"></script>
-  <script src="js/i18n.js?v=25"></script>
+  <script src="js/i18n.js?v=26"></script>
   <script src="js/tcg/onepiece/config.js?v=1"></script>
   <script src="js/tcg/riftbound/config.js?v=1"></script>
   <script src="js/tcg/pokemon/config.js?v=1"></script>
@@ -918,8 +912,8 @@
   <script src="js/modals/modals.js?v=11"></script>
   <script src="js/router.js?v=2"></script>
   <script src="js/skeleton.js?v=1"></script>
-  <script src="js/tutorial.js?v=21"></script>
-  <script src="script.js?v=75"></script>
+  <script src="js/tutorial.js?v=22"></script>
+  <script src="script.js?v=76"></script>
   <script src="profile.js?v=12"></script>
   <script src="js/viewOpts.js?v=4"></script>
 </body>

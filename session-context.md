@@ -1,813 +1,230 @@
 # TuTCG — Session Context
 
-## Fecha
-2026-09-11
+## Estado actual
 
-## Proyecto
-App web vanilla HTML/CSS/JS SPA de gestión de colecciones TCG (One Piece, Riftbound + otros futuros). Hosteada en Cloudflare Pages. Deploy automático por push a `master` (vía principal desde 2026-09-11).
+- Última actualización de contexto: 2026-09-26.
+- App web SPA vanilla HTML/CSS/JS para administrar colecciones, decks, tracking y ventas de TCG.
+- Juegos actuales: One Piece, Riftbound y estructura incompleta para Pokémon.
+- Producción: Cloudflare Pages con deploy automático al hacer push a `master`.
+- Último estado estable registrado: commit `2275049` en `origin/master`.
+- Desarrollo local con fallback SPA: `npm run dev`.
+- Idiomas de interfaz: español e inglés. El idioma de las cartas es independiente.
 
-## Sesión 2026-09-11 — Promos rotas, sliders tamaño, páginas de 3 filas
+## Cambios locales pendientes (2026-09-26)
 
-### Fix promos sin imagen (case-sensitivity)
-- Síntoma: `tutcg.pages.dev/catalog?expansion=PROMO` con >60% roto, F12 limpio (200 con HTML fallback SPA, no 404).
-- Causa: 161 archivos en `en/PROMO/` en mayúscula en disco vs minúscula en JSON; Windows perdona, Pages/Linux no. Git `core.ignorecase` ocultaba que el ÍNDICE también estaba en mayúsculas → los auto-deploys desde GitHub seguían rotos tras el fix de disco.
-- Fix: renames a minúscula en disco + 7 refs duplicadas unificadas a variante existente (`047a6b6`) + 154 renames en ÍNDICE vía `git mv -f` (`88aea20`) + `.toLowerCase()` en `scrape_set.js`/`scrape_set_en.js`. Auditoría final: 11333 refs, 0 faltantes. Prod verificado 120/120 webp. Deploy final `5cf937cc`.
-- Lección: builds corren en Linux; auditar `git ls-files` vs JSON case-sensitive, no solo disco.
+- Primera pasada Impeccable sin commit ni deploy.
+- Móvil: grillas limitadas a dos columnas, filtros adaptativos, shell sin overflow y superficies flotantes separadas de la navegación inferior.
+- Accesibilidad: diálogos con semántica ARIA, foco inicial/restaurado, focus trap y toasts anunciados.
+- Legibilidad: mínimo funcional `--text-xs` elevado a 11px y badges repetidos “Disponible” eliminados.
+- Verificado a 390px: documento sin overflow, cinco destinos inferiores visibles y catálogo en dos columnas.
 
-### Opciones de vista (popover ⚙ en catálogo/binder/venta/explore)
-- Popover compartido `js/viewOpts.js`: slider tamaño cartas + slider tamaño deck (0–100, `px = 120 + v×1.6`, `localStorage` `tutcg_card_min`/`tutcg_deck_min`, default 50), filas por página 2–6 (`tutcg_page_rows`, default 3), count `Auto/10/20/30/40` (`tutcg_page_size`, `""`=Auto). Todo local, fuera de Supabase. Sliders sacados del perfil (2026-09-11).
-- CSS: token muerto `--card-min-width` reutilizado (200px) + nuevo `--deck-min-width`; UN bloque override al final de `style.css` (pisa `repeat` fijos de todos los breakpoints): tracks fijos `repeat(auto-fit, min(var(--x), 42vw))`, arranque izquierda. `44vw→42vw` para 2 cols en 360px. Covers incluidas (`.collection-binder-grid`, `.explore-grid`, `.sk-covers`); TCG dashboard y modal afuera.
-- Lógica en `profile.js`: `applySize(v, save, cfg)`; `applyCardSize`/`applyDeckSize` kept como wrappers (los usa el popover; arranque aplica guardados vía `viewOpts.js`).
+## Reglas operativas
 
-### Páginas configurables (filas 2–6 o count fijo, catálogo/colección/ventas/explore)
-- Helper global `pageSizeFor(container, rows)` (`script.js`): columnas reales `floor((ancho+16)/(min+16))`; si hay count manual devuelve ese `size`, si no `filas×cols` (filas de `tutcg_page_rows`, default 3). Elimina `cardsPerPage`/`binderPerPage`/`ventaPerPage`.
-- Catálogo (`catalog.js`), binder OP/RB/dispatcher/tracking (`binder.js`, `binder_riftbound.js`, `dispatcher_binder.js`, `tracking.js`), ventas OP/RB individual+grouped (`venta.js`, `venta_riftbound.js`; PK delega), explore lista (`explorePage`, prev/next solo si >1) y explore detalle (`exploreDetailPage`, `navList` completa para modal con `startIdx` global).
-- Reset a pág 1 en filtros/tabs/búsqueda/binder; clamp si el total achica; resize con debounce por vista (explore solo si cambian columnas, evita flashes).
-- Afuera: deck-subtype y tracking-checklist (listas finitas, todo visible), portadas de listas, `?page` en explore (solo memoria). Última página de listas finitas puede quedar parcial (sin arreglo posible).
+- No hacer commit, push ni deploy sin pedido explícito del usuario.
+- No usar `wrangler pages deploy` salvo emergencia: el flujo principal es el auto-deploy desde `master`.
+- Los builds de Cloudflare corren en Linux y distinguen mayúsculas/minúsculas. Verificar siempre el case de assets y referencias JSON.
+- No commitear `.env`, credenciales, backups ni archivos temporales.
+- Después de modificar JS cargado desde `index.html`, actualizar su `?v=` para evitar caché vieja.
+- Si se tocan listeners top-level u orden de scripts, verificar el orden de carga además de ejecutar `node --check`.
 
-### Fixes UX chicos (mismo día)
-- Precio venta RB robaba foco (`venta_riftbound.js:270` re-renderizaba en `change`; ahora solo `guardarVenta()`, igual que OP) + `mostrarVista` venta renderiza sync si datos listos (sin skeleton que se comía el primer click).
-- Toast "Datos sincronizados" en cada vuelta de pestaña: supabase-js re-emite `SIGNED_IN` al reenfocar → early-return si ningún binder tiene `_synced=false` (`script.js:780`).
-- Registro: apellido desbordaba el modal (grid `1fr 1fr` sin `minmax`) → `minmax(0,1fr)` + `input{min-width:0;width:100%}` (`auth.js`, `style.css`).
-- Portadas con slider chico cortaban el nombre (`ellipsis` 1 línea) → clamp 2 líneas + `overflow-wrap:anywhere` en `.binder-cover-name-badge`, `min-width:0` en meta (`12dfffc` y fix posterior).
+## Arquitectura
 
-### Mensajes de error auth (2026-09-11)
-- `friendlyAuthError(err)` (`auth.js`): mapea `23505`/username duplicado, email registrado, login inválido, pass corta a español. `signUp` ahora propaga error del `upsert` de profile (antes se tragaba el duplicado).
-- Techo: con anti-enumeración activa el email duplicado devuelve éxito falso → pasar a RPC/trigger.
+- `index.html`: layout principal y orden de carga de scripts.
+- `style.css` / `design-system.css`: estilos y tokens Nexus.
+- `script.js`: estado global, navegación de vistas, sincronización, borradores y planes.
+- `js/state.js`: estado compartido.
+- `js/router.js`: History API y deep links.
+- `js/i18n.js`: traducciones ES/EN y preferencias de idioma.
+- `js/tutorial.js`: guía contextual por sección.
+- `js/cart.js`: carrito, reservas y checkout.
+- `js/notifs.js`: notificaciones y campana.
+- `js/seller.js`: perfiles públicos, publicaciones, pedidos y reputación.
+- `auth.js` / `profile.js`: autenticación y perfil.
+- `supabase.js`: cliente y configuración pública de Supabase.
+- `js/viewOpts.js`: tamaño de cartas/decks y paginación visual.
+- `js/skeleton.js`: estados de carga.
 
-### Commits del día
-`047a6b6` fix case disco+JSON → `88aea20` fix case índice → `956172f` sliders+3 filas+fixes UX → `e05da7d` 3 filas en ventas+explore → `1ea4ae7` docs sesión → `12dfffc` popover vista+mensajes auth+fix apellido → `86b8e1d` confirm+Deshacer quitadas → `cf245b0` bumps `?v=` cache-busting → `6e62be7` planes+tripulaciones. Todos pusheados a `master` (auto-deploy). Lección 2026-09-11: bumpear `?v=` en cada JS con cambios (navegadores cachean por URL; Live Server incluido).
+### Módulos por TCG
 
-## Arquitectura modular
-Cada TCG tiene archivo propio con sufijo corto (`_OP`, `_RB`, `_PK`) y dispatcher que rutea por `currentTcg`. Si falla un módulo, no afecta a los demás.
+Cada dominio tiene módulos por juego y un dispatcher:
 
-- `index.html` — Layout principal + orden de carga de scripts
-- `style.css` / `design-system.css` — Estilos y tokens
-- `script.js` — Lógica principal (~1830 líneas), estado global, sync Supabase, borrador staged, planes
-- `js/state.js` — Estado (`window.state`, solo `catalog.catalogLanguage`)
-- `js/tcg/{tcg}/config.js` — Config por TCG (deckRules, rarities, cardTypes, colors, etc.)
-- `js/modals/modals.js` — Modal de carta, `_confirmAddDeck_*`, `addPendingCardsToCol`, create modal
-- `js/catalog/catalog.js` — Renderizado de catálogo, filtros data-driven, selector de destino rápido, stats
-- `js/binder/binder.js` + `_RB` + `_PK` + `dispatcher_binder.js` — Colecciones
-- `js/venta/venta.js` + `_RB` + `_PK` + `dispatcher_venta.js` — Venta
-- `js/deck/deck.js` + `_RB` + `_PK` + `dispatcher.js` — Deck builder
-- `js/tracking/tracking.js` + `_RB` + `_PK` + `dispatcher_tracking.js` — Tracking
-- `js/explore/explore.js` — Vista explore
-- `js/viewOpts.js` — Popover ⚙ (tamaño, filas, count), `pageSizeFor` lo lee vía localStorage
-- `auth.js` / `profile.js` — Autenticación y perfil Supabase
+- Config: `js/tcg/{tcg}/config.js`.
+- Catálogo: `js/catalog/catalog.js`.
+- Colecciones: `js/binder/binder.js`, variantes `_riftbound`/`_pokemon` y `dispatcher_binder.js`.
+- Ventas: `js/venta/venta.js`, variantes y `dispatcher_venta.js`.
+- Decks: `js/deck/deck.js`, variantes y `dispatcher.js`.
+- Tracking: `js/tracking/tracking.js`, variantes y `dispatcher_tracking.js`.
+- Modales y agregado: `js/modals/modals.js`.
+- Explore: `js/explore/explore.js`.
 
-## Supabase
-- Cliente: `supabase.js` (`SUPABASE_URL` + `SUPABASE_ANON_KEY` hardcodeadas — son keys publishable, aptas para frontend; `.env.example` queda como referencia)
-- Tablas: `binders`, `binder_cards`, `ventas`, `cartas_usuario`, `profiles` (`plan_level`, `crew`, `is_admin` desde 2026-09-11)
-- Edge Function: `sync-binder-cards-v3` (fuente en `supabase/functions/sync-binder-cards-v3/`, llama a la RPC `sync_binder_cards_atomic`)
+Convenciones obligatorias:
 
-### Configuración de credenciales
-`.env.example` en la raíz (referencia):
-```
-SUPABASE_URL=https://scykfvomdwpiypmblnvv.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_LqQFFDrM2N4_KJ-q6GDsQQ_Q1OEsUsT
-```
-⚠️ NO commitear `.env` al repositorio. Usar `.env.example` como template.
+- Cada TCG usa sufijos `_OP`, `_RB` o `_PK`; no crear dispatchers inline.
+- Los dispatchers resuelven el módulo con `tcgShort()` y `tcgConfigs[currentTcg].short`, no con cadenas de `if/else`.
+- Las reglas de juego viven en su config: zonas, rarezas, colores, tipos, límites y detectores.
+- Los listeners que dependen de una función deben vivir en el archivo que define esa función.
+- En Riftbound, `feature` agrupa cartas de un mismo champion.
 
 ## Datos maestros
-- `data/games/onepiece/cards_master.json` — ~10,000 cartas (EN + JA)
-  - **550 PROMO/OTHER cards** matching official OPCG site (fix 2026-08-28)
-- `data/games/riftbound/cards_master.json` — 1,224 cartas
-- `data/games/pokemon/cards_master.json` — Estructura vacía (pendiente scrapear)
-- `config/games.json` — Habilita/deshabilita TCGs y apunta a `data_dir`
 
-### Imágenes de Promos One Piece (fix 2026-08-28)
-- 550 imágenes de promo en `assets/images/onepiece/en/PROMO/`
-- Formato: WebP,命名: `{set_id}_{parallel}.webp` (ej: `op01-014_p1.webp`)
-- Descargadas del sitio oficial OPCG y convertidas con sharp
+- One Piece: `data/games/onepiece/cards_master.json`.
+- Riftbound: `data/games/riftbound/cards_master.json`.
+- Pokémon: `data/games/pokemon/cards_master.json` todavía vacío.
+- Juegos habilitados: `config/games.json`.
+- Scripts vigentes de actualización OP: `_tools/scrape_set.js` y `_tools/scrape_set_en.js`.
 
-### Fix case-sensitivity promos (2026-09-11)
-- 161 archivos en `en/PROMO/` con mayúscula en disco vs minúscula en JSON → 404 en Pages/Linux (200 con HTML fallback, F12 limpio). Windows local perdonaba.
-- Fix: renames a minúscula + 7 refs duplicadas unificadas a variante existente + `.toLowerCase()` en `scrape_set.js`/`scrape_set_en.js`.
-- Commit `047a6b6`, deploy `2350bd90`. Auditoría: 11333 refs, 0 faltantes.
-- ⚠️ El fix real fue commit `88aea20` (renames en ÍNDICE git): Windows `core.ignorecase` ocultaba que el árbol git seguía en mayúsculas; los auto-deploys desde GitHub (Linux) servían mayúsculas → 404. Deploy manual wrangler sube disco, auto-deploy usa árbol: mantener ambos iguales. Deploy final `5cf937cc`, prod verificado 120/120 webp.
-- Deploy: hay auto-deploy por push a master (3 builds 10:03–10:06 el 2026-09-11). Lei `wrangler pages deploy` manual convive pero el push lo pisa: una sola vía por cambio.
+One Piece tiene imágenes tanto en `assets/images/onepiece/en/P/` como en `en/PROMO/`; ambas rutas son válidas. Los nombres de archivo se mantienen en minúsculas para compatibilidad con Linux. El filtro “Promo Cards” combina categorías `PROMO` y `OTHER`.
 
-### Stats del landing (globales)
-`cargarStatsLanding()` (`script.js:159`) carga todos los `cards_master.json` de juegos habilitados y suma totals para `#statCards`. El stat de expansiones (`#statExpansions`) fue eliminado (2026-08-31) — solo queda "Cartas registradas", card única centrada (`.stats-grid` 1fr, max-width 320px). Los updates por TCG en `cargarCartas()` y `cargarFiltros()` solo corren si `currentTcg` está seteado para no pisar los globales.
-- `catalog.js:329` — `statCards` solo se actualiza si `currentTcg`
+## Reglas de juego
 
-## Diseño (Nexus Design System)
-- Fondo: #050511, acento: #00f0ff (cyan), glass-panel (backdrop-blur)
-- Tipografía: Outfit (UI), JetBrains Mono (datos)
-- Cards: aspect-ratio 63/88, hover scale(1.06)
-
-## Sistema de configs TCG (refactor 2026-07-14)
-
-Cada TCG define su metadata en `js/tcg/{id}/config.js` como propiedad de `window.tcgConfigs`:
-
-```
-window.tcgConfigs["one-piece"] = {
-  short: "OP", playsetMax: 4, hasLanguageFilter: true,
-  deckZones: [{ key:"leader", max:1 }, { key:"cards", max:50, maxCopies:4, maxCopiesBy:"card_set_id" }, { key:"dons", max:10, optional:true }],
-  rarities: ["L","C","UC","R","SR","SEC","SP","AA"],
-  cardTypes: ["LEADER","CHARACTER","EVENT","STAGE","DON!!"],
-  colors: ["Red","Blue","Green","Purple","Black","Yellow"],
-  colorNames: { "Red":"Rojo", ... },
-  expansionNames: { ... }, expansionOrder: { ... },
-  donVariants: ["Gold","DP"],
-  unlimitedCards: Set(["OP16-042"]),
-  mangaSet: Set(["EB01-006", ...])
-};
-```
-
-Los módulos leen de `tcgConfigs[currentTcg]` y se adaptan. Para agregar un TCG nuevo solo se necesita: `config.js` + `cards_master.json` + stubs `_XX`.js por módulo + entry en `config/games.json`.
-
-### Dispatchers genéricos
-Todos los dispatchers usan el helper único `window.tcgShort()` (definido en `js/registry.js`):
-```js
-function _fn(name) {
-  var s = (typeof tcgShort === "function") ? tcgShort(currentTcg) : null;
-  return (s && window[name + "_" + s]) || window[name + "_OP"];
-}
-```
-`tcgShort(tcgId)` lee `tcgConfigs[tcgId].short` (fallback "OP").
-
-### Catálogo data-driven
-`cargarFiltros()` y `actualizarFiltrosPorExpansion()` leen `rarities`, `cardTypes`, `colors`, `colorNames` de `tcgConfigs[currentTcg]`. El filtro de expansiones se adapta automáticamente (usa `expansionNames` si existe, sino `set_name` de las cartas). AA detection usa `detectAA` de la config.
-
-### Modals data-driven
-- `playsetMax` lee de `_getPlaysetMax(tcgId)` que consulta `tcgConfigs[tcgId].playsetMax`
-- `addPendingCardsToCol(col, isVenta)` despacha decks a `_confirmAddDeck_OP/RB/PK` según `col.tcg` (vía `tcgShort`)
-- `renderModalInfo` usa `cfg.colorNames` y `cfg.expansionNames`
-
-### Bug fixes
-- `removeFromCurrentCollection` y `setupBinderDragDrop` → usan `renderBinder()` (dispatcher) en vez de `renderBinder_OP()` directo
-- `renderVentaView` → usa `renderVentaIndividual(col, grid)` (dispatcher)
-- Event listeners problemáticos movidos de `script.js` a los archivos que definen las funciones:
-  - `confirmCreateModal`/`hideCreateModal` → `modals.js`
-  - `pedirCrearVenta` → `dispatcher_venta.js`
-  - `pedirCrearColeccion` → `dispatcher_binder.js`
-- **tcgplayerMap undefined (2026-08-29):** `getTcgId()` Called before catalog load in `buildTrackingCardList` → Fix: initialize `tcgplayerMap = {}` at declaration (script.js:34)
-
-### Sistema de vistas (`mostrarVista`)
-- `"home"` → Landing page (`#tcgHomePlaceholder`), tcgGrid oculto, display:block
-- `"tcgHome"` → Si `currentTcg` es null: landing. Si hay TCG: dashboard (`#welcomeView`) con 3 cards (Cartas/Binder/Venta)
-- `"catalog"` → Si `currentTcg` es null: TCG selector grid. Si hay TCG: catálogo con filtros
-- `selectTcg()` → ahora va a `"tcgHome"` en vez de `"catalog"` directo
-- `else` default → landing (no más TCG selector por defecto)
-- `cargarCartas()` en startup con `currentTcg=null` → fallback al primer juego habilitado para el catálogo
-
-### Single-TCG Mode (2026-08-27)
-Cuando solo hay un TCG habilitado en `config/games.json`:
-- `currentTcg` se inicializa con el TCG habilitado (ej: "one-piece") en vez de `null`
-- **Al cargar la página**: SIEMPRE muestra la landing page (home), pero precarga las cartas del TCG habilitado
-- **Al presionar "Catálogo"**: va directo al catálogo del TCG habilitado (sin mostrar selector)
-- **Al presionar "Home"**: vuelve a la landing page (sin resetear `currentTcg`)
-- `isSingleTcgMode()` (async) verifica cuántos TCGs están habilitados en games.json
-- `_singleTcgMode` cachea el resultado para no hacer fetch repetido
-- Para reactivar múltiples TCGs: cambiar `enabled: true` en games.json y recargar
-
-### Flujo "agregar al binder" — Quick-Add por destino (2026-09-06)
-Reemplazo total del flujo anterior (Seleccionar + modal "Añadir a colecciones"): ahora el catálogo es limpio por defecto y las acciones aparecen al elegir un destino.
-
-- **Toolbar catálogo**: solo `[Agregando a: (Sin destino ▾)]` (`#catalogTargetSelect`). Lista binders y ventas del TCG actual (excluye decks/tracking), etiquetados "Binder:"/"Venta:". Se oculta si no hay destinos o durante el deck flow.
-- **Sin destino**: cartas sin botones; click en imagen abre el modal de carta (igual que antes).
-- **Con destino**: cada carta muestra `[−] [n/max] [+]`.
-  - `+`: agrega 1 copia directo (guardado inmediato + toast "Añadida a «X»")
-  - `−`: quita 1 copia del destino
-  - Tope: binder = playsetMax del TCG (OP 4 / RB 3 / PK 4); venta individual/editable = 10 por carta; venta playset = stacks sin tope total. `+` se deshabilita al llegar al tope.
-- **Estado**: `catalogTargetId` + `catalogTargetType` en script.js (persisten en sesión, in-memory). `getCatalogTargetCol()`, `refreshCatalogTargetSelect()` (expuesto en window), `getCatalogTargets()`.
-- **Helpers en catalog.js**: `countInTarget(col, key)`, `getTargetMax(col)`, `removeOneFromTarget(col, key, isVenta)`; `actualizarBadgesEnPagina()` muestra copias en destino (n/max) o pendientes en deck flow; `renderCards()` renderiza `.card-actions` solo si `addingToBinderId || catalogTargetId`.
-- **modals.js**: `addPendingCardsToCol(col, isVenta)` extrae la lógica que antes estaba en `confirmarAdd` (deck dispatch, tracking, venta grouped playset/editable, individual). El deck flow (`catalogAddConfirm`) lo reusa.
-- **Eliminado**: modal "Añadir a colecciones" (`#addModalOverlay`), botones Seleccionar/Agregar a/Borrar Todo, `selectionMode`, `selectedCards`, `toggleSelectionMode`, `toggleCardSelection`, `reapplySelectionClasses`, `mostrarAddModal`, `confirmarAdd`, `actualizarBadge` (badge del botón).
-- **Deck flow intacto**: banner "Agregando a: X" + buffer `pendingCards` + botón "Agregar" (`catalogAddConfirm`); `abrirModal` con `addingToBinderId` agrega a pendientes.
-- `refreshCatalogTargetSelect()` se llama al entrar al catálogo, en `_markCollectionsReady`/`_markVentaReady` y en `limpiarAddingState`.
-
-### Borrador staged — nada se persiste sin preguntar (2026-09-11)
-- Compuerta en `guardarCollections/guardarVenta` (`script.js`): con borrador armado solo marcan `_dirty` + barra "● Cambios sin guardar [Guardar/Descartar]", sin localStorage ni Supabase. Cubre TODO (✕, +/−, precios, moneda, cantidades, drag-drop, tracking, deck, rename, público, delete).
-- Baseline JSON en `_markCollectionsReady/_markVentaReady` (solo si limpio); armar al entrar a catálogo/binder/venta, desarmar al salir. Guardar persiste+sincroniza+re-baselinea; Descartar restaura+re-render.
-- Salir con draft sucio (cualquier vista fuera de contexto, backs, cambio TCG, logout, browser-back) → modal Guardar/Descartar/Seguir (`#draftModal`, pending retry de `mostrarVista`). Binder↔catálogo no pregunta (mismo borrador). `beforeunload` avisa genérico.
-- Excepciones: `toggleBinderPublic` salta su update directo en staging (el save lo sincroniza); `migrateLocalToSupabase` no corre con draft sucio (no pisa con rebuild); login con draft pendiente se guarda a mano (ya hay sesión).
-- `removeEntryWithUndo` quedó sin `confirm` (el borrador pregunta al salir); conserva Deshacer en memoria 8s.
-
-### Flujo "agregar al binder" (histórico, eliminado 2026-09-06)
-- `modals.js:524` — `abrirModal()` checkea `addingToBinderId`: si está seteado, agrega la carta a `pendingCards` en vez de abrir el modal
-- `modals.js:543` — `addCardToPending(carta, key)` extraída como helper
-- `index.html:358` — Botón `#catalogAddConfirm` ("Agregar") en el banner del catálogo
-- `script.js:1224` — Handler de `#catalogAddConfirm`: agrega `pendingCards` directo al binder/venta actual y vuelve al binder, sin pasar por el modal "Agregar a"
-
-## Reglas por TCG
-| | One Piece | Riftbound | Pokémon |
+| Regla | One Piece | Riftbound | Pokémon |
 |---|---|---|---|
-| **playsetMax** | 4 | 3 | 4 |
-| **Deck** | Leader + 50 + 10 DON | Legend + 3 Champions + 40 main + 12 Runes + 3 BF + SB | 60 cartas planas |
-| **Copias máx** | 4 por card_set_id | 3 por card_name | 4 por card_name |
-| **hasLanguageFilter** | true | false | true |
-| **Restricciones** | — | — | ACE SPEC: 1, Radiant: 1, Basic Energy: ilimitado |
-| **Tracking** | expansion, character, rarity, don | expansion, character, rarity | expansion, character, rarity |
-
-## One Piece TCG
-
-### Filtro Promo Cards (fix 2026-08-28)
-El filtro "Promo Cards" en el catálogo muestra **PROMO + OTHER** combinados (category === "PROMO" || category === "OTHER").
-- 550 promos oficiales matching el sitio OPCG
-- 176 imágenes faltantes descargadas y convertidas a WebP
-
-## Pokémon TCG (2026-07-14)
-- `js/tcg/pokemon/config.js` — Config completa con deckZones, rarezas SV, tipos, flags, filtros
-- `data/games/pokemon/cards_master.json` — Estructura lista, vacía (pendiente scrapear cartas)
-- `config/games.json` — `"enabled": true`
-- Módulos: `deck_pokemon.js`, `binder_pokemon.js`, `venta_pokemon.js`, `tracking_pokemon.js`
-- `js/modals/modals.js` — `_confirmAddDeck_PK` valida 60 máx, 4 copias por nombre
-
-### Estructura de carta Pokémon (`cards_master.json`)
-```
-{
-  "card_set_id": "SVI-004",
-  "card_name": "Charizard ex",
-  "set_id": "SVI",
-  "set_name": "Scarlet & Violet Base Set",
-  "rarity": "Double Rare",
-  "card_type": "Pokémon",
-  "subtype": "Stage 2",
-  "card_color": "Fire",
-  "hp": "330",
-  "weakness": { "type": "Water", "modifier": "×2" },
-  "resistance": null,
-  "retreat_cost": "2",
-  "regulation_mark": "G",
-  "illustrator": "5ban Graphics",
-  "evolves_from": "Charmeleon",
-  "attacks": [
-    { "name": "Brave Wing", "cost": ["Fire"], "damage": "60", "effect": "" }
-  ],
-  "effect": "Ability: Infernal Reign — ...",
-  "is_ace_spec": false,
-  "is_radiant": false,
-  "is_ancient": false,
-  "is_future": false,
-  "is_terastal": true,
-  "has_rule_box": true,
-  "is_shiny": false,
-  "producto": "BOOSTER",
-  "category": "BOOSTER",
-  "card_image": "assets/images/pokemon/en/SVI/SVI-004.webp",
-  "language": "en",
-  "is_parallel": false
-}
-```
-
-### Filtros planificados
-Tipo carta (Pokémon/Trainer/Energy), Subtipo (Item/Supporter/Stadium/Tool o Basic Energy/Special Energy),
-Tipo Pokémon (10 colores), Rareza (9 de SV), Expansión, Regulation Mark, HP (rango), Weakness, Resistance, Retreat Cost.
-
-### Flags (checkboxes en UI): ACE SPEC, Radiant, Ancient, Future, Terastal, Rule Box, Shiny.
-
-### Validaciones de deck pendientes en `_confirmAddDeck_PK`:
-- ACE SPEC: máx 1 por deck (no implementado aún)
-- Radiant: máx 1 por deck (no implementado aún)
-- Basic Energy: sin límite de 4 copias (no implementado aún)
-
-### Pendiente
-- **Scrapear cartas Pokémon** y poblar `cards_master.json`
-- Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
-- Agregar filtros de flags (checkboxes) en el catálogo para Pokémon
-- Agregar filtros de subtipo (`trainerSubtypes`/`energySubtypes`), HP, weakness, resistance, retreat cost al catálogo
-- API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
-- Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
-
-## Routing — History API (2026-08-31)
-
-Path-based routing con History API para soporte de browser back button y deep links.
-
-### URLs
-| Vista | URL |
-|-------|-----|
-| Home | `/` |
-| Catálogo | `/catalog?expansion=OP09&color=Red` |
-| Colecciones | `/collections` |
-| Binder | `/collections/:id` |
-| Ventas | `/venta` |
-| Venta | `/venta/:id` |
-| Explore | `/explore` |
-| Explore Detail | `/explore/:id` |
-
-### Archivos
-- `js/router.js` — parseUrl, buildPath, navigateTo, handlePopState
-
-### Funciones
-- `navigateToView(route, params, filters)` — navigation + pushState
-- `applyFiltersFromUrl(filters, quiet)` — restaura filtros desde URL
-- Botones "volver" internos usan `history.back()`
-
-### Deep Links — Fix de Imágenes (2026-08-31)
-El problema: al hacer deep link a `/collections/:id` o `/explore/:id`, las imágenes no cargaban porque `cartasMap` estaba vacío.
-
-**Solución:** El routing startup IIFE ahora hace `await cargarCartas()` antes de cargar binders para deep links:
-
-```javascript
-if (parsed.route === 'binder' && parsed.params.id) {
-  await cargarCartas(); // ← AGREGADO
-  const binder = await loadPublicBinderById(parsed.params.id);
-  // ...
-}
-```
-
-### Race Conditions — AbortController (2026-08-31)
-`renderExploreView()` usa AbortController para cancelar requests anteriores si se llama de nuevo:
-
-```javascript
-let _exploreController = null;
-async function renderExploreView() {
-  if (_exploreController) _exploreController.abort();
-  _exploreController = new AbortController();
-  // query con .abortSignal(_exploreController.signal)
-}
-```
-
-### Fix de imágenes en Explore (2026-08-31)
-Problema: al navegar a Colecciones, Binder o Ventas desde Explore, las imágenes no cargaban porque `cartasMap` estaba vacío.
-
-**Solución:** Helper `ensureCartasLoaded()` en `script.js` que hace `await cargarCartas()` si es necesario:
-
-```javascript
-async function ensureCartasLoaded() {
-  if (Object.keys(cartasMap).length === 0) {
-    await cargarCartas();
-  }
-}
-```
-
-Usado en `mostrarVista()` antes de llamar a funciones de vista de Colecciones, Binder, y Ventas.
-
-```javascript
-let _exploreController = null;
-async function renderExploreView() {
-  if (_exploreController) _exploreController.abort();
-  _exploreController = new AbortController();
-  // query con .abortSignal(_exploreController.signal)
-}
-```
-
-## Gran Revisión y Limpieza (2026-09-02)
-
-Revisión completa del proyecto (script.js, 31 módulos, HTML, CSS, datos, repo). Bugs corregidos, dead code eliminado, estructura alineada a convenciones.
-
-### Bugs corregidos
-- **"Agregar a" roto en modo selección** (previo a esta sesión): handler usaba `selectedCards` (dead). Fix: usa `pendingCards` y sale del modo selección.
-- **Deck OP rechazaba todas las cartas**: `pendingCards` no guardaba `language` → alerta "Solo cartas en Ingles" siempre. Fix: helper `makePendingCard()` (modals.js) incluye `language/attribute/feature/variant`.
-- **Tracking Riftbound crasheaba**: `_donOption`/`_langSelect` eran privados del IIFE del dispatcher. Fix: `window._donOption`/`window._langSelect` + guards null.
-- **Tracking Pokémon: stack overflow** por recursión (`pedirCrearTracking_PK` → dispatcher → _PK). Fix: delega directo a `_RB`.
-- **Deck Pokémon**: picker delegaba a OP (vacío para PK) y se ignoraba la promesa. Fix: `showDeckPicker_PK` propio (tipos Pokémon/Trainer/Energy, 4 por nombre, 60 máx), `.then()` al agregar, IDs únicos (clase `.deck-add-slot`). CSS `deck-card-*` agregado a style.css.
-- **Doble render por navegación**: `navigateToView` llamaba `mostrarVista` y `onNavigate` también. Fix: solo `onNavigate` renderiza (`onNavigate` ahora es function declaration hoisted).
-- **Filtro de idioma no persistía en URL**: `window.state` no existía (`const state` no crea prop). Fix: `window.state = {...}` en state.js.
-- **Binder vacío no sincronizaba**: `if (allCardRows.length)` skipeaba la edge function. Fix: siempre llama `sync-binder-cards-v3` (la función hace DELETE antes de INSERT). + guard de session null.
-- **Tracking público 0/0 en explore detail**: usaba `b.cards` en vez de `b.target_cards`.
-- **Modal de login vacío**: `showAuthModal()` sin modo en 8 sitios → default `mode = mode || "login"`.
-- **XSS en Explore**: `username`/`b.name` sin escape + avatar_url sin sanitizar. Fix: `escapeHtml()` + solo URLs http(s).
-- **Nav no resaltaba binder**: IDs inexistentes `sidebarBinder`/`bottomCollections` → `sidebarColecciones`/`bottomColecciones`.
-- **Reset de contraseña**: `checkResetPassword` ahora llama `showResetPasswordForm()`.
-- **`esCartaAA_RB` no existía**: definida en venta_riftbound.js (usa `tcgConfigs.riftbound.detectAA`) — la detección AA de RB estaba silenciosamente deshabilitada.
-- **`_getPlaysetMax` duplicada/pisada**: eliminada la de venta_riftbound.js (queda la config-based de modals.js).
-- **Botones de footer muertos**: ahora muestran toast "Próximamente".
-- **Flecha de select invisible**: `background:` shorthand pisaba la SVG → `background-image` explícito en .catalog-filters select, .profile-field select y selects del tracking modal (inline `background-color:`).
-- **`registry.js` frágil**: dependía de latencia del fetch para que `tcgList` exista. Fix: retry con setTimeout hasta que script.js defina `tcgList`.
-
-### Dead code eliminado
-- Vars: `selectedCards`, `currentCardIndex`, `coloresES`.
-- Dispatchers muertos: `showDeckPicker`, `saveDeck` (deck/dispatcher.js), `attachVentaEvents`, `buildVentaCardHTML` (venta/dispatcher_venta.js).
-- Funciones: `getUser`, `getSession`, `updateProfile` (auth.js), `sanitizeReviewComment` (profile.js), `actualizarBotonesBinder` (no-op, buscaba clase inexistente).
-- Duplicados exactos `getFirstCardImage`/`getTotalPrice` en binder.js (script.js los define; binder.js cargaba antes y quedaban shadowed).
-- HTML: `sidebarCatalogCount`, `addModalQtyRow`/`addModalQty` (modal qty row siempre oculto).
-- CSS: `.modal-prices`, `.modal-price`, `.explore-card`, `.tcg-card-disabled`, `.drag-over`, `.deck-champion-badge`, `.deck-champion-set-btn`, `.venta-qty-label`, `.add-modal-qty`.
-- Listener duplicado de `deckPickerOverlay` (deck.js) — queda el de dispatcher.js.
-- `modals.js`: if/else con ambas ramas idénticas; `script.js`: condición sin efecto en welcome-card, líneas duplicadas en `mostrarVista` else.
-
-### Estructura / convenciones
-- **~25 event listeners movidos de script.js** al archivo que define la función: catálogo → catalog.js (bind via `document.getElementById`, no consts de script.js por orden de carga), modal add/banner → modals.js, binder clear/prev/next → dispatcher_binder.js, venta clear/prev/next → venta.js, auth UI → auth.js.
-- **Helper único `window.tcgShort(tcgId)`** en registry.js: reemplaza los 6 mapas de sufijos hardcodeados en dispatchers y `_confirmAddDeck_*`.
-- Llamadas directas corregidas: `pedirCrearVenta` (venta.js), `pedirCrearColeccion` (binder.js). `renderBinder_OP()` en binder_pokemon.js se mantiene directo a propósito (evita recursión dispatcher→_PK→dispatcher).
-
-### Repo
-- **Backups**: `cards_master_backup*.json` des-trackeados (quedan en disco, gitignoreados por `*_backup*.json`).
-- **riot.txt**: borrado del repo y del disco + gitignoreado (key no usada).
-- **Edge function v3**: `supabase/functions/sync-binder-cards-v3/` agregada al repo (index.ts + deno.json); v1/v2 borradas. SQL de `sync_binder_cards_atomic` en `scripts/migrations/004_sync_binder_cards_atomic.sql` (scripts/ está gitignoreado, queda local).
-- **`_tools/archive/`**: ~28 scripts one-off de análisis de promos archivados. Solo `scrape_set.js` y `scrape_set_en.js` quedan en _tools/.
-- **Skill duplicada**: `.github/skills/aidesigner-frontend` eliminada (queda `.claude/skills`).
-- **Imágenes `en/P/` vs `en/PROMO/`**: NO son duplicados — cards_master.json referencia ambas (454 PROMO/ + 96 P/). Se dejaron.
-- **URL Supabase unificada**: script.js usa `SUPABASE_URL` de supabase.js para la edge function.
-
-### Notas
-- `navigateToView` ya no llama `mostrarVista` (solo `onNavigate`); en catálogo con `cartasMap` vacío hace `cargarCartas()` y re-renderiza.
-- Tokens sin uso de design-system.css se dejaron a propósito (reserva del design system).
-
-## Deploy (auto por push a master — vía principal desde 2026-09-11)
-- URL último deploy: `https://5cf937cc.tutcg.pages.dev` (2026-09-11, fix case imágenes promo)
-- Cada push a `master` dispara build+deploy solo (~2 min). NO usar `wrangler pages deploy` manual salvo emergencia: el próximo push lo pisa y si sale de disco desfasado rompe prod (caso 2026-09-11).
-- Builds corren en Linux (case-sensitive): verificar case de assets vs JSON antes de pushear.
-- NO pushear/deploys sin que el usuario lo pida explícitamente.
-- Cloudflare login autenticado via `wrangler login` (respaldo manual: `npx wrangler pages deploy . --commit-dirty=true`).
-
-## Venta — Moneda ARS/USD (2026-08-28)
-
-### Implementado
-- Cada carta en venta tiene selector ARS/USD visible públicamente
-- Precio total en portada editable + selector de moneda
-- Totales separados ARS/USD visibles dentro de decks/binders en venta
-- Datos persistidos en Supabase (`price_currency` en `binder_cards`, `totalCurrency` en `config`)
-
-### Campos agregados a la base de datos
-```sql
-ALTER TABLE binder_cards ADD COLUMN IF NOT EXISTS price_currency TEXT DEFAULT 'ARS';
-```
-
-### Estructura de datos
-- `cards[].priceCurrency` — "ARS" (default) o "USD" por carta individual
-- `cards[].priceCurrency` se propaga en expandDbCards/expandDbDeck
-- `col.totalCurrency` — moneda del precio total en portada
-
-### Funciones modificadas
-- `getTotalsByCurrency(col)` — nueva, calcula ARS y USD separados
-- `expandDbCards`, `expandDbCardsGrouped`, `expandDbDeck` — preservan priceCurrency
-- `buildVentaCardHTML_OP/RB` — muestran label de moneda (cyan ARS, dorado USD)
-- `attachVentaEvents_OP/RB` — handler para cambiar moneda por carta
-- `renderVentaList_OP` — selector de moneda en portada
-- `renderDeckView_OP` — totales ARS/USD arriba a la izquierda
-- `renderExploreDetail` — precios con moneda en explore público
-- `renderExploreView` — totales ARS/USD separados en lista pública
-
-### CSS agregado
-- `.currency-btn` / `.currency-btn.active` — estilo del toggle
-- `.venta-currency-label` — label después del precio (cyan ARS, dorado USD con clase `.usd`)
-- `.deck-sale-totals` — contenedor de totales en deck venta
-
-## Explorer — UI Refactor (2026-08-31)
-
-### Cambios
-- Sidebar y bottom nav: "Binder" renombrado a "Colecciones" (refleja que incluye binders y decks)
-- Explorer ahora tiene **tabs de filtro**: Colecciones | Ventas | Todas (por defecto "Todas")
-- **Búsqueda fuzzy**: input para buscar por nombre del binder o nombres de cartas
-- **Debounce de 300ms** en la búsqueda para no buscar en cada keystroke
-- Layout corregido: tabs y búsqueda en la parte superior, cards en grid debajo
-
-### Estructura HTML
-```
-┌─────────────────────────────────────┐
-│ [Colecciones][Ventas][Todas]  🔍   │ ← explore-filters (arriba)
-├─────────────────────────────────────┤
-│ ┌────┐ ┌────┐ ┌────┐ ┌────┐       │
-│ │    │ │    │ │    │ │    │       │ ← explore-grid (binders)
-│ └────┘ └────┘ └────┘ └────┘       │
-└─────────────────────────────────────┘
-```
-
-### CSS Classes usadas
-- `.explore-filters` — contenedor flex para tabs + búsqueda
-- `.explore-tabs` / `.explore-tab` — botones de tabs
-- `.explore-search` — input de búsqueda
-- Cards usan `.binder-cover-card`, `.binder-cover-img`, `.binder-cover-meta` (mismo estilo que Colecciones)
-
-### Deduplicación
-El query de Supabase (`select("*, binder_cards(*)")`) devuelve 1 fila por cada binder_card. Se deduplica por `binder.id` con Set:
-
-```javascript
-const seen = new Set();
-const uniqueBinders = publicBinders.filter(b => {
-  if (seen.has(b.id)) return false;
-  seen.add(b.id);
-  return true;
-});
-```
-
-## Edge Function — sync-binder-cards-v3 (FUNCIONAL)
-
-### Estado: ✅ FUNCIONANDO
-- Función Postgres `sync_binder_cards_atomic` corregida y funcionando
-- Edge Function `sync-binder-cards-v3` desplegada con CORS para producción
-- Frontend apunta a `sync-binder-cards-v3`
-- **Fuente versionada en el repo** (`supabase/functions/sync-binder-cards-v3/`): index.ts + deno.json. SQL de la RPC en `scripts/migrations/004_sync_binder_cards_atomic.sql` (scripts/ está gitignoreado).
-
-### Fixes aplicados
-1. **Postgres function:** `card_id` era casteado a `::UUID` pero la tabla usa `TEXT` y el frontend envía strings como `tcg_one-piece|OP01-001|...`
-   - Solución: `card->>'card_id'` directo (TEXT) e INSERT vía `jsonb_array_elements` (LATERAL implícito)
-2. **CORS:** la función solo permitía localhost, no producción
-   - Solución: agregar `https://tutcg.pages.dev` a corsOrigins y permitir cualquier origen `.pages.dev`
-
-### Función Postgres `sync_binder_cards_atomic`
-```sql
--- Valida ownership, luego DELETE + re-INSERT (vaciar el binder borra todo)
-CREATE OR REPLACE FUNCTION public.sync_binder_cards_atomic(p_binder_id uuid, p_cards jsonb, p_user_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $function$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM binders WHERE id = p_binder_id AND user_id = p_user_id) THEN
-    RAISE EXCEPTION 'Unauthorized: Binder does not belong to user';
-  END IF;
-  DELETE FROM binder_cards WHERE binder_id = p_binder_id;
-  IF jsonb_array_length(p_cards) > 0 THEN
-    INSERT INTO binder_cards (binder_id, card_id, quantity, price, price_currency, card_tag, sort_order)
-    SELECT p_binder_id, card->>'card_id', COALESCE((card->>'quantity')::int, 1),
-      NULLIF(card->>'price', '')::numeric, COALESCE(NULLIF(card->>'price_currency', ''), 'ARS'),
-      NULLIF(card->>'card_tag', '')::text, COALESCE((card->>'sort_order')::int, 0)
-    FROM jsonb_array_elements(p_cards) AS card;
-  END IF;
-END;
-$function$;
-```
-
-### Frontend (script.js)
-Usa fetch directo a la Edge Function (URL base desde `SUPABASE_URL`, guard de session null):
-```javascript
-const session = (await supabaseClient.auth.getSession()).data.session;
-if (!session) { ...continue; }
-const response = await fetch(SUPABASE_URL + '/functions/v1/sync-binder-cards-v3', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-  body: JSON.stringify({ binder_id: id, cards: allCardRows, user_id: authUser.id })
-});
-```
-
-## Profile — Validación de contacto (2026-08-31)
-
-### Campos de contacto
-- `contact_phone` — Teléfono para guardar en contactos (validación simple)
-- `contact_wsp` — Link directo de WhatsApp (wa.me, web.whatsapp.com, api.whatsapp.com)
-
-### Validación simple (Opción A)
-**Teléfono (`isValidPhone`):**
-- Mínimo 8 dígitos
-- Solo acepta: números, +, -, espacios, paréntesis
-- Campo opcional (pasa si está vacío)
-
-**Link WhatsApp (`isValidWspLink`):**
-- Dominios válidos: `wa.me`, `web.whatsapp.com`, `api.whatsapp.com`
-- Campo opcional (pasa si está vacío)
-- Si tiene contenido pero no es dominio válido → error
-
-### Labels en index.html (actualizados)
-- Teléfono: "Teléfono"
-- Link WhatsApp: "Link WhatsApp"
-- Placeholder WhatsApp: `https://wa.me/5491112345678`
-- Input type: `url` (no `tel`)
-
-### Funciones en profile.js
-```javascript
-function isValidWspLink(url) // líneas ~154-161
-function isValidPhone(phone) // líneas ~163-168
-// Validación en handleProfileSave (líneas ~200-215)
-```
-
-## User Plan Label — "Nakama" (2026-08-31, dinámico desde 2026-09-11)
-
-### Cambio realizado
-- "Premium" → "Nakama" en el label del plan de usuario
-- Desde planes: `tierLabel()` (`script.js`) — L0 "Nakama", L1/L2 nombre de crew, admin su crew. Ver `## Planes y tripulaciones`.
-
-### Archivos modificados
-- `auth.js:160` — `sidebarUserPlan.textContent = "Nakama"`
-- `profile.js:175` — `sidebarUserPlan.textContent = "Nakama"`
-
-## Landing Page Improvements (2026-08-31)
-
-### Pasos del how-it-works
-1. Explora el catálogo
-2. Arma tu colección
-3. Construí tu deck
-4. Vende tus cartas (NUEVO)
-
-### Cambios realizados
-- Eliminado paso "Elegí tu TCG" (redundante)
-- Reordenados los pasos
-- Agregado paso 4: "Vende tus cartas" con descripción "Gestiona tus ventas y llegá a más compradores."
-- "Precios de mercado" → "Vos ponés vos precios" con descripción "Precios editables por el usuario."
-- Corregido typo: "raggi" → "cartas y decks"
-- Agregado nota: "Próximamente: más TCG disponibles para explorar"
-
-### Legibilidad
-- `.how-step p`, `.feature-card p`, `.stat-label`: font-size aumentado a 15px
-- Contraste mejorado para mejor lectura
-
-## Card Grid Unification (2026-08-31)
-
-### Objetivo
-Unificar tamaños de cards en todas las vistas para mejor UX y consistencia.
-
-### Columnas por breakpoint
-| Vista | Desktop (>1023px) | Tablet (768-1023px) | Mobile (<768px) |
-|-------|-------------------|----------------------|-----------------|
-| Catálogo | 5 | 3 | 2 |
-| Binder | 5 | 3 | 2 |
-| Venta | 5 | 3 | 2 |
-| Colecciones | 5 | 3 | 2 |
-| Explore | 5 | 3 | 2 |
-| Explore Detail | 5 | 3 | 2 |
-| Deck Builder | 5 | 3 | 2 |
-| Deck Picker | 5 | 3 | 2 |
-
-### CSS modificado en style.css
-- Base: `grid-template-columns: repeat(5, 1fr)` para todos los grids
-- Tablet: `repeat(3, 1fr)` para todos
-- Mobile: `repeat(2, 1fr)` para todos
-- `.explore-detail-grid` ahora usa 5 columnas fijas (era `auto-fill minmax(160px, 1fr)`)
-
-## Skeleton UI — Loading States (2026-08-31)
-
-Sistema de skeletons (shimmer) para todas las vistas mientras cargan datos (solo carga de datos, no imágenes individuales).
-
-### Archivos
-- `style.css` — Sección "Skeleton Loading": `.sk-shimmer` (gradiente + animación `shimmer`), `.sk-grid`/`.sk-card` (cartas 63/88, 5/3/2 responsive), `.sk-covers` (portadas), `.sk-deck` (líder + slots), `.sk-detail` (explore detail), `.sk-stat` (números landing), `.sk-tcg-grid` (selector TCG). Todos los wrappers llevan `grid-column: 1 / -1` para poder inyectarse dentro de grids existentes. Respeta `prefers-reduced-motion`.
-- `js/skeleton.js` — Helpers globales: `skeletonCardGrid(container, count, fill)`, `skeletonCoverGrid`, `skeletonDeck`, `skeletonExploreDetail`, `skeletonStats`, `skeletonTcgSelector`. Cargado en index.html antes de script.js.
-
-### Aplicación
-- **Catálogo**: `_cargarCartas()` usa `skeletonCardGrid(cardsContainer, 12, true)` (refactor del skeleton viejo `.catalog-skeleton`).
-- **Landing stats**: `cargarStatsLanding()` llama `skeletonStats()` al inicio.
-- **TCG selector**: `renderTcgSelector()` muestra skeleton en `#tcgGrid`.
-- **Colecciones/Ventas (lista)**: skeleton covers mientras flags `_collectionsReady`/`_ventaReady` son false; flags seteados por `initCollections`/`initVenta`/`reloadVentaFromDb` vía `_markCollectionsReady()`/`_markVentaReady()` que además re-renderizan si el pane está activo.
-- **Binder/Venta (detalle)**: skeleton grid (o deck si `subtype === "deck"`) mientras `ensureCartasLoaded()` pende o flags no listos. Los deck containers (`binderDeckContainer`/`ventaDeckContainer`) se muestran para el skeleton.
-- **Explore**: texto "Cargando…" reemplazado por `skeletonCoverGrid` dentro de `#exploreSkeletonWrap` (explore.js:189).
-- **Explore detail**: `skeletonExploreDetail` si `exploreDetailBinder` es null; deep link inválido redirige a `/explore`.
-- **Deck picker** (deck.js:240, deck_riftbound.js:325): skeleton grid en vez del texto.
-
-### Cambios de comportamiento
-- `cargarCartas()` tiene guard anti-concurrentes (`_cartasPromise`) para evitar doble fetch.
-- `navigateToView("catalog")` ya NO re-fetchea `cards_master.json` en cada visita: solo fetchea si `cartasMap` está vacío (muestra skeleton en el primer load; visitas siguientes renderizan instantáneo).
-- Startup deep links (`/collections/:id`, `/explore/:id`): `mostrarVista` se llama ANTES de cargar para mostrar el skeleton, y se re-renderiza al terminar.
-
-### Bug fix — "Error al cargar binders públicos" en Explore (2026-08-31)
-El catch de `renderExploreView` mostraba el error también para requests abortados (el AbortController cancela el fetch anterior al re-renderizar por navegación/tabs/búsqueda), pisando el skeleton. Fix: `if (isAbort) return;` — el mensaje de error solo aparece ante fallos reales.
-
-### Perf — Explore N+1 y cache (2026-08-31)
-- **Batch profiles**: `renderExploreView` reemplazó el query secuencial de `profiles` por binder (N+1, explore.js:251) por un solo `.in("id", [...userIds])` con lookup por mapa antes del loop.
-- **Cache TTL 30s**: `_exploreCache` en explore.js cachea el resultado crudo de `binders` públicos; tabs/búsqueda/re-entradas reusan el cache (filtros son client-side). `window.invalidateExploreCache()` limpia el cache.
-- **Invalidación**: `toggleBinderPublic` (script.js) y `syncObjectToSupabase` (fin de función) invalidan el cache cuando cambian datos propios.
-
-## Profile Público — Modal "Ver Perfil" (2026-08-31)
-
-### Cambios
-- `verPerfilPublico` (explore.js) reescrito: ahora consulta `username, display_name, avatar_url, bio, city, country, contact_phone, contact_wsp, social_links` y muestra toda la info pública con secciones condicionales (solo se renderiza lo que el usuario cargó).
-- Contacto: botón verde WhatsApp (link a `contact_wsp`, solo dominios wa.me/web.whatsapp.com/api.whatsapp.com validados con `sanitizeWspUrl`) + teléfono como link `tel:` (fuente mono). Si no hay contacto → "Este usuario no compartió información de contacto".
-- Redes sociales: filas por plataforma (Instagram, X, TikTok, YouTube, Discord, Otro), solo URLs `http(s)://`.
-- Seguridad: helper `escapeHtml` en explore.js para todos los campos de usuario; `tel:` sanitizado (`[^\d+]`).
-- Cierre: botón, backdrop y tecla Escape (handler global `window._publicProfileKeyHandler`, se limpia al cerrar).
-- CSS: clases `.pp-*` en style.css (sección "Public Profile Modal").
-
-## Planes y tripulaciones (2026-09-11)
-- Niveles 0/1/2 (pool único): espacios 5/10/25, cartas por binder 150/500/∞. L0 label "Nakama" (intacto); L1/L2 muestran crew. Admin (`profiles.is_admin`, TheKingOfClowns) sin límites + crew Mugiwara.
-- `CREWS` (10 en inglés + color), `PLAN_LIMITS` en `script.js`. `getMyPlan()` (cache 60s), `guardSpaceForNew()` (count server cross-TCG) en dispatchers colección/venta + `confirmCreateTracking` OP/RB (PK delega; `_appendTo` no consume espacio).
-- Cap al agregar: `overCardCap()` en `addPendingCardsToCol` (quick-add + deck flow), steppers/input venta OP/RB. Tracking-targets exentos (jsonb).
-- Triggers `trg_binders_limit` / `trg_binder_cards_cap` (`SECURITY DEFINER`, suman `quantity`); `limitToast()` mapea `LIMIT_*` en sync. Contador "N/M espacios" en listas, picker crew en perfil (nivel≥1/admin), label sidebar dinámico.
-- Limpieza usuarios (2026-09-11): borrado `TheKingOfClowns` viejo vacío (60aa, 0 datos, CASCADE limpió profile) + rename `TheKingOfCl0wns` → `TheKingOfClowns` (d888, 23 binders intactos) en `profiles` + `auth.users.raw_user_meta_data`.
-
-## Pendiente de sesión anterior
-- Checkout MercadoPago + webhook (setea `plan_level`+`crew`) + badge crew en explore
-- **Scrapear cartas Pokémon** y poblar `cards_master.json`
-- Implementar validaciones ACE SPEC / Radiant / Basic Energy unlimited en `_confirmAddDeck_PK`
-- Agregar filtros de flags (checkboxes) en el catálogo para Pokémon
-- Agregar filtros de subtipo, HP, weakness, resistance, retreat cost al catálogo Pokémon
-- API key de Riot (production) para bajar Runes SFD/UNL faltantes → esperando aprobación
-- Cuando salgan nuevos sets de OP, correr `_tools/scrape_set.js`
-- **Fixear duplicación de datos en Supabase** — los datos existentes pueden tener duplicates, necesita limpieza o re-sync
-- Implementar deep links para `/explore/colecciones` y `/explore/ventas` como rutas separadas (actualmente es un solo tab)
-
-## Cloudflare MCP Setup (2026-08-28)
-Configurados en `~/.config/opencode/opencode.jsonc`:
-- `cloudflare` — connected (MCP principal)
-- `cloudflare-docs` — connected (documentación)
-- `cloudflare-bindings` — needs auth (opcional)
-- `cloudflare-builds` — needs auth (opcional)
-- `cloudflare-observability` — needs auth (opcional)
-
-## OpenCode Plugins — ahorro de tokens (2026-09-09)
-Instalados a nivel **global** (`C:\Users\buron\.config\opencode`, vía `opencode plugin -g`):
-- `opencode-ponytail` 4.7.3 — modo "senior vago" (escalera YAGNI). Nivel inicial: `full` (default del plugin).
-- `opencode-caveman` 0.1.4 — respuestas tersas. Nivel inicial: `full` (default del plugin).
-- Ambos revisados antes de instalar: sin red/shell, solo escriben sus propios archivos (ponytail: `.ponytail-active`; caveman: skill + commands, sin sobrescribir).
-- No tocan el repo: nada que commitear por ellos.
-- Comandos: `/ponytail [lite|full|ultra|off]`, `/caveman [lite|full|ultra]` (`stop caveman` apaga), `/ponytail-review`, `/caveman-review`.
-- Rollback: quitar del array `plugin` en opencode.json global + desinstalar el paquete.
-- ⚠️ Si el gasto sube en vez de bajar, el primer sospechoso es Caveman (benchmark externo lo muestra >100% en algunos modelos).
-
-## Sesión 2026-09-14 — Quick-add unificado, import/export deck, dorados, draft persistente, dev SPA, i18n ES/EN
-
-Commit `4525a34` (push a `master`, auto-deploy). Todo verificado con `node --check` + harnesses temporales (borrados tras correr).
-
-### Quick-add unificado binder/venta → catálogo
-- `+` en binder/venta lleva al catálogo con destino preseleccionado (`goToCatalogWithTarget`, `script.js`), mismo quick-add que elegir en el select (`+`/`−` inmediato, `n/max`, modal normal). Deck conserva buffer viejo con banner (idea separada pendiente).
-- Tracking NO entra al dropdown (rara vez se usa; default ya ubica todo): su `+` navega plano al catálogo.
-- Archivos: `script.js`, `catalog.js`, `binder.js`, `binder_riftbound.js`, `venta.js`, `tracking.js` (+ `?v=`).
-
-### Deck import/export (formato página tierlist)
-- Botones `Exportar`/`Importar` dorados arriba a la izquierda del Privado/Público (clase propia `deck-io-btn`; la anterior reuseaba `.deck-add-more-btn` y el picker la enganchaba → falso "Primero debes elegir un lider").
-- Parser tolerante primario `CANT SET-NUM Nombre` (`1 OP17-039 Rocks.D.Xebec`), compactos gratis, ambiguo sin guion → reporte. Líder pre-pass (primero gana), color estricto sin confirm, topes 4/50 con recorte, base no-parallel, DON excluido.
-- Export espejo (`1 ID Nombre` líder + main en orden del deck) a clipboard con fallback + toast. Roundtrip verificado.
-- Bug real cazado por consola: `modals.js` pasaba `limpiarAddingState` pelado al cargar (script.js carga después) → `ReferenceError` abortaba cableado de `Agregar`/`Cancelar` (+ banner catálogo). Fix: closure con guard. Harness `loadorder` simula orden real.
-- Archivos: `modals.js`, `deck.js`, `deck_riftbound.js`, `deck_pokemon.js`, `index.html` (modal), `style.css`.
-
-### Filtros dorado sutil + toggles optimistas
-- Tracking (`Todas/Faltantes/Obtenidas`), tabs Explore, detalle Explore: `active` dorado `rgba(255,215,0,.15)`/`#ffd700`.
-- Causas: toggle corría al final del render (si abortaba, `Todas` quedaba pegada) → toggle optimista en handlers; detalle Explore usaba inline styles (siempre ganan) → clases; regla vieja `!important` cyan pisaba el dorado → borrada.
-- Archivos: `tracking.js`, `explore.js`, `style.css` (+ `?v=`).
-
-### Draft persistente (pérdida al cambiar de pestaña)
-- Causa: `onAuthChange` re-corría `initCollections`/`reloadVentaFromDb` en cada `SIGNED_IN` (supabase lo re-emite al reenfocar) pisando el borrador en memoria. El guard `draftDirty` existía en migrate pero no ahí.
-- Fix: mismo guard en `onAuthChange` + borrador persiste en `localStorage` por TCG en cada `stageChange` (limpia en save/discard, restaura al arranque con toast, ignora otro TCG).
-- Archivos: `script.js` (+ `?v=`).
-
-### Dev con fallback SPA
-- `npm run dev` (`npx -y serve -s .`): Live Server clásico 404eaba (`Cannot GET /collections`) en F5/auto-reload por falta de fallback. Verificado: `/collections` y `/collections/:id` → 200 `index.html`.
-- Archivo: `package.json` (sin deps nuevas).
-
-### i18n UI ES/EN (todo de una)
-- `js/i18n.js` nuevo: dict plano 544 keys, `t(key, vars)` con fallback a español, `setLang/getLang`, `applyStaticI18n` (`data-i18n`/`-ph`/`-title`, `<html lang>`), persistencia `tutcg_lang` + espejo `profiles.preferences.language`.
-- Selector: `profileLanguage` existente (perfil → Idioma): aplica instantáneo + persiste en ambos stores; al abrir perfil refleja idioma efectivo.
-- ~150 atributos en `index.html` + `t()` en 19 JS (5 tandas paralelas por módulo, prefijos por archivo). Idioma de cartas EN/JA intacto.
-- Harness cobertura 542/542 keys en ambos idiomas, sin duplicadas. Ojo: tanda deck devolvió dict sin prefijo `deck.` → script de alineado (borrado).
-- Lección: `node --check` no alcanza para orden de carga; harness `loadorder` obligatorio si se tocan listeners top-level.
-
-## Sesión 2026-09-19 — Nunca-reload + guía por sección (spotlight)
-
-Commit `40a5eca` (nunca-reload). Resto sin commitear hasta fin del día (guía + tracking + crew).
-
-### Nunca reload al volver de pestaña (commit `40a5eca`)
-- Causa: supabase re-emite `SIGNED_IN` al reenfocar → `onAuthChange` (`script.js:1725`) reconstruía todo y reseteaba filtro Faltantes (`col._trackingFilter` solo vivía en memoria).
-- Fix: guard por `user.id` + `_collectionsReady/_ventaReady` (init real solo primer load o cambio de usuario); `_mark*Ready` solo renderiza si antes not-ready; filtro tracking persiste en `localStorage tutcg_tracking_filter_<id>` (lee memoria > LS > all, restaura en rebuild); snapshot UI en `sessionStorage tutcg_ui_state` (vista/ids/páginas, en `visibilitychange`/`beforeunload`, restore en arranque si no deep-link); sign-out limpia snapshot.
-- Privado nunca revalida (save manual o F5); Explore mantiene TTL 30s (datos ajenos).
-
-### Guía por sección `js/tutorial.js` (nuevo, sin libs ni botón)
-- Modelo final: spotlight sin overlay (anillo fucsia `--fuchsia` + viñeta fija: izq-normal / der-modales+ventas, bottom-sheet mobile). Sin botón sidebar (removido a pedido); único control: select Perfil → Tutorial (`once` default / `always` / `off`, `preferences.tutorial_mode`, legacy `show_tutorial` migra en lectura).
-- Auto directo 1 vez por sección (flags `sec_*` en preferences + espejo LS): home (bienvenida+idea+modos, 3) → catálogo (11) → colecciones (3) → modales crear (binder 2 / venta 3 / tracking 3) → binder (5) / deck (8) / tracking (5) → venta lista (3) / venta (5) → explore (3) / explore-detail (dueño/anillo angosto, faltantes, progreso, totales sale, gear) → perfil (contacto obligatorio vs opcional, idioma/moneda, crew, toggle). ~62 pasos, i18n `tut.h*` ES+EN con harness anti-duplicadas.
-- Mecánica: tap = tu click real avanza; Siguiente siempre + Terminar cierra; gates con rojo (`need_*`, espejo `modals.js:43`); `when` filtra al arrancar (numeración exacta); skip logueado `[tour] skip` + log versión `[tour] vNN` (anti-caché); modal-abort cierra sin marcar; switch de sección cambia sin marcar (`_tourSelfNav`); Siguiente/Atrás en espera = skip manual (fin tildado); render-then-ring + settle anti-stale + post-verify `contains` + tamaño; race guard `_tourBusy/_tourSeq`.
-- Lecciones caras: `tourRender` leía flujo sin filtrar (textos cruzados en individual); `tourPlace` sumaba `scrollY` a `fixed` (pasos invisibles); `tourHi` muerto dejó pasos sin ancla sin posicionar (todo invisible); keys `hd5/hd6` duplicadas (deck pisado por explore); `waitFor` resolvía en nodos viejos (anillo fantasma).
-
-### Tracking: todo deshabilitado por defecto
-- `renderTrackingExtra` OP + `_RB`: checkboxes sets/rarezas nacen `unchecked` (validación toast ya existía). Botones Seleccionar todo siguen.
-
-### Crew: todos eligen (custom con filtro)
-- Nivel 0 ya era Nakama; grid 10 siempre visible (límites intactos); opción Personalizada (input 24 chars) → `crew='custom'` + `preferences.crew_custom`; `tierLabel`/`getMyPlan`/sidebar la muestran (regex al guardar impide HTML); filtro cliente `isValidCrewName` (2-24, letras/números/espacios, blocklist ES/EN ~60 en `profile.js`); servidor abierto por API directa (trigger después si hace falta). Sin migración (JSONB).
-
-### Tracking/filter dorados y explore-detail
-- Clases nuevas en `explore.js`: `explore-owner-name`, `explore-profile-btn`, `explore-sale-totals` (2 ramas c/u) para anclas del tour.
-
-## Pendiente (llevado)
-- Checkout MercadoPago + webhook (setea `plan_level`+`crew`) + badge crew en explore.
-- Scrapear Pokémon, validaciones ACE/Radiant/Basic Energy, filtros PK.
-- API key Riot Runes, `scrape_set.js` por nuevos sets OP.
-- Limpieza duplicados Supabase, deep links `/explore/colecciones|ventas`.
-
-## Sesión 2026-09-22 — Venta stock20, carrito 20min, checkout, notifs, seller profiles
-
-Commits `8d7839e` (venta+carrito+notifs+guía+skills), `947c7b9` (tab Obtenidas público), `98e0660` (seller profiles). Push a `master` (auto-deploy). DB: `sale_carts`, `sale_orders`, `notifications`, `reports`, `reviews.order_id`, RPCs abajo.
-
-### Venta tipo único stock20 (F1/F2)
-- `window.VENTA_STOCK_MAX=20` + `normalizeVentaCol()` (`script.js`): migra legacy (`individual` mergea en chunks 20, `playset/editable` splitea >20). Corre en `reloadVentaFromDb` + `renderVentaView`. Decks legacy intactos.
-- Crear sin selects (`pedirCrearVenta_OP/RB/PK` → siempre `{subtype:binder, display_mode:stock}`). Badge `venta.badge_stock` = "Venta"/"Sale". Steppers/input 1-20 OP+RB (PK delega OP).
-- `catalog.js`: `getTargetMax` venta=20, `countInTarget` suma qty; `modals.js`: venta binder siempre grouped, `maxPerStack=20`.
-- Split por swipe horizontal >60px (`setupVentaSplit`, `venta.js`, RB reusea): crea copia qty1 al lado. Cada stack tope 20, N stacks por carta.
-- Sync: stock20 colapsa como grouped (rama `else` existente); baseline `config.stock_baseline` (máx publicado por carta) + `low_notified` se guardan en `syncObjectToSupabase` (solo sale no-deck), se restauran a `_baseline/_lowNotified` en `reloadVentaFromDb`.
-
-### Carrito 20min + checkout (F3)
-- `js/cart.js` nuevo: `sale_carts(buyer+binder único, items, updated_at)`, RPCs `sale_reserved/cart_add/cart_set_qty` filtran 20min (cada write toca `updated_at` = resetea timer). Countdown en barra/drawer, expira → toast + libera (reservas computadas, nada que restaurar). Dueño no compra propio; guest ve stock sin reserva.
-- Botón topbar `#cartTopBtn` siempre visible junto a campana (badge solo con items, suma global no-vencidas al arrancar/login); barra inferior con timer; drawer con items +/−, totales ARS/USD, WhatsApp vendedor (link `wa.me` con pedido armado, valida dominios como perfil público), Finalizar con confirm.
-- `checkout_cart` atómico: valida stock, descuenta `binder_cards` por `card_id` (achica stacks, borra en 0), crea `sale_orders`, borra cart, notifica venta. Precio = unitario del primer stack con precio × qty.
-- Stock en explore: pill mono cyan (`stock N`), `Agotado` rojo, `🛒 n · stock m`. Fix race: `cartLoad` repinta filas al terminar + `await` antes de pintar + guards `typeof`.
-
-### Notificaciones + campana (F4/F5)
-- `notifications` (owner-only RLS) + `js/notifs.js`: 🔔 en topbar global, badge, panel 20 últimas, leer todas, poll 60s. RPC `_notify_if_allowed` respeta `preferences.notify_sales/notify_low_stock`.
-- Alerta <30%: `_sale_check_low` en `cart_add/cart_set_qty/checkout` (avail vs baseline; reponer limpia flag). Toggles en perfil (`profileNotifySales/profileNotifyLow`, legacy `notifications` migra en lectura).
-- Venta realizada → notif al vendedor con comprador + totales.
-
-### Guía + tour fixes
-- `create_venta` 1 paso (selects eliminados; `tourModalEnter` detecta por vista `ventaManager`, no por `#createVentaSubtype` que ya no existe).
-- Home: intro + 6 pasos sidebar dual desktop/mobile (`sels`) + campana (`when:authed` nuevo) + toggle final; `hh2` dropeado. Keys `tut.hn1–hn7` ES+EN.
-- Gate `_tourProfileReady`: sin perfil no auto-arranca (era la causa de "sale aunque deshabilitado": `mostrarVista` corría con prefs `{}` → `once`). Replay pendiente + timeout 4s invitados.
-- Explore-detail `he5` = abre sección; `he10` carrito 20min.
-
-### Scroll venta (fix post-sesión)
-- +/−/input in-place (`ventaSyncQtyInput`, OP+RB): sin rebuild, sin salto. Estructural (quitar/split/undo) sigue con render.
-- `snapScroll` doble-rAF + `window.scrollY` + logs `[snap]` tras `_DEBUG`; `renderVentaView` con `try/finally` (el path deck salteaba restore); clamp `ventaPage` en grouped OP/RB.
-
-### Skills + producto + pulido
-- `npx impeccable install` (skills+engine+hooks en `.claude/.agents/.github`; bins `.exe` gitignoreados `**/skills/impeccable/scripts/bin/`) + `/impeccable init` → `PRODUCT.md` en raíz (web, coleccionista+vendedor, todo-en-uno vanilla, Nexus).
-- `npx skills add Leonxlnx/taste-skill --all` (13 skills en `.agents/agent/data`).
-- Pulido Nexus: cartBar pill, drawer slide-in, notif panel, `.stock-pill`; audit: `alert()`→toast (shim), `:focus-visible`, smooth scroll, metas og/description, `text-wrap:balance`; landing: subtext ≤20 palabras, bento 1ra card span 2, copy sin "precios actualizados".
-- Tab Obtenidas en detalle público tracking (`947c7b9`): Todas/Faltantes/Obtenidas (dueño), reuse `track.filter_owned`.
-
-### Seller profiles + reputación (`98e0660`)
-- Ruta `/seller/:id` (router + `mostrarVista` + pane + arranque + snapshot); `js/seller.js`: header completo + badge 🛡️ mod + ★ promedio, tabs Reseñas (buyer+★+texto+fecha, sin montos) / En venta (públicas → explore detail) / Valorar (mis órdenes sin puntuar, 0-5 + comentario).
-- `rate_order` (1 por orden, valida comprador), `seller_reputation(s)`, `seller_reviews`, `report_review` (no propia, notifica mods), `mod_resolve_report`. Reviews inmutables por RLS (sin UPDATE).
-- `reports` (unique review+reporter) + cola moderación en perfil solo-admin (Desestimar/Borrar). `TheKingOfClowns`=buronebrothers@hotmail.com ya `is_admin` (verificado).
-- Modal `pp-*` borrado (JS+CSS); `verPerfilPublico` navega. Badge ★ en portadas Explore (batch 1 RPC).
-- i18n 754/754 ES+EN (`seller.*`, `mod.*`, `cart.*`, `notif.*`, `tut.hn/hw6/he10`).
-
-## Sesión 2026-09-25 — Perfiles públicos, portadas y pedidos
-
-- Commit anterior `2275049` (ya en `origin/master`): perfil propio y público rediseñados con información pública, tab Colecciones con portadas, y checkout desde el único botón «Enviar pedido por WhatsApp». El mensaje enumera cada carta con nombre, código de expansión y cantidad en líneas separadas.
-- Perfil ajeno (`js/seller.js`): Colecciones y En venta ahora comparten `sellerCreateBinderCover`. Los binders públicos de venta consultan `binder_cards.card_id`, muestran la imagen de la carta principal igual que Explorar y conservan contador, badge, totales ARS/USD y apertura del detalle. CSS en `style.css`; versiones de recursos actualizadas en `index.html`.
-- Tab Valorar: las cartas de cada `sale_orders.items` se muestran en una lista numerada, una por línea, con nombre/código desde `cartCardLabel` (también resuelve el ID si no está en `cartasMap`) y cantidad. Se añadieron textos ES/EN y estado para pedidos sin cartas registradas. Las acciones de estrellas, comentario y envío siguen igual.
-- Verificación local: `node --check` de `js/seller.js` y `js/i18n.js`, `git diff --check` e Impeccable layout detect sin hallazgos en los archivos de la vista. No se probó con una cuenta real en el navegador.
-- Windows/Codex: el ajuste temporal de Windows Terminal (`windowingBehavior=useExisting`, minimizar a notificaciones) causó pestañas adicionales y fue revertido. La ventana persistente se rastreó a `codex-code-mode-host.exe`, hijo del app-server. En `C:\Users\buron\.codex\config.toml` se fijó `[features] code_mode_host = false`; `codex features list` confirma el valor, pero necesita reiniciar VS Code/Codex para comprobar si desaparece la ventana. Hay copia de la configuración previa fuera del repo.
-
-## Convenciones
-- Leer este archivo al iniciar cada sesión.
-- Cada TCG tiene sus propios archivos JS: `_OP`, `_RB`, `_PK` y `dispatcher`, sin dispatchers inline.
-- Los dispatchers usan lookup genérico por `tcgConfigs[currentTcg].short`, no if/else.
-- Las configs TCG definen metadatos (deckZones, rarities, colors, etc.). Los módulos leen de la config.
-- Los event listeners que referencian funciones de otros scripts van en el archivo que define la función, no en script.js.
-- Nunca hacer deploy sin que el usuario lo pida.
-- `feature` es el campo para agrupar cartas de un mismo champion en RB.
-- NO commitear `.env`, credenciales, o archivos de backup.
+| Playset | 4 | 3 | 4 |
+| Identidad de copia | `card_set_id` | `card_name` | `card_name` |
+| Deck | Leader + 50 + 10 DON | Legend + 3 Champions + 40 main + 12 Runes + 3 BF + SB | 60 cartas |
+| Idioma en catálogo | Sí | No | Sí |
+| Tracking | expansión, personaje, rareza, DON | expansión, personaje, rareza | expansión, personaje, rareza |
+
+Pendiente en Pokémon: ACE SPEC máximo 1, Radiant máximo 1 y Basic Energy sin límite de cuatro.
+
+## Navegación y vistas
+
+Rutas principales:
+
+- `/`: landing.
+- `/catalog`: catálogo y filtros por query string.
+- `/collections` y `/collections/:id`.
+- `/venta` y `/venta/:id`.
+- `/explore` y `/explore/:id`.
+- `/seller/:id`: perfil público.
+
+`navigateToView()` actualiza la ruta y `onNavigate` realiza el render. No duplicar renders llamando también a `mostrarVista()`.
+
+La app restaura vista, IDs y páginas desde `sessionStorage` cuando no existe un deep link. Al volver a una pestaña, un evento `SIGNED_IN` repetido de Supabase no debe reconstruir el estado ya cargado ni pisar borradores.
+
+`ensureCartasLoaded()` debe ejecutarse antes de vistas que necesitan `cartasMap`. Explore usa cancelación de requests, consultas agrupadas y caché de 30 segundos para datos ajenos.
+
+## Catálogo, colecciones y decks
+
+- El catálogo es data-driven según `tcgConfigs[currentTcg]`.
+- Quick-add: al elegir un binder o una venta como destino aparecen controles `− / cantidad / +` y los cambios se aplican al borrador actual.
+- El botón `+` desde un binder o venta abre el catálogo con ese destino preseleccionado.
+- Tracking no aparece como destino rápido.
+- Deck conserva su flujo de buffer y confirmación.
+- Import/export de deck usa líneas `CANTIDAD SET-NUM Nombre`, valida líder, colores y topes.
+- Las opciones de vista permiten cambiar tamaño, filas por página o cantidad fija y se guardan localmente.
+
+### Borrador de edición
+
+- Cambios en colecciones y ventas se mantienen como borrador hasta Guardar o Descartar.
+- El borrador cubre cantidades, precios, moneda, orden, tracking, decks, nombre, visibilidad y borrado.
+- Persiste en `localStorage` por TCG y se restaura al arrancar.
+- Al salir de un contexto con cambios se ofrece Guardar, Descartar o Seguir editando.
+- Binder y catálogo comparten contexto y no preguntan al navegar entre sí.
+- No rehidratar desde Supabase encima de un borrador sucio.
+
+## Ventas y carrito
+
+- Las ventas usan un único modelo de stock con máximo 20 por stack.
+- Varias pilas de la misma carta están permitidas; un swipe horizontal separa una unidad.
+- Cada carta puede tener precio y moneda ARS o USD.
+- Los totales se muestran separados por moneda.
+- `config.stock_baseline` y `low_notified` sostienen las alertas de stock bajo.
+
+Carrito:
+
+- Una reserva dura 20 minutos y cada modificación reinicia el plazo.
+- Un carrito corresponde a un comprador y una venta.
+- El dueño no puede comprar su propia venta.
+- El checkout atómico valida stock, descuenta `binder_cards`, crea `sale_orders`, elimina el carrito y notifica al vendedor.
+- La acción pública final es “Enviar pedido por WhatsApp”. El mensaje lista una carta por línea con nombre, código y cantidad.
+- El precio de checkout se toma del primer stack correspondiente con precio.
+
+## Perfiles, Explore y reputación
+
+- `/seller/:id` reemplaza el antiguo modal de perfil público.
+- El perfil público muestra información permitida, contacto, redes, colecciones, ventas y reputación.
+- Colecciones y ventas usan portadas con la imagen principal y abren su detalle.
+- Explore permite filtrar Colecciones, Ventas o Todas, y buscar por nombre o cartas.
+- Las portadas de vendedores muestran reputación mediante consulta agrupada.
+- Las reseñas se crean desde órdenes reales, una por orden, y no se editan.
+- Los usuarios pueden reportar reseñas; administradores pueden desestimar o borrar desde la cola de moderación.
+- La pestaña Valorar muestra las cartas del pedido numeradas, una por línea.
+- Todo dato de usuario debe escaparse; enlaces externos y WhatsApp deben validarse.
+
+## Tutorial, preferencias y UX
+
+- Tutorial contextual en `js/tutorial.js`, sin librerías externas.
+- Modos: una vez, siempre o desactivado; se guardan en `profiles.preferences` y localmente.
+- El spotlight usa anillo fucsia y se adapta a móvil.
+- No iniciar el tutorial antes de cargar las preferencias del perfil.
+- Tracking crea filtros desmarcados por defecto.
+- La interfaz usa skeletons durante carga y respeta `prefers-reduced-motion`.
+- Diseño Nexus: fondo oscuro, cyan como acento principal, dorado para estados activos específicos, Outfit y JetBrains Mono.
+
+## Planes y crews
+
+- Nivel 0: 5 espacios y 150 cartas por binder.
+- Nivel 1: 10 espacios y 500 cartas por binder.
+- Nivel 2: 25 espacios y cartas ilimitadas.
+- Administradores no tienen límites.
+- El usuario puede elegir una crew predefinida o personalizada; el nombre personalizado se valida en cliente.
+- Los límites se controlan tanto en frontend como con triggers/RPC de base de datos.
+- Tracking targets no consumen el límite de cartas del binder.
+
+## Supabase
+
+Tablas principales:
+
+- `profiles`
+- `binders`
+- `binder_cards`
+- `ventas`
+- `cartas_usuario`
+- `sale_carts`
+- `sale_orders`
+- `notifications`
+- `reviews`
+- `reports`
+
+Servicios y RPC importantes:
+
+- Edge Function versionada: `supabase/functions/sync-binder-cards-v3/`.
+- `sync_binder_cards_atomic`: reemplazo atómico del contenido de un binder.
+- `sale_reserved`, `cart_add`, `cart_set_qty`, `checkout_cart`.
+- `seller_reputation`, `seller_reviews`, `rate_order`, `report_review`, `mod_resolve_report`.
+- `_notify_if_allowed` y `_sale_check_low` para notificaciones.
+
+La sincronización de un binder vacío también debe llamar a la Edge Function para borrar sus filas. Mantener ownership checks y RLS; no confiar solo en validaciones del frontend.
+
+## Autenticación y perfil
+
+- Los errores de login, registro, contraseña corta y usuario duplicado se traducen a mensajes amigables.
+- El perfil guarda idioma, moneda, tutorial, crew y preferencias de notificación.
+- Contacto admite teléfono y WhatsApp; WhatsApp debe ser una URL válida de dominios permitidos.
+- La anti-enumeración de Supabase puede devolver éxito aparente para un email ya registrado; resolver con RPC o trigger si se retoma ese caso.
+
+## Verificación mínima
+
+Según el cambio, ejecutar:
+
+- `node --check` en cada JS modificado.
+- Harness de i18n para cobertura ES/EN si se agregan textos.
+- Harness de load order si se cambian scripts o listeners top-level.
+- `git diff --check`.
+- Prueba local con `npm run dev`, incluyendo deep links relevantes.
+- Para cambios visuales o flujos completos, validar en navegador y revisar consola.
+- Antes de push, auditar case-sensitive las rutas de imágenes contra el índice Git.
+
+## Pendientes reales
+
+- Checkout de planes con MercadoPago y webhook que actualice `plan_level` y crew.
+- Mostrar badge de crew donde corresponda en Explore/perfiles.
+- Scrapear Pokémon y poblar su `cards_master.json`.
+- Completar validaciones y filtros específicos de Pokémon.
+- Conseguir API key de Riot production para las Runes faltantes de Riftbound.
+- Ejecutar los scrapers cuando salgan nuevos sets de One Piece.
+- Auditar y limpiar duplicados históricos en Supabase o forzar una resincronización segura.
+- Deep links separados para `/explore/colecciones` y `/explore/ventas`.
+- Probar con cuentas reales los últimos flujos de perfil público, pedidos, reseñas y checkout.
+- Reiniciar VS Code/Codex y confirmar si `[features] code_mode_host = false` elimina la ventana persistente de `codex-code-mode-host.exe`.
