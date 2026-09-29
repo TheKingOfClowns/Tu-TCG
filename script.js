@@ -743,6 +743,7 @@ function limitToast(msg, fallback) {
 }
 async function syncObjectToSupabase(obj, type) {
   if (!isAuthenticated()) return;
+  let autoUnpublished = false;
   // Determine TCG of local binders so we only compare against same-TCG remote binders
   const localEntries = Object.values(obj);
   const localTcg = (localEntries.length > 0 && localEntries[0].tcg) || currentTcg || "one-piece";
@@ -929,8 +930,17 @@ async function syncObjectToSupabase(obj, type) {
           continue;
         }
       }
+      if (type === "sale" && binder.is_public && !allCardRows.some(row => Number(row.quantity) > 0)) {
+        binder.is_public = false;
+        autoUnpublished = true;
+      }
       binder._synced = true;
     }
+  }
+  if (autoUnpublished) {
+    localStorage.setItem(ventaKey(), JSON.stringify(obj));
+    const currentView = document.querySelector(".view-pane.active");
+    if (currentView?.id === "ventaView" && typeof renderVentaView === "function") renderVentaView();
   }
   if (typeof invalidateExploreCache === 'function') invalidateExploreCache();
 }
