@@ -4,6 +4,7 @@ scripts/
 node_modules/
 .agents/
 .git/
+supabase/.temp/
 *.tmp
 *.log
 Thumbs.db

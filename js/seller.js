@@ -75,6 +75,7 @@ async function renderSellerView() {
             <span class="seller-profile-stars" aria-hidden="true">${stars}</span>
             <span>${reviewCount ? `${average.toFixed(1)} · ${reviewCount} ${t("seller.tab_reviews").toLowerCase()}` : t("seller.no_reviews_yet")}</span>
           </div>
+          <div class="seller-social-actions" id="sellerSocialActions"></div>
           ${bio ? `<p class="seller-profile-bio">${bio}</p>` : ""}
           ${loc ? `<p class="seller-profile-location">${loc}</p>` : ""}
           ${(wspUrl || phone || socials.length) ? `<div class="seller-profile-links">
@@ -119,6 +120,7 @@ async function renderSellerView() {
   });
   sellerPaintTab(sid);
   sellerRefreshRateTab(sid);
+  if (typeof socialRenderSellerActions === "function") socialRenderSellerActions(sid);
 }
 async function sellerPaintTab(sid) {
   const body = document.getElementById("sellerTabBody");

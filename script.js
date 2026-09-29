@@ -626,6 +626,8 @@ function rerenderVisibleView() {
   else if (vis("collectionManager") && typeof renderCollectionList === "function") renderCollectionList();
   else if (vis("ventaManager") && typeof renderVentaList === "function") renderVentaList();
   else if (vis("exploreView") && typeof renderExploreView === "function") renderExploreView();
+  else if (vis("messagesView") && typeof socialRenderView === "function") socialRenderView(window._socialConversationId || null);
+  else if (vis("sellerView") && typeof renderSellerView === "function") renderSellerView();
 }
 function requestStagedExit(kind, proceed) {
   if (!_dirty || DRAFT_CTX[kind]) return true;
@@ -1462,6 +1464,7 @@ function mostrarVista(vista, navState) {
   document.getElementById("ventaView").classList.remove("active");
   document.getElementById("exploreView").classList.remove("active");
   document.getElementById("exploreDetailView").classList.remove("active");
+  document.getElementById("messagesView")?.classList.remove("active");
   document.getElementById("sellerView")?.classList.remove("active");
   const profileView = document.getElementById("profileView");
   if (profileView) profileView.classList.remove("active");
@@ -1478,6 +1481,8 @@ function mostrarVista(vista, navState) {
   document.getElementById("ventaView").style.display = "none";
   document.getElementById("exploreView").style.display = "none";
   document.getElementById("exploreDetailView").style.display = "none";
+  const messagesView = document.getElementById("messagesView");
+  if (messagesView) messagesView.style.display = "none";
   document.getElementById("sellerView").style.display = "none";
   if (profileView) profileView.style.display = "none";
   const tcg = tcgList.find(t => t.id === currentTcg);
@@ -1676,6 +1681,10 @@ function mostrarVista(vista, navState) {
     } else {
       renderExploreDetail();
     }
+  } else if (vista === "messages") {
+    if (messagesView) { messagesView.classList.add("active"); messagesView.style.display = ""; }
+    document.getElementById("sidebarMessages")?.classList.add("active");
+    if (typeof socialRenderView === "function") socialRenderView(window._socialConversationId || null);
   } else if (vista === "profile") {
     if (profileView) { profileView.classList.add("active"); profileView.style.display = ""; }
     document.getElementById("sidebarProfile")?.classList.add("active");
@@ -1776,6 +1785,7 @@ document.querySelectorAll(".sidebar-nav-item").forEach(item => {
     else if (view === "collections") { currentCollectionId = null; binderPage = 1; if (!currentTcg) pendingView = "collections"; navigateToView("collections", {}, {}); }
     else if (view === "ventaCols") { currentVentaId = null; ventaPage = 1; if (!currentTcg) pendingView = "ventaCols"; navigateToView("ventaCols", {}, {}); }
     else if (view === "explore") { if (!currentTcg) pendingView = "explore"; navigateToView("explore", {}, {}); }
+    else if (view === "messages") { navigateToView("messages", {}, {}); }
     else if (view === "profile") { openProfile(); }
   });
 });
@@ -1863,12 +1873,13 @@ document.querySelectorAll("#footerContact, #footerPrivacy, #footerTerms, #footer
   if ((parsed.route === "home" || !parsed.route) && !(parsed.params && parsed.params.id)) {
     var _rs = (typeof restoreUiState === "function") ? restoreUiState() : null;
     if (_rs) {
-      if ((_rs.view === "binder" || _rs.view === "venta" || _rs.view === "exploreDetail" || _rs.view === "seller") && _rs.id) {
+      if ((_rs.view === "binder" || _rs.view === "venta" || _rs.view === "exploreDetail" || _rs.view === "seller" || _rs.view === "messages") && _rs.id) {
         if (_rs.view === "seller") window._sellerId = _rs.id;
+        if (_rs.view === "messages") window._socialConversationId = _rs.id;
         await navigateToView(_rs.view, { id: _rs.id }, {});
         return;
       }
-      if (["collections", "ventaCols", "catalog", "explore", "tcgHome"].indexOf(_rs.view) !== -1) {
+      if (["collections", "ventaCols", "catalog", "explore", "messages", "tcgHome"].indexOf(_rs.view) !== -1) {
         await navigateToView(_rs.view, {}, {});
         return;
       }
@@ -2082,6 +2093,9 @@ async function navigateToView(route, params, filters) {
   } else if (route === 'seller') {
     window._sellerId = params.id;
     router.navigateToRoute('seller', { id: params.id }, navState);
+  } else if (route === 'messages') {
+    window._socialConversationId = params.id || null;
+    router.navigateToRoute('messages', params.id ? { id: params.id } : {}, navState);
   } else if (route === 'profile') {
     router.navigateToRoute('profile', {}, navState);
   } else {

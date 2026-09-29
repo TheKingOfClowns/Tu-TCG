@@ -8,6 +8,8 @@ var router = (function() {
     { pattern: /^\/venta\/([^/]+)$/, route: 'venta', view: 'venta' },
     { pattern: /^\/explore$/, route: 'explore', view: 'explore' },
     { pattern: /^\/explore\/([^/]+)$/, route: 'exploreDetail', view: 'exploreDetail' },
+    { pattern: /^\/messages$/, route: 'messages', view: 'messages' },
+    { pattern: /^\/messages\/([^/]+)$/, route: 'messages', view: 'messages' },
     { pattern: /^\/seller\/([^/]+)$/, route: 'seller', view: 'seller' },
     { pattern: /^\/profile$/, route: 'profile', view: 'profile' }
   ];
@@ -50,6 +52,7 @@ var router = (function() {
       case 'venta': path = '/venta/' + (params.id || ''); break;
       case 'explore': path = '/explore'; break;
       case 'exploreDetail': path = '/explore/' + (params.id || ''); break;
+      case 'messages': path = params.id ? '/messages/' + params.id : '/messages'; break;
       case 'seller': path = '/seller/' + (params.id || ''); break;
       case 'profile': path = '/profile'; break;
       default: path = '/';
