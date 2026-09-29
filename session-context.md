@@ -155,6 +155,9 @@ Carrito:
 ## Tutorial, preferencias y UX
 
 - Tutorial contextual en `js/tutorial.js`, sin librerías externas.
+- La guía está enfocada en One Piece y prioriza la primera acción útil: buscar una carta, elegir destino y agregarla. Las opciones avanzadas quedan fuera del recorrido inicial.
+- Los recorridos tienen entre 1 y 4 pasos por sección; Deck conserva sus reglas esenciales (líder, 50 cartas y hasta 10 DON).
+- Mensajes incluye un recorrido propio para conversaciones, amigos y solicitudes.
 - Modos: una vez, siempre o desactivado; se guardan en `profiles.preferences` y localmente.
 - El spotlight usa anillo fucsia y se adapta a móvil.
 - No iniciar el tutorial antes de cargar las preferencias del perfil.
@@ -164,10 +167,9 @@ Carrito:
 
 ## Planes y crews
 
-- Nivel 0: 5 espacios y 150 cartas por binder.
-- Nivel 1: 10 espacios y 500 cartas por binder.
-- Nivel 2: 25 espacios y cartas ilimitadas.
-- Administradores no tienen límites.
+- Todos los usuarios normales tienen 30 espacios y hasta 1000 cartas totales por binder; por ahora `plan_level` no cambia esos límites.
+- Un espacio es cualquier binder, mazo o publicación de venta del usuario, sumando todos los TCG.
+- Administradores no tienen límites de espacios ni de cartas por binder.
 - El usuario puede elegir una crew predefinida o personalizada; el nombre personalizado se valida en cliente.
 - Los límites se controlan tanto en frontend como con triggers/RPC de base de datos.
 - Tracking targets no consumen el límite de cartas del binder.

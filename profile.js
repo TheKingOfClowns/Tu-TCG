@@ -165,14 +165,14 @@ async function renderPlanBlock(profile) {
     isAdmin: !!profile?.is_admin
   };
   const label = (typeof tierLabel === "function") ? tierLabel(plan) : t("prof.tier_nakama");
-  const lim = ((typeof PLAN_LIMITS !== "undefined" && PLAN_LIMITS[plan.level]) || { spaces: 5, cards: 150 });
+  const lim = ((typeof PLAN_LIMITS !== "undefined" && PLAN_LIMITS[plan.level]) || { spaces: 30, cards: 1000 });
   const crew = (typeof crewById === "function") ? crewById(plan.crew) : null;
   let html = '<p style="font-size:var(--text-sm);margin-bottom:var(--space-2)">' + t("prof.plan_label") + ' <strong style="color:' +
     (crew ? crew.color : "var(--accent)") + '">' + label + "</strong>" +
     (plan.isAdmin ? ' <span class="binder-cover-badge sale">🛡️ ' + t("seller.mod_badge") + "</span>" : "") + "</p>";
   if (typeof getMySpaceUsage === "function") {
     const used = await getMySpaceUsage();
-    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + t("prof.usage", { used: used, spaces: (plan.isAdmin ? "∞" : lim.spaces), cards: (lim.cards == null ? t("prof.cards_unlimited") : t("prof.cards_upto", { n: lim.cards })) }) + "</p>";
+    html += '<p class="profile-field-hint" style="margin-bottom:var(--space-3)">' + t("prof.usage", { used: used, spaces: (plan.isAdmin ? "∞" : lim.spaces), cards: (plan.isAdmin || lim.cards == null ? t("prof.cards_unlimited") : t("prof.cards_upto", { n: lim.cards })) }) + "</p>";
   }
   // ponytail: todos eligen (10 + custom tripulación/personaje); techo único 30/1000
   const crews = (typeof CREWS !== "undefined") ? CREWS : [];

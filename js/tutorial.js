@@ -5,27 +5,15 @@
 var TOUR_FLOWS = {
   home: [
     { sel: null, mode: "info", t: "tut.hh1t", d: "tut.hh1d", view: null },
-    { sels: ["#sidebarHome", "#bottomHome"], mode: "info", t: "tut.hn1t", d: "tut.hn1d", view: null },
+    { sel: null, mode: "info", t: "tut.hh2t", d: "tut.hh2d", view: null },
     { sels: ["#sidebarCatalog", "#bottomCatalog"], mode: "info", t: "tut.hn2t", d: "tut.hn2d", view: null },
-    { sels: ["#sidebarColecciones", "#bottomColecciones"], mode: "info", t: "tut.hn3t", d: "tut.hn3d", view: null },
-    { sels: ["#sidebarVenta", "#bottomVenta"], mode: "info", t: "tut.hn4t", d: "tut.hn4d", view: null },
-    { sels: ["#sidebarExplore", "#bottomExplore"], mode: "info", t: "tut.hn5t", d: "tut.hn5d", view: null },
-    { sels: ["#sidebarProfile", "#userBtn"], mode: "info", t: "tut.hn6t", d: "tut.hn6d", view: null },
-    { sel: "#notifBell", mode: "info", t: "tut.hn7t", d: "tut.hn7d", view: null, when: "authed", soft: true },
     { sel: null, mode: "info", t: "tut.hh3t", d: "tut.hh3d", view: null }
   ],
   catalog: [
     { sel: null, mode: "info", t: "tut.hc1t", d: "tut.hc1d", view: "catalog" },
-    { sel: "#catalogLangToggle", mode: "info", t: "tut.hc2t", d: "tut.hc2d", view: null },
-    { sel: "#expansionFilter", mode: "info", t: "tut.hc3t", d: "tut.hc3d", view: null },
-    { sel: "#colorFilter", mode: "info", t: "tut.hc4t", d: "tut.hc4d", view: null },
-    { sel: "#rarityFilter", mode: "info", t: "tut.hc5t", d: "tut.hc5d", view: null },
-    { sel: "#typeFilter", mode: "info", t: "tut.hc6t", d: "tut.hc6d", view: null },
-    { sel: "#searchInput", mode: "info", t: "tut.hc7t", d: "tut.hc7d", view: null },
-    { sel: ".viewopts-gear", mode: "info", t: "tut.hc8t", d: "tut.hc8d", view: null },
+    { sels: ["#searchInput", "#expansionFilter", "#colorFilter", "#rarityFilter", "#typeFilter"], mode: "info", t: "tut.hc7t", d: "tut.hc7d", view: null },
     { sel: "#catalogTargetSelect", mode: "tap", t: "tut.hc9t", d: "tut.hc9d", view: null },
-    { sel: ".card-actions .plus-btn", mode: "tap", t: "tut.hc10t", d: "tut.hc10d", view: null, when: "plus" },
-    { sel: "#catalogPagination", mode: "info", t: "tut.hc11t", d: "tut.hc11d", view: null }
+    { sel: ".card-actions .plus-btn", mode: "tap", t: "tut.hc10t", d: "tut.hc10d", view: null, when: "plus" }
   ],
   collections: [
     { sel: null, mode: "info", t: "tut.hs1t", d: "tut.hs1d", view: "collections" },
@@ -45,40 +33,29 @@ var TOUR_FLOWS = {
     { sel: "#trackingExtraPanel", mode: "info", t: "tut.ht3t", d: "tut.ht3d", view: null, needsModal: "trackingModalOverlay", gate: "tracking" }
   ],
   binder: [
-    { sel: "#binderTitle", mode: "info", t: "tut.hb1t", d: "tut.hb1d", view: null },
-    { sel: "#binderPublicToggleContainer", mode: "info", t: "tut.hb2t", d: "tut.hb2d", view: null, soft: true },
     { sel: "#binderGrid .binder-empty", mode: "info", t: "tut.hb3t", d: "tut.hb3d", view: null },
-    { sel: "#binderClearAllBtn", mode: "info", t: "tut.hb4t", d: "tut.hb4d", view: null },
-    { sel: "#binderPagination", mode: "info", t: "tut.hb5t", d: "tut.hb5d", view: null }
+    { sel: "#binderPublicToggleContainer", mode: "info", t: "tut.hb2t", d: "tut.hb2d", view: null, soft: true },
+    { sel: "#binderClearAllBtn", mode: "info", t: "tut.hb4t", d: "tut.hb4d", view: null }
   ],
   deck: [
     { sel: ".deck-leader-slot", mode: "tap", t: "tut.hd1t", d: "tut.hd1d", view: null, gate: "leader" },
-    { sel: ".deck-main-grid", mode: "info", t: "tut.hd2t", d: "tut.hd2d", view: null, gate: "deck" },
-    { sel: ".deck-don-row", mode: "info", t: "tut.hd3t", d: "tut.hd3d", view: null, gate: "leader" },
+    { sels: [".deck-main-grid", ".deck-don-row"], mode: "info", t: "tut.hd2t", d: "tut.hd2d", view: null, gate: "leader" },
     { sel: ".deck-io-export", selAll: ".deck-io-btn", mode: "info", t: "tut.hd4t", d: "tut.hd4d", view: null, gate: "deck" },
-    { sel: ".public-toggle", mode: "info", t: "tut.hd5t", d: "tut.hd5d", view: null, gate: "deck" },
-    { sel: ".viewopts-gear", mode: "info", t: "tut.hd6t", d: "tut.hd6d", view: null, gate: "deck" },
-    { sel: "#binderClearPageBtn", mode: "info", t: "tut.hd7t", d: "tut.hd7d", view: null, gate: "deck" },
-    { sel: "#deckChangeLeaderBtn", mode: "info", t: "tut.hd8t", d: "tut.hd8d", view: null, gate: "deck" }
+    { sel: ".public-toggle", mode: "info", t: "tut.hd5t", d: "tut.hd5d", view: null, gate: "deck" }
   ],
   tracking: [
     { sel: "#trackingFilters", mode: "info", t: "tut.hr1t", d: "tut.hr1d", view: null },
-    { sel: "#trackingFilters [data-filter='missing']", mode: "tap", t: "tut.hr2t", d: "tut.hr2d", view: null },
     { sel: ".tracking-progress", mode: "info", t: "tut.hr3t", d: "tut.hr3d", view: null },
-    { sel: "#trackingChecklistBtn", mode: "info", t: "tut.hr4t", d: "tut.hr4d", view: null },
     { sel: "#trackingMarkAllBtn", mode: "info", t: "tut.hr5t", d: "tut.hr5d", view: null }
   ],
   venta_list: [
     { sel: null, mode: "info", t: "tut.hl1t", d: "tut.hl1d", view: "ventaCols" },
-    { sel: "#createVentaBtn", mode: "tap", t: "tut.hl2t", d: "tut.hl2d", view: null },
-    { sel: ".binder-cover-actions", mode: "info", t: "tut.hl3t", d: "tut.hl3d", view: null }
+    { sel: "#createVentaBtn", mode: "tap", t: "tut.hl2t", d: "tut.hl2d", view: null }
   ],
   venta: [
-    { sel: ".venta-price-input", mode: "info", t: "tut.hw1t", d: "tut.hw1d", view: null, soft: true },
-    { sel: ".venta-currency-toggle", mode: "info", t: "tut.hw2t", d: "tut.hw2d", view: null, soft: true },
+    { sels: [".venta-price-input", ".venta-currency-toggle"], mode: "info", t: "tut.hw1t", d: "tut.hw1d", view: null, soft: true },
     { sel: ".venta-qty-btn", mode: "info", t: "tut.hw3t", d: "tut.hw3d", view: null, when: "ventaQty", soft: true },
     { sel: ".venta-slot", mode: "info", t: "tut.hw6t", d: "tut.hw6d", view: null, when: "ventaQty", soft: true },
-    { sel: "#ventaClearAllBtn", mode: "info", t: "tut.hw4t", d: "tut.hw4d", view: null },
     { sel: "#ventaModeContainer", mode: "info", t: "tut.hw5t", d: "tut.hw5d", view: null }
   ],
   explore: [
@@ -88,20 +65,22 @@ var TOUR_FLOWS = {
   ],
   explore_detail: [
     { sels: [".explore-owner-name", ".explore-profile-btn"], mode: "info", t: "tut.he5t", d: "tut.he5d", view: null },
-    { sel: ".explore-filter-btn[data-filter='missing']", mode: "info", t: "tut.he4t", d: "tut.he4d", view: null, when: "exploreTracking", wait: 20000 },
-    { sel: ".explore-progress", mode: "info", t: "tut.he7t", d: "tut.he7d", view: null, when: "exploreTracking", wait: 20000 },
+    { sels: [".explore-filter-btn[data-filter='missing']", ".explore-progress"], mode: "info", t: "tut.he4t", d: "tut.he4d", view: null, when: "exploreTracking", wait: 20000 },
     { sel: ".explore-sale-totals", mode: "info", t: "tut.he8t", d: "tut.he8d", view: null, when: "exploreSale" },
-    { sel: ".cart-row", mode: "info", t: "tut.he10t", d: "tut.he10d", view: null, when: "exploreSale" },
-    { sel: ".viewopts-gear", mode: "info", t: "tut.he9t", d: "tut.he9d", view: null, when: "exploreSale" }
+    { sel: ".cart-row", mode: "info", t: "tut.he10t", d: "tut.he10d", view: null, when: "exploreSale" }
   ],
   profile: [
     { sel: "#profileContactPhone", mode: "info", t: "tut.hp1t", d: "tut.hp1d", view: "profile" },
-    { sel: "#profileLanguage", mode: "info", t: "tut.hp2t", d: "tut.hp2d", view: null },
-    { sel: "#crewGrid", mode: "info", t: "tut.hp4t", d: "tut.hp4d", view: null },
     { sel: "#profileShowTutorial", mode: "info", t: "tut.hp3t", d: "tut.hp3d", view: null }
+  ],
+  social: [
+    { sel: "#socialShell", mode: "info", t: "tut.hsocial1t", d: "tut.hsocial1d", view: "messages" },
+    { sel: ".social-tab[data-social-tab='friends']", mode: "tap", t: "tut.hsocial2t", d: "tut.hsocial2d", view: null },
+    { sel: "#socialStage", mode: "info", t: "tut.hsocial3t", d: "tut.hsocial3d", view: null, soft: true }
   ]
 };
 var _tourFlow = null, _tourIdx = 0, _tourTapOff = null, _tourSteps = null, _tourSelfNav = false, _tourModalObs = null;
+var _tourPrevFocus = null;
 var _tourBusy = false, _tourSeq = 0; // ponytail: un solo paso vivo (doble-click/Siguiente+tap no cruzan textos)
 var _tourWaitCancel = 0; // ponytail: Siguiente/Atrás en espera = skip manual (+1/-1), fin del tildado
 var _tourWaitDir = 0;
@@ -261,13 +240,19 @@ function tourRender() {
   document.getElementById("tourCount").textContent = t("tut.step_of", { a: _tourIdx + 1, b: steps.length });
   var next = document.getElementById("tourNext");
   if (next) next.textContent = (_tourIdx >= steps.length - 1) ? t("tut.finish") : t("tut.next");
+  var back = document.getElementById("tourBack");
+  if (back) {
+    back.disabled = _tourIdx === 0;
+    back.style.visibility = _tourIdx === 0 ? "hidden" : "visible";
+  }
 }
 function tourOnView(view) {
   // ponytail: evita navigateToView + skeleton si ya estás ahí
   try {
     var map = { catalog: "catalogView", collections: "collectionManager", binder: "binderView",
       ventaCols: "ventaManager", venta: "ventaView", explore: "exploreView",
-      exploreDetail: "exploreDetailView", seller: "sellerView", tcgHome: "welcomeView", profile: "profileView" };
+      exploreDetail: "exploreDetailView", seller: "sellerView", tcgHome: "welcomeView", profile: "profileView",
+      messages: "messagesView" };
     var el = view && map[view] ? document.getElementById(map[view]) : null;
     return !!(el && el.classList.contains("active"));
   } catch (e) { return false; }
@@ -446,8 +431,12 @@ async function tourStep() {
   // ponytail: tarjeta con SU texto al instante (nunca la del paso anterior); el anillo llega después
   var card = document.getElementById("tourCard");
   card.setAttribute("data-sel", anchor || "");
+  card.setAttribute("aria-hidden", "false");
   card.style.display = "block";
   tourRender();
+  if (_tourIdx === 0) {
+    try { card.focus({ preventScroll: true }); } catch (e) { try { card.focus(); } catch (e2) {} }
+  }
   tourPlace(); // ponytail: posiciona SIEMPRE (con ancla o sin ella)
   tourWatchModal(step.needsModal);
   _tourWaiting = sels.length > 0;
@@ -518,7 +507,11 @@ function startTour(flow) {
   if (!TOUR_FLOWS[flow]) return;
   _tourSeq++; _tourBusy = false; _tourWaitCancel = 0; _tourWaitDir = 0; _tourWaiting = false; // ponytail: tour nuevo invalida renders viejos
   _tourFlow = flow; _tourIdx = 0;
-  try { console.info("[tour] v18", flow); } catch (e) {} // ponytail: detector anti-caché
+  try {
+    var active = document.activeElement;
+    if (!_tourPrevFocus || active !== document.getElementById("tourCard")) _tourPrevFocus = active;
+  } catch (e) { _tourPrevFocus = null; }
+  try { console.info("[tour] v23", flow); } catch (e) {} // ponytail: detector anti-caché
   // ponytail: when filtra al arrancar (numeración exacta); marca solo el fin
   try { _tourSteps = TOUR_FLOWS[flow].filter(tourWhenOk); } catch (e) { _tourSteps = TOUR_FLOWS[flow]; }
   tourStep();
@@ -529,7 +522,11 @@ function tourEnd(mark) {
   _tourFlow = null; _tourSteps = null;
   tourClearHi();
   var card = document.getElementById("tourCard");
-  if (card) card.style.display = "none";
+  try {
+    if (_tourPrevFocus && document.contains(_tourPrevFocus) && typeof _tourPrevFocus.focus === "function") _tourPrevFocus.focus();
+  } catch (e) {}
+  if (card) { card.style.display = "none"; card.setAttribute("aria-hidden", "true"); }
+  _tourPrevFocus = null;
 }
 // ─── Disparo: primera visita por sección + modales crear ────────────────────
 function tourSectionEnter(vista) {
@@ -538,12 +535,8 @@ function tourSectionEnter(vista) {
     if (!window._tourProfileReady) { window._tourPendingView = vista; return; } // ponytail: sin perfil, tourMode miente (off parece once)
     if (_tourFlow) {
       // ponytail: cambiaste de sección a mitad del tour → cierra sin marcar y arranca la que toca
-      var cur = _tourFlow;
-      _tourFlow = null; _tourSteps = null; _tourSeq++; _tourBusy = false;
-      tourClearHi();
-      var card = document.getElementById("tourCard");
-      if (card) card.style.display = "none";
-      if (cur) tourSectionEnter(vista);
+      tourEnd(false);
+      tourSectionEnter(vista);
       return;
     }
     if (!tourEnabled()) return;
@@ -564,6 +557,7 @@ function tourSectionEnter(vista) {
     else if (vista === "explore") flow = "explore";
     else if (vista === "exploreDetail") flow = "explore_detail";
     else if (vista === "profile") flow = "profile";
+    else if (vista === "messages") flow = "social";
     if (!flow || tourFlowSeen(flow)) return;
     // ponytail: catálogo sin destinos = nada que tocar en tap, igual enseña (deriva)
     startTour(flow);
