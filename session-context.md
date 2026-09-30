@@ -2,21 +2,24 @@
 
 ## Estado actual
 
-- Última actualización de contexto: 2026-09-26.
+- Última actualización de contexto: 2026-09-30.
 - App web SPA vanilla HTML/CSS/JS para administrar colecciones, decks, tracking y ventas de TCG.
 - Juegos actuales: One Piece, Riftbound y estructura incompleta para Pokémon.
 - Producción: Cloudflare Pages con deploy automático al hacer push a `master`.
-- Último estado estable registrado: commit `2275049` en `origin/master`.
+- La rama de producción es `origin/master`; confirmar su commit actual con Git antes de comparar o desplegar.
 - Desarrollo local con fallback SPA: `npm run dev`.
 - Idiomas de interfaz: español e inglés. El idioma de las cartas es independiente.
 
-## Cambios locales pendientes (2026-09-26)
+## Cambios recientes (2026-09-30)
 
-- Primera pasada Impeccable sin commit ni deploy.
+- Primera pasada Impeccable aplicada sobre la interfaz responsive.
 - Móvil: grillas limitadas a dos columnas, filtros adaptativos, shell sin overflow y superficies flotantes separadas de la navegación inferior.
 - Accesibilidad: diálogos con semántica ARIA, foco inicial/restaurado, focus trap y toasts anunciados.
 - Legibilidad: mínimo funcional `--text-xs` elevado a 11px y badges repetidos “Disponible” eliminados.
 - Verificado a 390px: documento sin overflow, cinco destinos inferiores visibles y catálogo en dos columnas.
+- Las opciones de visualización de cartas ahora calculan columnas y cantidad por página usando el ancho real del contenedor; el indicador ya no simula un escritorio de 1100px.
+- La densidad se guarda por contexto `mobile`, `tablet` y `desktop`, con migración única de la preferencia anterior y recálculo al redimensionar o rotar la pantalla.
+- Verificación del ajuste responsive: escritorio 8×48, móvil de 390px 2×12 y tablet 3 columnas para la preferencia probada. Pasaron `node --check`, el harness de cálculo y `git diff --check`; la validación visual automatizada no se ejecutó porque `agent-browser` no está instalado.
 
 ## Reglas operativas
 
@@ -112,7 +115,8 @@ La app restaura vista, IDs y páginas desde `sessionStorage` cuando no existe un
 - Tracking no aparece como destino rápido.
 - Deck conserva su flujo de buffer y confirmación.
 - Import/export de deck usa líneas `CANTIDAD SET-NUM Nombre`, valida líder, colores y topes.
-- Las opciones de vista permiten cambiar tamaño, filas por página o cantidad fija y se guardan localmente.
+- Las opciones de vista permiten ajustar la densidad de cartas o el tamaño de decks y se guardan localmente.
+- La preferencia de densidad de cartas es independiente para móvil, tablet y escritorio; el texto del selector siempre debe reflejar las columnas y la cantidad efectivas de la grilla visible.
 
 ### Borrador de edición
 

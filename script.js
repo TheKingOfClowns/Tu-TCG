@@ -97,7 +97,41 @@ const tcgList = [
   { id:"yugioh",      name:"Yu-Gi-Oh!",          color:"#c9a84c", short:"YG", logo:"assets/logos/yugioh.webp" },
 ];
 // ─── Helpers ──────────────────────────────────────────────────────────────
-// ponytail: la barra manda columnas/filas (0%→10×5, 100%→5×10); el px emerge. Móvil pinza columnas.
+// ponytail: densidad independiente por contexto; la grilla usa el ancho real y pinza columnas seguras.
+function cardViewBucket(viewportWidth) {
+  var viewport = (viewportWidth && viewportWidth > 0) ? viewportWidth : 1000;
+  return viewport < 768 ? "mobile" : viewport < 1024 ? "tablet" : "desktop";
+}
+function cardViewStorageKey(viewportWidth) {
+  return "tutcg_card_min_" + cardViewBucket(viewportWidth);
+}
+function readCardViewPreference(viewportWidth) {
+  var key = cardViewStorageKey(viewportWidth);
+  try {
+    var saved = parseInt(localStorage.getItem(key), 10);
+    if (!isNaN(saved)) return Math.max(0, Math.min(100, saved));
+
+    // Migración única: conserva la preferencia anterior en el primer contexto que abra el usuario.
+    if (localStorage.getItem("tutcg_card_min_migrated") !== "1") {
+      var legacy = parseInt(localStorage.getItem("tutcg_card_min"), 10);
+      var initial = isNaN(legacy) ? 50 : Math.max(0, Math.min(100, legacy));
+      localStorage.setItem(key, String(initial));
+      localStorage.setItem("tutcg_card_min_migrated", "1");
+      return initial;
+    }
+  } catch (e) {}
+  return 50;
+}
+function writeCardViewPreference(v, viewportWidth) {
+  var val = parseInt(v, 10);
+  if (isNaN(val)) val = 50;
+  val = Math.max(0, Math.min(100, val));
+  try {
+    localStorage.setItem(cardViewStorageKey(viewportWidth), String(val));
+    localStorage.setItem("tutcg_card_min_migrated", "1");
+  } catch (e) {}
+  return val;
+}
 function gridColsRows(v, w, viewportWidth) {
   var k = Math.max(0, Math.min(10, Math.round(((v == null || isNaN(v)) ? 50 : v) / 10)));
   var cols = 10 - Math.floor((k + 1) / 2);
@@ -114,8 +148,7 @@ function syncGridCols(container) {
   var measured = 0;
   try { measured = container ? container.getBoundingClientRect().width : 0; } catch (e) {}
   var w = measured > 0 ? Math.min(measured, viewport) : viewport;
-  var v = 50;
-  try { var s = parseInt(localStorage.getItem("tutcg_card_min"), 10); if (!isNaN(s)) v = s; } catch (e) {}
+  var v = readCardViewPreference(viewport);
   var g = gridColsRows(v, w, viewport);
   try { document.documentElement.style.setProperty("--grid-cols", String(g.cols)); } catch (e) {}
   return g;

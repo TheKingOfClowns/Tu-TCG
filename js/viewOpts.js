@@ -1,5 +1,5 @@
-// ─── View options popover (1 barra: tamaño; filas/columnas por fórmula, solo localStorage) ───
-// ponytail: un popover compartido; la barra manda columnas/filas, el px emerge. pageSizeFor() lee todo.
+// ─── View options popover (densidad adaptativa por tamaño de pantalla) ───
+// ponytail: un popover compartido; conserva preferencias separadas para móvil, tablet y escritorio.
 (function () {
   function snap10(v) {
     v = parseInt(v, 10);
@@ -41,8 +41,28 @@
     _voTimer = setTimeout(refreshVisibleView, 300);
   }
 
+  function activeCardGrid() {
+    if (vis("catalogView")) return document.getElementById("cards-container");
+    if (vis("collectionManager")) return document.getElementById("collectionList");
+    if (vis("ventaManager")) return document.getElementById("ventaList");
+    if (vis("binderView")) return document.getElementById("binderGrid");
+    if (vis("ventaView")) return document.getElementById("ventaGrid");
+    if (vis("exploreDetailView")) return document.querySelector("#exploreDetailContainer .explore-detail-grid");
+    if (vis("exploreView")) return document.getElementById("exploreGridContainer");
+    return null;
+  }
+
+  function viewportWidth() {
+    return Math.max(320, document.documentElement.clientWidth || window.innerWidth || 1000);
+  }
+
   function sizeHint(val) {
-    var g = (typeof gridColsRows === "function") ? gridColsRows(val, 1100) : { cols: 5, rows: 7, size: 35 };
+    var viewport = viewportWidth();
+    var grid = activeCardGrid();
+    var measured = 0;
+    try { measured = grid ? grid.getBoundingClientRect().width : 0; } catch (e) {}
+    var available = measured > 0 ? Math.min(measured, viewport) : viewport;
+    var g = (typeof gridColsRows === "function") ? gridColsRows(val, available, viewport) : { cols: 5, rows: 7, size: 35 };
     return t("view.size_hint", { c: g.cols, s: g.size });
   }
 
@@ -61,7 +81,7 @@
     var size = document.getElementById("viewOptsSize");
     size.addEventListener("input", function () {
       var v = snap10(size.value);
-      try { localStorage.setItem("tutcg_card_min", String(v)); } catch (e) {}
+      if (typeof writeCardViewPreference === "function") writeCardViewPreference(v, viewportWidth());
       document.getElementById("viewOptsSizeVal").textContent = sizeHint(v);
       refreshSoon();
     });
@@ -78,7 +98,7 @@
     var saved = function (key) {
       try { return localStorage.getItem(key); } catch (e) { return null; }
     };
-    var v = snap10(saved("tutcg_card_min"));
+    var v = snap10(typeof readCardViewPreference === "function" ? readCardViewPreference(viewportWidth()) : saved("tutcg_card_min"));
     document.getElementById("viewOptsSize").value = v;
     document.getElementById("viewOptsSizeVal").textContent = sizeHint(v);
     var d = parseInt(saved("tutcg_deck_min"), 10);
@@ -116,13 +136,23 @@
     }
   });
 
+  var _voResizeTimer = null;
+  window.addEventListener("resize", function () {
+    try { clearTimeout(_voResizeTimer); } catch (e) {}
+    _voResizeTimer = setTimeout(function () {
+      var panel = document.getElementById("viewOptsPanel");
+      if (panel && panel.style.display !== "none") syncPanel();
+    }, 250);
+  });
+
   // ponytail: aplica tamaños guardados al arrancar + limpia keys viejas de filas/count
   document.addEventListener("DOMContentLoaded", function () {
     try { localStorage.removeItem("tutcg_page_rows"); localStorage.removeItem("tutcg_page_size"); } catch (e) {}
     var saved = function (key) {
       try { return localStorage.getItem(key); } catch (e) { return null; }
     };
-    if (typeof applyCardSize === "function") applyCardSize(saved("tutcg_card_min"), false);
+    var cardSize = typeof readCardViewPreference === "function" ? readCardViewPreference(viewportWidth()) : saved("tutcg_card_min");
+    if (typeof applyCardSize === "function") applyCardSize(cardSize, false);
     if (typeof applyDeckSize === "function") applyDeckSize(saved("tutcg_deck_min"), false);
   });
 })();
